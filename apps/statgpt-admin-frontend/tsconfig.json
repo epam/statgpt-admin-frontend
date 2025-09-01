@@ -15,14 +15,18 @@
         "name": "next"
       }
     ],
-    "types": ["node", "@testing-library/jest-dom"]
+    "types": [
+      "node",
+      "@testing-library/jest-dom"
+    ]
   },
   "include": [
-    "next-env.d.ts",
+    "**/*.js",
+    "**/*.jsx",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.js",
-    "**/*.jsx"
+    "next-env.d.ts",
+    "../../dist/apps/statgpt-admin-frontend/.next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
