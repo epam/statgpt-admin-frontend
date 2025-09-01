@@ -3,6 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/statgpt-admin-frontend",
   "projectType": "application",
+  "tags": ["type:app"],
   "targets": {
     "build": {
       "executor": "@nx/next:build",
@@ -56,6 +57,5 @@
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"]
     }
-  },
-  "tags": ["type:app"]
+  }
 }

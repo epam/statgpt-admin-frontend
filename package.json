@@ -6,7 +6,8 @@
     "start": "nx serve statgpt-admin-frontend --port=4100",
     "test": "nx run-many -t test",
     "build": "nx run-many -t build",
-    "lint": "nx run-many -t lint"
+    "lint": "nx run-many -t lint",
+    "format": "nx run-many -t format"
   },
   "private": true,
   "dependencies": {
