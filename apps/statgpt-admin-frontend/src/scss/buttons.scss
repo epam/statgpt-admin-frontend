@@ -1,0 +1,52 @@
+@mixin base-button {
+  @include small-medium;
+  @apply flex flex-row items-center;
+  height: 38px;
+  @apply rounded pl-3 pr-3;
+
+  svg {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@mixin base-button-disable {
+  @apply pointer-events-none text-primary;
+  background-color: $gray-500;
+}
+
+.primary {
+  @include base-button;
+  @apply bg-accent-primary;
+  color: $gray-100;
+
+  &:hover {
+    background-color: $blue-700;
+  }
+
+  &:focus {
+    border-color: $gray-200;
+  }
+
+  &:disabled {
+    @include base-button-disable;
+  }
+}
+
+.secondary {
+  @include base-button;
+  @apply border border-solid bg-transparent;
+
+  color: $gray-100;
+  border-color: $gray-600;
+
+  &:hover {
+    @apply bg-layer-4;
+  }
+}
+
+.tertiary {
+  @include base-button;
+  @apply text-accent-primary bg-transparent;
+}

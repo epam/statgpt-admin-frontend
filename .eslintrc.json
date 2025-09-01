@@ -1,0 +1,59 @@
+{
+  "root": true,
+  "ignorePatterns": ["**/*"],
+  "plugins": ["@nx"],
+  "extends": ["plugin:@nx/react-typescript", "next", "next/core-web-vitals"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "rules": {
+        "@nx/enforce-module-boundaries": [
+          "off",
+          {
+            "enforceBuildableLibDependency": true,
+            "allow": [],
+            "depConstraints": [
+              {
+                "sourceTag": "*",
+                "onlyDependOnLibsWithTags": ["*"]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*.ts", "*.tsx"],
+      "extends": ["plugin:@nx/typescript"],
+      "rules": {
+        "import/no-cycle": "error",
+        "import/export": "error",
+        "import/no-unresolved": "off",
+        "import/no-duplicates": ["error"],
+        "no-var": "error",
+        "@typescript-eslint/no-unused-vars": "error",
+        "no-debugger": "error",
+        "@typescript-eslint/no-useless-constructor": "error",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "no-console": [
+          "off",
+          {
+            "allow": ["warn", "error"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*.js", "*.jsx"],
+      "extends": ["plugin:@nx/javascript"],
+      "rules": {}
+    },
+    {
+      "files": ["*.spec.ts", "*.spec.tsx", "*.spec.js", "*.spec.jsx"],
+      "env": {
+        "jest": true
+      },
+      "rules": {}
+    }
+  ]
+}

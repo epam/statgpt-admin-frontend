@@ -1,0 +1,41 @@
+@import '../../scss/colors.scss';
+@import '../../scss/common.scss';
+
+.modal {
+  &__wrapper {
+    @apply h-screen w-screen top-0 fixed;
+    @apply flex items-center justify-center;
+    background: $blue-700-alpha;
+    z-index: 100;
+  }
+
+  @apply flex flex-col items-center bg-layer-3;
+  border-radius: 3px;
+  box-shadow: 0px 0px 5px 0px $blue-300-alpha;
+
+  width: calc(100vw - 0.5rem);
+  max-width: 80%;
+  max-height: calc(100vh - 2rem);
+
+  &__header {
+    @apply flex flex-col relative;
+    @include border-common;
+
+    svg {
+      @apply cursor-pointer;
+      width: 24px;
+      height: 24px;
+      @apply text-secondary;
+    }
+  }
+
+  &__body {
+    @apply w-full flex-1 min-h-0 overflow-auto;
+  }
+
+  &__header,
+  &__footer {
+    @apply w-full;
+    @include padding-common;
+  }
+}
