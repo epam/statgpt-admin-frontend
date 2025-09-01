@@ -22,14 +22,10 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# COPY --from=builder /app/public ./public
-
-# RUN mkdir .next
-# RUN chown nextjs:nodejs .next
 
 COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/statgpt-admin-frontend ./
-COPY --from=builder --chown=nextjs:nodejs /app/yarn.lock ./
-# COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/package-lock.json ./
+
 RUN npm install
 
 USER nextjs
