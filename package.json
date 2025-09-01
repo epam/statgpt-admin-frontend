@@ -42,8 +42,6 @@
     "@nx/next": "21.4.1",
     "@nx/workspace": "21.4.1",
     "@svgr/webpack": "^8.1.0",
-    "@swc-node/register": "1.11.1",
-    "@swc/core": "1.5.29",
     "@swc/helpers": "0.5.17",
     "@testing-library/react": "^16.3.0",
     "@types/jest": "30.0.0",
