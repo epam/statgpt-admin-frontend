@@ -52,7 +52,7 @@ export default defineConfig([
 
     rules: {
       '@next/next/no-html-link-for-pages': 'off',
-
+      '@typescript-eslint/triple-slash-reference': 'off',
       '@nx/enforce-module-boundaries': [
         'error',
         {
