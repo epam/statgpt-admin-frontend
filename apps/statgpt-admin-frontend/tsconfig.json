@@ -15,10 +15,7 @@
         "name": "next"
       }
     ],
-    "types": [
-      "node",
-      "@testing-library/jest-dom"
-    ]
+    "types": ["node"]
   },
   "include": [
     "**/*.js",
@@ -28,10 +25,5 @@
     "next-env.d.ts",
     "../../dist/apps/statgpt-admin-frontend/.next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts",
-    "**/*.test.ts",
-    "**/*.config.ts"
-  ]
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts", "**/*.config.ts"]
 }
