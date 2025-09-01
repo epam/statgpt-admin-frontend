@@ -16,7 +16,6 @@ const AutocompleteField: FC<Props> = ({
   elementId,
   optional,
   onChange,
-  errorText,
   ...props
 }) => {
   return (

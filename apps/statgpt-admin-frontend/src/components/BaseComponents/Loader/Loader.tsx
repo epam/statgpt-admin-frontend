@@ -24,7 +24,6 @@ interface Props {
   containerClassName?: string;
 }
 
-
 const LoaderSmall: FC<Props> = ({
   size = 18,
   loaderClassName = '',

@@ -72,7 +72,7 @@ export const streamRequest = async (
     });
     return new Response(steam);
   } catch (e) {
-    console.log('Error', e);
+    console.error('Error', e);
     return new Promise(() => null);
   }
 };
@@ -96,17 +96,16 @@ export const sendRequest = async <T extends object, R>(
       },
     }).then((r) => {
       if (!(r.status >= 200 && r.status < 300)) {
-        console.log('Request error Url', r.url);
+        console.error('Request error Url', r.url);
 
         return r.text().then((text) => {
-          console.log('Request error', r.status, text);
+          console.error('Request error', r.status, text);
           return null;
         });
       }
       return (type === 'DELETE' ? r.text() : r.json()) as Promise<R>;
     });
-  } catch (e) {
-    console.log('Error', e);
+  } catch {
     return new Promise(() => null);
   }
 };

@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, FC } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  FC,
+} from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import NotificationPortal from '@/src/components/Notification/NotificationPortal';
@@ -15,7 +21,9 @@ const DEFAULT_DURATION = 60000;
 
 const NotificationContext = createContext<NotificationManager | null>(null);
 
-export const NotificationProvider: FC<{ children: ReactNode }> = ({ children }) => {
+export const NotificationProvider: FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [notifications, setNotifications] = useState<NotificationConfig[]>([]);
 
   const showNotification = (notification: Notification) => {
@@ -48,15 +56,22 @@ export const NotificationProvider: FC<{ children: ReactNode }> = ({ children }) 
   };
 
   return (
-    <NotificationContext.Provider value={{ showNotification, removeNotification }}>
+    <NotificationContext.Provider
+      value={{ showNotification, removeNotification }}
+    >
       {children}
-      {notifications.length > 0 && <NotificationPortal notifications={notifications} />}
+      {notifications.length > 0 && (
+        <NotificationPortal notifications={notifications} />
+      )}
     </NotificationContext.Provider>
   );
 };
 
 export const useNotification = () => {
   const context = useContext(NotificationContext);
-  if (!context) throw new Error('useNotification must be used within a NotificationProvider');
+  if (!context)
+    throw new Error(
+      'useNotification must be used within a NotificationProvider',
+    );
   return context;
 };

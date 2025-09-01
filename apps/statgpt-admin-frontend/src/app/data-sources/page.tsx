@@ -9,10 +9,7 @@ import { Menu } from '@/src/constants/menu';
 import { DataSource } from '@/src/models/data-source';
 import { RequestData } from '@/src/models/request-data';
 import { logger } from '@/src/server/logger';
-import {
-  getIsInvalidSession,
-  getUserToken
-} from '@/src/utils/auth/get-token';
+import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 
 export const dynamic = 'force-dynamic';

@@ -8,10 +8,7 @@ import Replay from '@/public/icons/replay.svg';
 import { exportChannel } from '@/src/app/channels/actions';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { GridView } from '@/src/components/GridView/GridView';
-import {
-  ACTION_COLUMN,
-  EntityOperation,
-} from '@/src/constants/columns/action';
+import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { Menu } from '@/src/constants/menu';
 import { useNotification } from '@/src/context/NotificationContext';
 import { DataSet } from '@/src/models/data-sets';

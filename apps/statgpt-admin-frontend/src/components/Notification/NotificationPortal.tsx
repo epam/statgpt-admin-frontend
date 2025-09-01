@@ -3,7 +3,10 @@ import { createPortal } from 'react-dom';
 
 import DynamicNotification from '@/src/components/Notification/DynamicNotification';
 import Notification from '@/src/components/Notification/Notification';
-import { NotificationConfig, NotificationType } from '@/src/models/notification';
+import {
+  NotificationConfig,
+  NotificationType,
+} from '@/src/models/notification';
 
 interface Props {
   notifications: NotificationConfig[];

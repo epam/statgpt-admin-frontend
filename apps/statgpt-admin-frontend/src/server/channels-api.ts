@@ -113,7 +113,6 @@ export class ChannelsApi extends BaseApi {
         return this.get(CHANNELS_JOB_ID_URL(id), token);
       }),
       filter((res) => {
-        console.log('Preparing job', (res as Job).status);
         return (
           (res as Job).status === JobStatus.COMPLETED ||
           (res as Job).status === JobStatus.FAILED

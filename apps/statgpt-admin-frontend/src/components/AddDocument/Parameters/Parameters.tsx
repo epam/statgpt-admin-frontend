@@ -6,10 +6,7 @@ import {
   DocumentMetadataDimension,
   DocumentMetadataProperties,
 } from '@/src/models/document';
-import {
-  getDocumentParamName,
-  isMetadataComplete,
-} from '@/src/utils/document';
+import { getDocumentParamName, isMetadataComplete } from '@/src/utils/document';
 import DropdownParameter from './DropdownParameter';
 import MultiselectParameter from './MultiselectParameter';
 
