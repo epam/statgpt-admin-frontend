@@ -52,7 +52,6 @@ export default defineConfig([
 
     rules: {
       '@next/next/no-html-link-for-pages': 'off',
-      'react-hooks/exhaustive-deps': 'error',
 
       '@nx/enforce-module-boundaries': [
         'error',
