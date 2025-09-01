@@ -24,6 +24,7 @@ export default defineConfig([
     '**/**.config.mjs',
     '**/jest.config.ts',
     '**/**.spec.ts',
+    '**/**.d.ts',
     '**/**.spec.tsx',
   ]),
   {
@@ -49,7 +50,6 @@ export default defineConfig([
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
-
     rules: {
       '@next/next/no-html-link-for-pages': 'off',
       '@typescript-eslint/triple-slash-reference': 'off',
