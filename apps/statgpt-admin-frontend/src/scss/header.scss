@@ -1,0 +1,15 @@
+@layer base {
+  header {
+    @apply font-light;
+    font-size: 18px;
+    line-height: 22px;
+
+    .gradient {
+      @apply font-semibold;
+
+      background: linear-gradient(90deg, #00dbde 0%, #fc00ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+}

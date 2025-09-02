@@ -1,0 +1,110 @@
+.ag-grid {
+  &__action-column {
+    padding: 0 !important;
+  }
+}
+
+.ag-root-wrapper {
+  font-family: Inter !important;
+  border: 1px solid;
+  @apply border-primary #{!important};
+
+  .ag-header {
+    .ag-header-viewport,
+    .ag-pinned-left-header {
+      .ag-floating-filter {
+        input {
+          @include input;
+          height: 22px !important;
+          margin: 0 !important;
+        }
+      }
+      .ag-header-cell {
+        @apply bg-layer-1 small font-semibold;
+        @apply text-secondary border-r border-solid border-primary #{!important};
+
+        &:hover {
+          @apply bg-layer-1 #{!important};
+          @apply border-r border-solid border-primary #{!important};
+        }
+      }
+    }
+  }
+
+  .ag-selection-checkbox {
+    @apply m-0;
+  }
+
+  .ag-row-hover {
+    .ag-grid__action-column {
+      svg {
+        @apply text-accent-primary #{!important};
+      }
+    }
+  }
+
+  .ag-checked,
+  .ag-indeterminate,
+  .ag-checkbox-input-wrapper {
+    display: block;
+    width: 18px;
+    height: 18px;
+    margin-left: -2px;
+    border: 1px solid;
+    border-radius: 2px !important;
+    background-repeat: no-repeat;
+
+    box-shadow: none;
+    &::after {
+      content: '' !important;
+    }
+  }
+
+  .ag-checked {
+    border: none;
+    background-image: url('/icons/checkbox-checked.svg') !important;
+  }
+
+  .ag-indeterminate {
+    border: none;
+    background-image: url('/icons/checkbox-indeterminate.svg') !important;
+  }
+
+  .ag-pinned-left-cols-container {
+    .ag-checkbox-input-wrapper {
+      margin-bottom: 7px !important;
+      margin-right: 5px !important;
+    }
+  }
+
+  .ag-body-viewport {
+    @apply bg-layer-2;
+
+    .ag-row-selected {
+      .ag-cell {
+        @apply bg-accent-primary-alpha #{!important};
+      }
+    }
+
+    .ag-row-hover {
+      .ag-cell {
+        @apply bg-accent-primary-alpha border-r-accent-primary-hover #{!important};
+      }
+    }
+    .ag-row {
+      border: none;
+
+      &.ag-row-odd .ag-cell {
+        @apply bg-layer-2;
+      }
+      .ag-cell {
+        @apply text-primary small;
+        padding-top: 6px;
+        border: 0;
+        @apply truncate bg-layer-3;
+        border-right: 1px solid;
+        @apply border-primary;
+      }
+    }
+  }
+}

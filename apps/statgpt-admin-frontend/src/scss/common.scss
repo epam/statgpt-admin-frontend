@@ -1,0 +1,17 @@
+@import './font.scss';
+
+@mixin border-common {
+  @apply border-b border-solid border-b-tertiary;
+}
+
+@mixin padding-common {
+  padding: 16px 24px;
+}
+
+@tailwind components;
+
+@layer components {
+  .common-paddings {
+    padding: 16px 24px;
+  }
+}

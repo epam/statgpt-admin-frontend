@@ -1,0 +1,24 @@
+@import '../../../scss/common.scss';
+
+.column {
+  @apply flex items-center justify-center w-full relative;
+
+  svg {
+    width: 16px;
+    height: 16px;
+
+    path {
+      fill: currentColor;
+    }
+  }
+}
+
+.action {
+  @apply flex small items-center w-full cursor-pointer;
+
+  svg {
+    @apply text-secondary;
+    width: 18px;
+    height: 18px;
+  }
+}

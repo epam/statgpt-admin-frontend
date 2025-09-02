@@ -1,0 +1,20 @@
+@import './colors.scss';
+@import './font.scss';
+@import './common.scss';
+@import './buttons.scss';
+@import './input.scss';
+@import './grid.scss';
+@import './scroll.scss';
+@import 'header.scss';
+
+h1 {
+  @include heading-1;
+}
+
+h2 {
+  @include heading-2;
+}
+
+h3 {
+  @include heading-3;
+}

@@ -1,0 +1,54 @@
+@import '../../scss/font.scss';
+@import '../../scss/common.scss';
+
+.step {
+  @apply flex flex-col mr-2 cursor-pointer flex-1;
+  @apply tiny text-secondary;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &_active,
+  &_completed {
+    @apply text-primary;
+  }
+
+  &_active {
+    .step__line,
+    .step__circle {
+      @apply bg-accent-primary;
+    }
+  }
+
+  &_invalid {
+    .step__line,
+    .step__circle {
+      @apply bg-error;
+    }
+  }
+
+  &_completed {
+    .step__line,
+    .step__circle {
+      @apply bg-accent-secondary;
+    }
+  }
+
+  &__line {
+    @apply w-full bg-layer-4;
+    height: 2px;
+  }
+
+  &__content {
+    @apply flex flex-row mt-2 items-center;
+  }
+
+  &__circle {
+    @apply flex items-center justify-center mr-2 bg-layer-4;
+    width: 22px;
+    height: 22px;
+    border-radius: 100%;
+  }
+}
