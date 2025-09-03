@@ -1,0 +1,18 @@
+name: Release Workflow
+
+on:
+  push:
+    branches: [development, release-*]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    uses: epam/ai-dial-ci/.github/workflows/node_release.yml@2.4.1
+    secrets:
+      ACTIONS_BOT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DOCKERHUB_LOGIN: ${{ secrets.DOCKERHUB_LOGIN }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
