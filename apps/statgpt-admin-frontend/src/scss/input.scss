@@ -9,17 +9,16 @@
   }
 
   &:hover {
-    @apply cursor-pointer;
-    border-color: $gray-200;
+    @apply border-hover;
   }
 
-  &:focus {
-    border-color: $blue-500 !important;
+  &:focus,
+  &:focus-within {
+    @apply border-accent-primary;
   }
 
   &:disabled {
-    @apply pointer-events-none;
-    color: $gray-600;
+    @apply bg-layer-3 text-secondary;
   }
 }
 

@@ -1,18 +1,17 @@
-**Description:**
+### Applicable issues
 
-<SHORT_DESCRIPTION>
+<!-- Please link the GitHub issues related to this PR (You can reference an issue using # then number, e.g. #123) -->
 
-Issues:
+- fixes #
 
-- Issue #<TICKET_ID>
+### Description of changes
 
-**UI changes**
+<!-- Please explain the changes you made right below this line. -->
 
-<Please, provide Screenshots or Figma links>
+### Checklist
 
-**Checklist:**
+<!-- [Place an '[X]' (no spaces) in all applicable fields. Please remove unrelated fields.] -->
 
-- [ ] the pull request name complies with [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
-- [ ] the pull request name starts with `fix:`, `feat:`, `feature:`, `chore:`, `hotfix:` or `e2e:`. If contains breaking changes then the pull request name must start with `fix!:`, `feat!:`, `feature!:`, `chore!:`, `hotfix!:` or `e2e!:`.
-- [ ] the pull request name ends with `(Issue #<TICKET_ID>)` (comma-separated list of issues)
-- [ ] I confirm that do not share any confidential information like API keys or any other secrets and private URLs
+- [ ] Title of the pull request follows [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/)
+
+By submitting this pull request, I confirm that my contribution is made under the terms of the MIT license.

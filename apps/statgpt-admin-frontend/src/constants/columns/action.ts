@@ -7,6 +7,7 @@ export enum EntityOperation {
   RecalculateIndex = 'Recalculate indexes',
   Export = 'Export',
   Terms = 'Glossary',
+  Jobs = 'Jobs',
   Edit = 'Edit',
 }
 

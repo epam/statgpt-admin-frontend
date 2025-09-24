@@ -1,7 +1,6 @@
 import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
 
-import ArrowLeft from '@/public/icons/arrow-left.svg';
 import { getMetaData, uploadFile } from '@/src/app/documents/action';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { FieldWithInput } from '@/src/components/BaseComponents/Fields/FieldWithInput';
@@ -12,6 +11,8 @@ import { DocumentMetadata } from '@/src/models/document';
 import { Step } from '@/src/models/step';
 import { Parameters } from './Parameters/Parameters';
 import { BaseStep } from '@/src/constants/steps';
+import { IconArrowLeft } from '@tabler/icons-react';
+import { BASE_ICON_PROPS } from '@/src/constants/layout';
 
 interface Props {
   close: () => void;
@@ -108,7 +109,7 @@ export const AddDocumentModal: FC<Props> = ({ close }) => {
             <Button
               cssClass="secondary"
               title="Back"
-              icon={<ArrowLeft />}
+              icon={<IconArrowLeft {...BASE_ICON_PROPS} />}
               onClick={() => setActiveStep(BaseStep.Properties)}
             />
           )}

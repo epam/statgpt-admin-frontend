@@ -1,12 +1,13 @@
 import { FC, useCallback } from 'react';
-import { IconTrashX } from '@tabler/icons-react';
-
-import Download from '@/public/icons/download.svg';
+import {
+  IconDownload,
+  IconList,
+  IconPencilMinus,
+  IconRefreshDot,
+  IconTrashX,
+} from '@tabler/icons-react';
 import Terms from '@/public/icons/glossary.svg';
-import Edit from '@/public/icons/edit.svg';
-import Replay from '@/public/icons/replay.svg';
 import { EntityOperation } from '@/src/constants/columns/action';
-import styles from '../action-column.module.scss';
 
 interface Props {
   item: EntityOperation;
@@ -14,16 +15,20 @@ interface Props {
 
 export const ActionItem: FC<Props> = ({ item }) => {
   const getIcon = useCallback(() => {
-    if (item === EntityOperation.Configure) {
-      return <Edit />;
+    if (item === EntityOperation.Configure || item === EntityOperation.Edit) {
+      return <IconPencilMinus width={18} height={18} />;
     }
 
     if (item === EntityOperation.RecalculateIndex) {
-      return <Replay />;
+      return <IconRefreshDot width={18} height={18} />;
     }
 
     if (item === EntityOperation.Export) {
-      return <Download />;
+      return <IconDownload width={18} height={18} />;
+    }
+
+    if (item === EntityOperation.Jobs) {
+      return <IconList width={18} height={18} />;
     }
 
     if (item === EntityOperation.Terms) {
@@ -35,9 +40,9 @@ export const ActionItem: FC<Props> = ({ item }) => {
 
   return (
     <>
-      <div className={styles.action}>
+      <div className="flex small items-center w-full cursor-pointer text-secondary">
         {getIcon()}
-        <span className="ml-2">{item}</span>
+        <span className="ml-2 text-primary">{item}</span>
       </div>
     </>
   );

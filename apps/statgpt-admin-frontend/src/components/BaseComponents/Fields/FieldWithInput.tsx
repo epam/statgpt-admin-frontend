@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
-import { Input } from '@/src/components/BaseComponents/Input/Input';
+import Input from '@/src/components/BaseComponents/Input/Input';
+import Field from '@/src/components/BaseComponents/Fields/Field';
 
 interface Props {
   title: string;
@@ -19,11 +20,10 @@ export const FieldWithInput: FC<Props> = ({
 }) => {
   return (
     <div className="flex flex-col mb-2 tiny text-secondary">
-      <div className="mb-1 flex items-center">
-        {title}
-        <div className="ml-1 text-accent-primary">{required ? '*' : null}</div>
-      </div>
+      <Field htmlFor={title} fieldTitle={title} optional={!required} />
+
       <Input
+        inputId={title}
         value={inputValue}
         placeholder={inputPlaceholder}
         onChange={(v) => onChange(v)}

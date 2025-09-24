@@ -3,8 +3,6 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import Download from '@/public/icons/download.svg';
-import Replay from '@/public/icons/replay.svg';
 import { exportChannel } from '@/src/app/channels/actions';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { GridView } from '@/src/components/GridView/GridView';
@@ -24,6 +22,7 @@ import {
   RELOAD_ALL_DATASETS_CHANNEL_URL,
 } from '@/src/server/channels-api';
 import { AddDatasets } from '../AddDataSets/AddDataSets';
+import { IconDownload, IconRefreshDot } from '@tabler/icons-react';
 
 interface Props {
   selectedChannelId?: string;
@@ -147,14 +146,14 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           <Button
             title="Export"
             cssClass="secondary mr-3"
-            icon={<Download />}
+            icon={<IconDownload width={18} height={18} />}
             onClick={() => exportEntity()}
           />
 
           <Button
             title="Recalculate all indexes"
             cssClass="secondary mr-3"
-            icon={<Replay />}
+            icon={<IconRefreshDot width={18} height={18} />}
             onClick={() => recalculateIndexes()}
           />
           <Button

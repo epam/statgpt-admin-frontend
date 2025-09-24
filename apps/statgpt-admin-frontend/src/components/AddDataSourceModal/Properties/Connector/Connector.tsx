@@ -26,7 +26,7 @@ export const Connector: FC<Props> = ({ dsTypes, changeDsType }) => {
   return (
     <div className="lex-1 min-h-0 flex flex-col common-paddings border-b border-solid border-b-tertiary">
       <div className="mb-3 small">Connector</div>
-      <div className="flex flex-row">
+      <div className="flex flex-row gap-3">
         {dsTypes.map((type, i) => (
           <DataSourceTypeItem
             type={type}
