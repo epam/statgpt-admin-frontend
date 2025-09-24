@@ -2,7 +2,7 @@ import { FC } from 'react';
 
 import ChevronRight from '@/public/icons/chevron-right.svg';
 import { Breadcrumb } from '@/src/models/breadcrumbs';
-import { BreadcrumbItem } from './Breadcrumb/Breadcrumb';
+import { BreadcrumbItem } from './Breadcrumb';
 
 interface Props {
   breadcrumbs: Breadcrumb[];

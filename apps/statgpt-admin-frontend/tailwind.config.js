@@ -17,6 +17,16 @@ const backgroundsColors = {
   'control-enable-secondary': 'var(--control-enable-secondary, #FCFCFC)',
 };
 
+const buttonsBgColors = {
+  'controls-accent': 'var(--controls-bg-accent, #5C8DEA)',
+  'controls-accent-hover': 'var(--controls-bg-accent-hover, #4878D2)',
+  'controls-accent-alpha': 'var(--controls-bg-accent-alpha, #5C8DEA2B)',
+  'controls-secondary': 'var(--controls-secondary, #333942)',
+  'controls-disable': 'var(--controls-bg-disable, #7F8792)',
+  'controls-enable-primary': 'var(--controls-enable-primary, #FCFCFC)',
+  'controls-enable-secondary': 'var(--controls-enable-secondary, #FCFCFC)',
+};
+
 const borderColors = {
   transparent: 'transparent',
   primary: 'var(--stroke-primary, #333942)',
@@ -32,6 +42,7 @@ const borderColors = {
 
 const textColors = {
   transparent: 'transparent',
+  white: 'var(--text-white, #FFFFFF)',
   primary: 'var(--text-primary, #F3F4F6)',
   secondary: 'var(--text-secondary, #7F8792)',
   error: 'var(--text-error, #F76464)',
@@ -40,6 +51,12 @@ const textColors = {
   'accent-tertiary': 'var(--text-accent-tertiary, #A972FF)',
   'controls-permanent': 'var(--controls-text-permanent, #FCFCFC)',
   'controls-disable': 'var(--controls-text-disable, #333942)',
+};
+
+const buttonsTextColors = {
+  'controls-primary': 'var(--controls-primary, #FCFCFC)',
+  'controls-accent': 'var(--controls-accent, #5c8dea)',
+  'controls-disable': 'var(--controls-disable, #333942)',
 };
 
 const iconColors = {
@@ -59,11 +76,11 @@ module.exports = {
     './src/features/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-    backgroundColor: backgroundsColors,
+    backgroundColor: { ...backgroundsColors, ...buttonsBgColors },
     borderColor: borderColors,
     stroke: borderColors,
     divideColor: borderColors,
-    textColor: { ...textColors, ...iconColors },
+    textColor: { ...textColors, ...iconColors, ...buttonsTextColors },
     gradientColorStops: backgroundsColors,
     extend: {
       animation: {

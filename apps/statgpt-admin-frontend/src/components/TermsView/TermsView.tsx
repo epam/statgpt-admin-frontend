@@ -14,7 +14,7 @@ import { GridView } from '@/src/components/GridView/GridView';
 import { EntityOperation } from '@/src/constants/columns/action';
 import { ChannelTerm } from '@/src/models/channel';
 import { GridOptions } from 'ag-grid-community';
-import { ActionColumn } from './ActionColumn/ActionColumn';
+import { TermsActionColumn } from './ActionColumn/ActionColumn';
 import { AddTerm } from './AddTerm';
 
 interface Props {
@@ -83,7 +83,7 @@ export const TermsView: FC<Props> = ({ selectedChannelId }) => {
     {
       width: 32,
       maxWidth: 32,
-      cellRenderer: ActionColumn,
+      cellRenderer: TermsActionColumn,
       cellClass: 'ag-grid__action-column',
       cellRendererParams: {
         remove: remove,

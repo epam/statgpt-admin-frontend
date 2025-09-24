@@ -1,9 +1,9 @@
+import { IconDots } from '@tabler/icons-react';
 import { CustomCellRendererProps } from 'ag-grid-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FC, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import More from '@/public/icons/more-horizontal.svg';
 import { exportChannel, removeChannel } from '@/src/app/channels/actions';
 import { removeDocument } from '@/src/app/documents/action';
 import {
@@ -12,22 +12,18 @@ import {
 } from '@/src/components/BaseComponents/Dropdown/DropdownMenu';
 import { DeleteConfirmationModal } from '@/src/components/DeleteConfirmationModal/DeleteConfirmationModal';
 import { EditDataEntity } from '@/src/components/EditDataEntity/EditDataEntity';
+import { ActionItem } from '@/src/components/GridView/ActionColumn/ActionItem';
 import { EntityOperation } from '@/src/constants/columns/action';
+import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { Menu } from '@/src/constants/menu';
-import { useNotification } from '@/src/context/NotificationContext';
 import { BaseEntity, BaseEntityWithDetails } from '@/src/models/base-entity';
 import { DataSet } from '@/src/models/data-sets';
-import { NotificationType } from '@/src/models/notification';
 import { sendDeleteRequest, sendPostRequest } from '@/src/server/api';
 import { CHANNEL_DATA_SETS_URL } from '@/src/server/channels-api';
 import { RELOAD_DIMENSIONS_DATA_SETS_WITH_ID_URL } from '@/src/server/data-sets-api';
-import { ActionItem } from './ActionItem/ActionItem';
-import {
-  getDeleteDescription,
-  getDeleteTitle,
-  getUrl,
-} from './ActionItem/utils';
-import styles from './action-column.module.scss';
+import { getDeleteDescription, getDeleteTitle, getUrl } from './utils';
+import { useNotification } from '@/src/context/NotificationContext';
+import { NotificationType } from '../../../models/notification';
 
 interface Props extends CustomCellRendererProps {
   items: EntityOperation[];
@@ -46,10 +42,9 @@ export const ActionColumn: FC<Props> = ({
   const pathname = usePathname();
 
   const [, setIsOpen] = useState(false);
-  const { showNotification, removeNotification } = useNotification();
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
-
+  const { showNotification, removeNotification } = useNotification();
   const confirmDelete = () => {
     if (listView === Menu.DOCUMENTS) {
       removeDocument(data.id).then(() => {
@@ -131,11 +126,11 @@ export const ActionColumn: FC<Props> = ({
   return (
     <>
       <DropdownMenu
-        className={styles.column}
+        className="flex items-center justify-center w-full relative"
         onOpenChange={setIsOpen}
         width={200}
         type="contextMenu"
-        trigger={<More />}
+        trigger={<IconDots {...BASE_ICON_PROPS} widths={16} height={16} />}
       >
         {items.map((item, i) => (
           <DropdownMenuItem
@@ -147,12 +142,12 @@ export const ActionColumn: FC<Props> = ({
                 setIsOpenDeleteModal(true);
               }
 
-              if (item === EntityOperation.Configure) {
-                setIsOpenEditModal(true);
-              }
-
               if (item === EntityOperation.Export) {
                 exportEntity();
+              }
+
+              if (item === EntityOperation.Configure) {
+                setIsOpenEditModal(true);
               }
 
               if (item === EntityOperation.RecalculateIndex) {
@@ -161,6 +156,10 @@ export const ActionColumn: FC<Props> = ({
 
               if (item === EntityOperation.Terms) {
                 router.push(`/channels/${data.id}/glossary`);
+              }
+
+              if (item === EntityOperation.Jobs) {
+                router.push(`/channels/${data.id}/jobs`);
               }
             }}
           />

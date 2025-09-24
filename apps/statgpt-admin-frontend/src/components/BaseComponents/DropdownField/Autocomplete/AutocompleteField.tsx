@@ -3,7 +3,7 @@
 import { FC } from 'react';
 
 import { InputFieldBaseProps } from '@/src/components/BaseComponents/DropdownField/dropdown.model';
-import Field from '@/src/components/BaseComponents/Field/Field';
+import Field from '@/src/components/BaseComponents/Fields/Field';
 import DropdownAutocomplete from './DropdownAutocomplete';
 
 interface Props extends InputFieldBaseProps {
@@ -16,6 +16,7 @@ const AutocompleteField: FC<Props> = ({
   elementId,
   optional,
   onChange,
+  errorText,
   ...props
 }) => {
   return (

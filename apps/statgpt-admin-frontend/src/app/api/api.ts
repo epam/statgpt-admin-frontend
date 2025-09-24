@@ -4,15 +4,15 @@ import { DataSourcesApi } from '@/src/server/data-sources-api';
 import { DocumentsApi } from '@/src/server/documents-api';
 
 export const dataSourcesApi = new DataSourcesApi({
-  host: 'http://localhost:51705/admin',
+  host: process.env.API_URL || '',
 });
 
 export const channelsApi = new ChannelsApi({
-  host: 'http://localhost:51705/admin',
+  host: process.env.API_URL || '',
 });
 
 export const dataSetsApi = new DataSetsApi({
-  host: 'http://localhost:51705/admin',
+  host: process.env.API_URL || '',
 });
 
 export const documentsApi = new DocumentsApi({

@@ -1,8 +1,9 @@
 import { FC } from 'react';
 
-import ArrowLeft from '@/public/icons/arrow-left.svg';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { BaseStep } from '@/src/constants/steps';
+import { IconArrowLeft } from '@tabler/icons-react';
+import { BASE_ICON_PROPS } from '@/src/constants/layout';
 
 interface Props {
   close: () => void;
@@ -25,7 +26,7 @@ export const ModalButtons: FC<Props> = ({
         <Button
           cssClass="secondary"
           title="Back"
-          icon={<ArrowLeft />}
+          icon={<IconArrowLeft {...BASE_ICON_PROPS} />}
           onClick={() => setActiveStep(BaseStep.Properties)}
         />
       )}

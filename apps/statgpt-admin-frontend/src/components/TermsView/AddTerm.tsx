@@ -1,8 +1,8 @@
 import { FC } from 'react';
 
 import { FieldWithInput } from '@/src/components/BaseComponents/Fields/FieldWithInput';
-import { ChannelTerm } from '../../models/channel';
-import { FieldWithTextarea } from '../BaseComponents/Fields/FieldWithTextarea';
+import { ChannelTerm } from '@/src/models/channel';
+import { FieldWithTextarea } from '@/src/components/BaseComponents/Fields/FieldWithTextarea';
 
 interface Props {
   term: ChannelTerm;
