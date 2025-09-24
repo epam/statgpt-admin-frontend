@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 
-import Field from '@/src/components/BaseComponents/Field/Field';
+import Field from '@/src/components/BaseComponents/Fields/Field';
 import { Dropdown } from './Dropdown';
 import { DropdownItemsModel, InputFieldBaseProps } from './dropdown.model';
 import { DropdownProps } from './DropdownComponent';

@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
 import { Textarea } from '@/src/components/BaseComponents/Textarea/Textarea';
+import Field from '@/src/components/BaseComponents/Fields/Field';
 
 interface Props {
   title: string;
@@ -23,10 +24,8 @@ export const FieldWithTextarea: FC<Props> = ({
     <div
       className={`flex flex-col mb-2 tiny text-secondary ${cssClassName != null ? cssClassName : ''}`}
     >
-      <div className="mb-1 flex items-center">
-        {title}
-        <div className="ml-1 text-accent-primary">{required ? '*' : null}</div>
-      </div>
+      <Field htmlFor={title} fieldTitle={title} optional={!required} />
+
       <Textarea
         value={inputValue}
         placeholder={inputPlaceholder}

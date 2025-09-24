@@ -27,7 +27,7 @@ export const Header = () => {
   }
 
   if (postfix != null && postfix !== '') {
-    breadcrumbs.push({ name: 'Terms' });
+    breadcrumbs.push({ name: postfix === 'jobs' ? 'Jobs' : 'Terms' });
   }
 
   return (

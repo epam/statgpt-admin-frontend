@@ -52,6 +52,15 @@ export async function getChannelTerms(id: string) {
   return channelsApi.getChannelTerms(id, token);
 }
 
+export async function getChannelJobs(id: string) {
+  const token = await getUserToken(
+    getIsEnableAuthToggle(),
+    headers(),
+    cookies(),
+  );
+  return channelsApi.getChannelJobs(id, token);
+}
+
 export async function addTerm(id: string, term: ChannelTerm) {
   const token = await getUserToken(
     getIsEnableAuthToggle(),

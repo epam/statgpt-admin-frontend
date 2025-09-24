@@ -11,7 +11,7 @@ interface Props {
   cssClassHeader?: string;
   children: React.ReactNode[];
 }
-
+// TODO: remove Modal component and use ModalView.tsx instead
 export const Modal: FC<Props> = ({
   title,
   close,

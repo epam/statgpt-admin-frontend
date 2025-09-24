@@ -46,7 +46,9 @@ export default async function RootLayout({
               <Header />
 
               <div className="flex flex-row h-full">
-                <MenuSideBar />
+                <MenuSideBar
+                  disableMenuItems={process.env.DISABLE_MENU_ITEMS}
+                />
                 <div className="flex-1 min-w-0 p-4">{children}</div>
               </div>
             </div>

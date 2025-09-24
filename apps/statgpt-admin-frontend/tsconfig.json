@@ -5,6 +5,7 @@
     "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "resolveJsonModule": true,
@@ -15,15 +16,17 @@
         "name": "next"
       }
     ],
-    "types": ["node"]
+    "types": ["jest", "node"]
   },
   "include": [
-    "**/*.js",
-    "**/*.jsx",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
+    "../../apps/statgpt-admin-frontend/.next/types/**/*.ts",
+    "../../dist/apps/statgpt-admin-frontend/.next/types/**/*.ts",
     "next-env.d.ts",
-    "../../dist/apps/statgpt-admin-frontend/.next/types/**/*.ts"
+    ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts", "**/*.config.ts"]
+  "exclude": ["node_modules", "jest.config.ts", "**/*.spec.ts", "**/*.test.ts"]
 }

@@ -12,7 +12,7 @@ interface Props {
 export const DataSourceTypeItem: FC<Props> = ({ type, isActive, onClick }) => {
   return (
     <div
-      className={`tiny border border-solid p-3 rounded border-primary flex-1 max-w-[310px] min-h-[110px] hover:cursor-pointer ${isActive ? 'border-accent-primary' : ''}`}
+      className={`tiny border border-solid p-3 rounded border-primary flex-1 max-w-[310px] hover:cursor-pointer ${isActive ? 'border-accent-primary' : ''}`}
       onClick={() => onClick()}
     >
       <div className="flex flex-row w-full items-center">

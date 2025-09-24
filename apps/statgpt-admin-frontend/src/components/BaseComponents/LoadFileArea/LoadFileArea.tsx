@@ -3,8 +3,8 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { IconTrashX } from '@tabler/icons-react';
 
-import Field from '@/src/components/BaseComponents/Field/Field';
-import InputWithIcon from '../Input copy/InputWithIcon';
+import Field from '@/src/components/BaseComponents/Fields/Field';
+import InputWithIcon from '../Input/InputWithIcon';
 import EmptyFileArea from './EmptyFileArea';
 
 interface LoadFileAreaProps {
@@ -35,7 +35,7 @@ export const LoadFileArea: FC<LoadFileAreaProps> = ({
           onChangeFile(void 0);
         }}
       >
-        return <IconTrashX width={18} height={18} />;
+        <IconTrashX width={18} height={18} />
       </button>
     );
   };

@@ -1,81 +1,81 @@
 # https://github.com/epam/ai-dial-ci/blob/2.4.1/actions/build_docker/action.yml
 # This version has modified values for maintainer and org.opencontainers.image.licenses
 
-name: "Build docker"
-description: "Build a docker image, tag it, (optionally) scan it, and (optionally) push it to Dockerhub and GHCR"
+name: 'Build docker'
+description: 'Build a docker image, tag it, (optionally) scan it, and (optionally) push it to Dockerhub and GHCR'
 inputs:
   bypass-checks:
-    description: "Do not fail pipeline if checks failed"
-    default: "false"
+    description: 'Do not fail pipeline if checks failed'
+    default: 'false'
   push-enabled:
-    description: "Push the image to registry(ies)"
+    description: 'Push the image to registry(ies)'
     required: false
-    default: "false"
+    default: 'false'
   trivy-enabled:
-    description: "Enable Trivy scanning"
+    description: 'Enable Trivy scanning'
     required: false
-    default: "true"
+    default: 'true'
   trivy-severity:
-    description: "Severities of vulnerabilities to fail the build"
+    description: 'Severities of vulnerabilities to fail the build'
     required: false
-    default: "CRITICAL,HIGH"
+    default: 'CRITICAL,HIGH'
   trivy-severity-for-sarif:
-    description: "Severities of vulnerabilities in SARIF report"
+    description: 'Severities of vulnerabilities in SARIF report'
     required: false
-    default: "CRITICAL,HIGH"
+    default: 'CRITICAL,HIGH'
   trivy-limit-severities-for-sarif:
-    description: "Limit severities for SARIF format"
+    description: 'Limit severities for SARIF format'
     required: false
-    default: "true"
+    default: 'true'
   trivy-vuln-type:
-    description: "Type of vulnerabilities to scan"
+    description: 'Type of vulnerabilities to scan'
     required: false
-    default: "os,library"
+    default: 'os,library'
   trivy-ignore-unfixed:
-    description: "Ignore unpatched/unfixed vulnerabilities"
+    description: 'Ignore unpatched/unfixed vulnerabilities'
     required: false
-    default: "true"
+    default: 'true'
   image-name:
-    description: "Name of the image to build"
+    description: 'Name of the image to build'
     required: true
   image-tag:
-    description: "Tag of the image to build"
+    description: 'Tag of the image to build'
     required: true
   image-extra-aliases:
-    description: "Extra aliases for the image, e.g. to publish to multiple registries"
+    description: 'Extra aliases for the image, e.g. to publish to multiple registries'
     required: false
-    default: ""
+    default: ''
   ghcr-username:
-    description: "GitHub Container Registry username. This is required for pushing to GitHub Container Registry"
+    description: 'GitHub Container Registry username. This is required for pushing to GitHub Container Registry'
     required: false
     default: ${{ github.actor }}
   ghcr-password:
-    description: "GitHub Container Registry password/token. This is required for pushing to GitHub Container Registry"
+    description: 'GitHub Container Registry password/token. This is required for pushing to GitHub Container Registry'
     required: false
-    default: ""
+    default: ''
   dockerhub-username:
-    description: "Docker Hub username. This is required for pushing to Docker Hub"
+    description: 'Docker Hub username. This is required for pushing to Docker Hub'
     required: false
-    default: ""
+    default: ''
   dockerhub-password:
-    description: "Docker Hub password/token. This is required for pushing to Docker Hub"
+    description: 'Docker Hub password/token. This is required for pushing to Docker Hub'
     required: false
-    default: ""
+    default: ''
   gpr-username:
-    description: "GitHub Package Registry username (for pulling packages from image being built)"
+    description: 'GitHub Package Registry username (for pulling packages from image being built)'
     required: false
     default: ${{ github.actor }}
   gpr-password:
     required: false
-    description: "GitHub Package Registry password/token (for pulling packages from image being built)"
-    default: ""
+    description: 'GitHub Package Registry password/token (for pulling packages from image being built)'
+    default: ''
   platforms:
     required: false
-    description: "Docker build platforms (default linux/amd64)"
-    default: "linux/amd64"
+    description: 'Docker build platforms (default linux/amd64)'
+    default: 'linux/amd64'
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Setup Docker Qemu
       uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
@@ -127,10 +127,10 @@ runs:
       if: ${{ fromJSON(inputs.trivy-enabled) && !github.event.repository.private }} # workaround for composite jobs not being able to pass boolean inputs
       uses: aquasecurity/trivy-action@7aca5acc9500b463826cc47a47a65ad7d404b045 # TODO: v0.31.0+
       with:
-        image-ref: "${{ inputs.image-name }}:${{ inputs.image-tag }}"
-        format: "sarif"
-        exit-code: "0"
-        output: "trivy-results.sarif"
+        image-ref: '${{ inputs.image-name }}:${{ inputs.image-tag }}'
+        format: 'sarif'
+        exit-code: '0'
+        output: 'trivy-results.sarif'
         ignore-unfixed: ${{ inputs.trivy-ignore-unfixed }}
         vuln-type: ${{ inputs.trivy-vuln-type }}
         severity: ${{ inputs.trivy-severity-for-sarif }}
@@ -143,7 +143,7 @@ runs:
       if: ${{ !cancelled() && fromJSON(inputs.trivy-enabled) && !github.event.repository.private }} # workaround for composite jobs not being able to pass boolean inputs
       uses: github/codeql-action/upload-sarif@60168efe1c415ce0f5521ea06d5c2062adbeed1b #v3.28.17
       with:
-        sarif_file: "trivy-results.sarif"
+        sarif_file: 'trivy-results.sarif'
         category: trivy
       env:
         CONTINUE_ON_ERROR: ${{ inputs.bypass-checks }} # Hack to use the input below as a boolean
@@ -152,9 +152,9 @@ runs:
       if: ${{ fromJSON(inputs.trivy-enabled) }} # workaround for composite jobs not being able to pass boolean inputs
       uses: aquasecurity/trivy-action@7aca5acc9500b463826cc47a47a65ad7d404b045 # TODO: v0.31.0+
       with:
-        image-ref: "${{ inputs.image-name }}:${{ inputs.image-tag }}"
-        format: "table"
-        exit-code: "1"
+        image-ref: '${{ inputs.image-name }}:${{ inputs.image-tag }}'
+        format: 'table'
+        exit-code: '1'
         ignore-unfixed: ${{ inputs.trivy-ignore-unfixed }}
         vuln-type: ${{ inputs.trivy-vuln-type }}
         severity: ${{ inputs.trivy-severity }}
