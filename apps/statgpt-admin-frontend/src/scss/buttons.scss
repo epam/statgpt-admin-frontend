@@ -1,52 +1,66 @@
-@mixin base-button {
-  @include small-medium;
-  @apply flex flex-row items-center;
-  height: 38px;
-  @apply rounded pl-3 pr-3;
+@layer components {
+  .base-button {
+    @apply flex flex-row items-center px-3 py-2;
+    @apply rounded border border-solid border-transparent;
+    @apply small-medium;
 
-  svg {
-    margin-right: 8px;
-    width: 18px;
-    height: 18px;
-  }
-}
-
-@mixin base-button-disable {
-  @apply pointer-events-none text-primary;
-  background-color: $gray-500;
-}
-
-.primary {
-  @include base-button;
-  @apply bg-accent-primary;
-  color: $gray-100;
-
-  &:hover {
-    background-color: $blue-700;
+    min-width: 38px;
+    min-height: 38px;
   }
 
-  &:focus {
-    border-color: $gray-200;
+  .base-button-disable {
+    @apply pointer-events-none text-controls-disable bg-controls-disable;
   }
 
-  &:disabled {
-    @include base-button-disable;
+  .primary {
+    @apply base-button bg-controls-accent text-controls-primary;
+
+    &:hover,
+    &:focus {
+      @apply bg-controls-accent-hover;
+    }
+
+    &:focus {
+      @apply border-hover;
+    }
+
+    &:disabled {
+      @apply base-button-disable;
+    }
   }
-}
 
-.secondary {
-  @include base-button;
-  @apply border border-solid bg-transparent;
+  .secondary {
+    @apply base-button bg-transparent text-primary;
+    @apply border-primary;
 
-  color: $gray-100;
-  border-color: $gray-600;
+    &:hover,
+    &:focus {
+      @apply bg-layer-4;
+    }
 
-  &:hover {
-    @apply bg-layer-4;
+    &:focus {
+      @apply border-hover;
+    }
+
+    &:disabled {
+      @apply base-button-disable;
+    }
   }
-}
 
-.tertiary {
-  @include base-button;
-  @apply text-accent-primary bg-transparent;
+  .tertiary {
+    @apply base-button text-accent-primary bg-transparent;
+
+    &:hover,
+    &:focus {
+      @apply bg-controls-accent-alpha;
+    }
+
+    &:focus {
+      @apply border-accent-primary;
+    }
+
+    &:disabled {
+      @apply base-button-disable;
+    }
+  }
 }

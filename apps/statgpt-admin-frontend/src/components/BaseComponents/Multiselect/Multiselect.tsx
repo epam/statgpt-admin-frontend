@@ -1,6 +1,6 @@
 import { FC, useCallback, useState } from 'react';
 
-import Field from '@/src/components/BaseComponents/Field/Field';
+import Field from '@/src/components/BaseComponents/Fields/Field';
 import InputModal from '@/src/components/BaseComponents/InputModal/InputModal';
 import { PopUpState } from '@/src/types/modal';
 import MultiselectModal from './MultiselectModal';

@@ -29,6 +29,7 @@ export const CHANNELS_COLUMNS: ColDef[] = [
   ACTION_COLUMN(Menu.CHANNELS, [
     EntityOperation.Configure,
     EntityOperation.Terms,
+    EntityOperation.Jobs,
     EntityOperation.Delete,
     EntityOperation.Export,
   ]),

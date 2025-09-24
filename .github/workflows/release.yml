@@ -9,11 +9,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMAGE_NAME: "epam/statgpt-admin-frontend"
+  IMAGE_NAME: 'epam/statgpt-admin-frontend'
 
 jobs:
   test:
-    uses: epam/ai-dial-ci/.github/workflows/node_test.yml@2.4.1
+    uses: epam/ai-dial-ci/.github/workflows/node_test.yml@2.6.0
     with:
       bypass-checks: false
       format-checks-enabled: true
@@ -24,8 +24,8 @@ jobs:
       code-checks-bypassed: false
       ort-enabled: true
       ort-bypassed: false
-      ort-version: "latest"
-      node-version: "22"
+      ort-version: 'latest'
+      node-version: '22'
       runs-on: '["ubuntu-24.04"]'
 
   calculate_version:
@@ -35,7 +35,7 @@ jobs:
       is-latest: ${{ steps.semantic_versioning.outputs.is-latest }}
       latest-tag: ${{ steps.semantic_versioning.outputs.latest-tag }}
     steps:
-      - uses: epam/ai-dial-ci/actions/semantic_versioning@2.4.1
+      - uses: epam/ai-dial-ci/actions/semantic_versioning@2.6.0
         id: semantic_versioning
 
   release:
@@ -51,15 +51,15 @@ jobs:
         uses: AdityaGarg8/remove-unwanted-software@90e01b21170618765a73370fcc3abbd1684a7793 # v5
         if: false # Maximize build space by removing unwanted software if set to true
         with:
-          remove-android: "true"
-          remove-dotnet: "true"
-          remove-haskell: "true"
-          remove-codeql: "true"
-          remove-docker-images: "true"
-          remove-cached-tools: "true"
-          remove-large-packages: "true"
+          remove-android: 'true'
+          remove-dotnet: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+          remove-cached-tools: 'true'
+          remove-large-packages: 'true'
 
-      - uses: epam/ai-dial-ci/actions/generate_release_notes@2.4.1
+      - uses: epam/ai-dial-ci/actions/generate_release_notes@2.6.0
         with:
           latest-tag: ${{ needs.calculate_version.outputs.latest-tag }}
 
@@ -68,11 +68,11 @@ jobs:
           lfs: true
           token: ${{ secrets.ACTIONS_BOT_TOKEN }}
 
-      - uses: epam/ai-dial-ci/actions/node_prepare@2.4.1
+      - uses: epam/ai-dial-ci/actions/node_prepare@2.6.0
         with:
-          node-version: "22"
+          node-version: '22'
           clean-install: true
-          registry-url: "https://registry.npmjs.org"
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Set version
         shell: bash
@@ -90,10 +90,10 @@ jobs:
           push-enabled: true
           trivy-enabled: true
           bypass-checks: false
-          trivy-severity: "CRITICAL,HIGH"
-          trivy-severity-for-sarif: "CRITICAL,HIGH"
+          trivy-severity: 'CRITICAL,HIGH'
+          trivy-severity-for-sarif: 'CRITICAL,HIGH'
           trivy-limit-severities-for-sarif: true
-          platforms: "linux/amd64"
+          platforms: 'linux/amd64'
           image-extra-aliases: |
             ${{ env.IMAGE_NAME }}:${{ needs.calculate_version.outputs.next-version }}
             ${{ github.ref == 'refs/heads/development' && format('{0}:{1}', env.IMAGE_NAME, 'development') || ''}}
@@ -101,10 +101,10 @@ jobs:
             ${{ startsWith(github.ref, 'refs/heads/release-') && needs.calculate_version.outputs.is-latest == 'true' && format('{0}:{1}', env.IMAGE_NAME, 'latest') || ''}}
             ${{ startsWith(github.ref, 'refs/heads/release-') && needs.calculate_version.outputs.is-latest == 'true' && format('{0}/{1}:{2}', 'ghcr.io', env.IMAGE_NAME, 'latest') || ''}}
 
-      - uses: epam/ai-dial-ci/actions/publish_tag_release@2.4.1
+      - uses: epam/ai-dial-ci/actions/publish_tag_release@2.6.0
         with:
           tag-version: ${{ needs.calculate_version.outputs.next-version }}
-          changelog-file: "/tmp/my_changelog" # Comes from generate_release_notes step
+          changelog-file: '/tmp/my_changelog' # Comes from generate_release_notes step
           extra-commit-command: |
             git config --global user.name "statgpt-actions"
             git config --global user.email "231008922+statgpt-actions@users.noreply.github.com"

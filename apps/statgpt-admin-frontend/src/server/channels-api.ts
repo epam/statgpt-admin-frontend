@@ -15,6 +15,7 @@ import { DataSet } from '@/src/models/data-sets';
 import { RequestData } from '@/src/models/request-data';
 import { MAIN_API } from './api';
 import { BaseApi } from './base-api';
+import { Job, JobStatus } from '@/src/models/job';
 
 export const CHANNELS_URL = `${MAIN_API}/channels`;
 export const CHANNELS_IMPORT_URL = `${CHANNELS_URL}/import`;
@@ -30,6 +31,9 @@ export const CHANNEL_ID_URL = (id?: string | number): string =>
 
 export const CHANNEL_TERMS_URL = (id?: string | number): string =>
   `${CHANNEL_ID_URL(id)}/terms`;
+
+export const CHANNEL_JOBS_URL = (id?: string | number): string =>
+  `${CHANNEL_ID_URL(id)}/jobs`;
 
 export const CHANNEL_ID_EXPORT_URL = (id?: string | number): string =>
   `${CHANNEL_ID_URL(id)}/export`;
@@ -113,6 +117,7 @@ export class ChannelsApi extends BaseApi {
         return this.get(CHANNELS_JOB_ID_URL(id), token);
       }),
       filter((res) => {
+        console.log('Preparing job', (res as Job).status);
         return (
           (res as Job).status === JobStatus.COMPLETED ||
           (res as Job).status === JobStatus.FAILED
@@ -137,6 +142,12 @@ export class ChannelsApi extends BaseApi {
   ): Promise<ChannelTerm[] | null> {
     return this.get(`${CHANNEL_TERMS_URL(id)}?limit=1000&offset=0`, token).then(
       (res) => (res as { data: ChannelTerm[] }).data,
+    );
+  }
+
+  getChannelJobs(id: string, token: JWT | null): Promise<Job[] | null> {
+    return this.get(`${CHANNEL_JOBS_URL(id)}?limit=1000&offset=0`, token).then(
+      (res) => (res as { data: Job[] }).data,
     );
   }
 
@@ -248,17 +259,4 @@ export class ChannelsApi extends BaseApi {
   removeChannel(id: string, token: JWT | null): Promise<unknown> {
     return this.delete(`${CHANNELS_URL}/${id}`, token);
   }
-}
-
-interface Job {
-  id: number;
-  status: JobStatus;
-  reason_for_failure: string;
-}
-
-enum JobStatus {
-  QUEUED = 'QUEUED',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-  IN_PROGRESS = 'IN_PROGRESS',
 }

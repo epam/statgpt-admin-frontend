@@ -1,6 +1,7 @@
 ### Applicable issues
 
 <!-- Please link the GitHub issues related to this PR (You can reference an issue using # then number, e.g. #123) -->
+
 - fixes #
 
 ### Description of changes

@@ -1,17 +1,16 @@
-@import '../../scss/colors.scss';
 @import '../../scss/common.scss';
 
 .modal {
   &__wrapper {
     @apply h-screen w-screen top-0 fixed;
-    @apply flex items-center justify-center;
-    background: $blue-700-alpha;
+    @apply flex items-center justify-center bg-accent-primary-alpha;
+
     z-index: 100;
   }
 
   @apply flex flex-col items-center bg-layer-3;
   border-radius: 3px;
-  box-shadow: 0px 0px 5px 0px $blue-300-alpha;
+  box-shadow: 0px 0px 5px 0px transparentize(#090d13, 0.7);
 
   width: calc(100vw - 0.5rem);
   max-width: 80%;

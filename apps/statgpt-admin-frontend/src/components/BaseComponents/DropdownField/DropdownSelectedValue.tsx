@@ -1,10 +1,8 @@
 import { FC } from 'react';
 
-import ChevronDown from '@/public/icons/chevron-down.svg';
-import ChevronUp from '@/public/icons/chevron-up.svg';
-
 import classNames from 'classnames';
 import { DropdownItemsModel } from './dropdown.model';
+import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 
 interface Props {
   selectedValue?: DropdownItemsModel;
@@ -83,24 +81,18 @@ export const DropdownSelectedItem: FC<Props> = ({
       ) : (
         <span className={placeholderClassNames}> {placeholder}</span>
       )}
-      {placeholderClass ? (
-        <div className={placeholderClass}>
-          {' '}
-          {isOpen ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </div>
-      ) : (
-        <div className={disabled ? 'text-secondary' : ''}>
-          {isOpen ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </div>
-      )}
+      <div
+        className={classNames(
+          placeholderClass,
+          disabled ? 'text-secondary' : '',
+        )}
+      >
+        {isOpen ? (
+          <IconChevronUp className="w-4 h-4" />
+        ) : (
+          <IconChevronDown className="w-4 h-4" />
+        )}
+      </div>
     </div>
   );
 };

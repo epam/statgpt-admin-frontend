@@ -1,5 +1,3 @@
-@tailwind base;
-
 @layer base {
   ::-webkit-scrollbar-track,
   ::-webkit-scrollbar-track:hover,
@@ -22,7 +20,7 @@
   }
 
   :hover {
-    scrollbar-color: $gray-600 transparent;
+    scrollbar-color: var(--bg-layer-4, #333942) transparent;
   }
 
   .divide-y > :empty ~ :not([hidden]) {
