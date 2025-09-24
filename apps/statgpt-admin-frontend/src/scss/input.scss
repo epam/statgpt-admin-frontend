@@ -1,0 +1,89 @@
+@mixin input {
+  @apply small border border-solid w-full mb-3 border-primary;
+
+  border-radius: 3px;
+  background-color: transparent;
+
+  &:not(:placeholder-shown) {
+    @apply text-primary;
+  }
+
+  &:hover {
+    @apply border-hover;
+  }
+
+  &:focus,
+  &:focus-within {
+    @apply border-accent-primary;
+  }
+
+  &:disabled {
+    @apply bg-layer-3 text-secondary;
+  }
+}
+
+input,
+textarea {
+  @include input;
+  height: 38px;
+}
+
+input {
+  padding: 0px 12px !important;
+  &.input__error {
+    @apply text-primary border-error;
+  }
+}
+
+textarea {
+  min-height: 72px;
+  padding: 8px 12px !important;
+}
+
+@layer components {
+  .input {
+    @apply border border-solid border-primary rounded outline-0;
+    @apply bg-transparent tiny truncate;
+    @apply px-3 py-2 w-full;
+
+    &:not(:placeholder-shown) {
+      @apply text-primary;
+    }
+
+    &:hover {
+      @apply cursor-pointer border-hover;
+    }
+
+    &:focus {
+      @apply border-accent-primary;
+    }
+
+    &:disabled {
+      @apply input-disable;
+    }
+  }
+
+  .input-error {
+    @apply border-error;
+  }
+
+  .input-disable {
+    @apply pointer-events-none;
+    @apply bg-layer-3 text-secondary;
+  }
+
+  .input-field {
+    @apply h-[38px];
+  }
+}
+
+input {
+  @apply input;
+  -moz-appearance: textfield; /* Firefox */
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
