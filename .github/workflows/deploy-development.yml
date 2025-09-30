@@ -4,7 +4,7 @@ on:
   workflow_dispatch: # manual run
   registry_package: # on new package version (main path)
   workflow_run: # HACK: redundant trigger to mitigate GitHub's huge delays in registry_package event processing
-    workflows: ["Release Workflow"]
+    workflows: ['Release Workflow']
     types:
       - completed
 
@@ -16,9 +16,9 @@ jobs:
       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'development')
     uses: epam/ai-dial-ci/.github/workflows/deploy-development.yml@2.6.0
     with:
-      gitlab-project-id: "2657"
-      gitlab-project-ref: "main"
-      environment-name: "development"
+      gitlab-project-id: '2657'
+      gitlab-project-ref: 'main'
+      environment-name: 'development'
     secrets:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
       DEPLOY_ACCESS_TOKEN: ${{ secrets.DEPLOY_ACCESS_TOKEN }}
