@@ -30,7 +30,7 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '1500mb', // 1.5GB
+      bodySizeLimit: '3072mb', // 3 GB for import/export functions
     },
   },
   poweredByHeader: false,
