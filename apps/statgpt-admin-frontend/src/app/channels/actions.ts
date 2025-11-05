@@ -25,6 +25,15 @@ export async function getChannel(id: string) {
   return channelsApi.getChannel(id, token);
 }
 
+export async function deduplicateDataset(id: string) {
+  const token = await getUserToken(
+    getIsEnableAuthToggle(),
+    headers(),
+    cookies(),
+  );
+  return channelsApi.deduplicateDataset(id, token);
+}
+
 export async function removeChannel(id: string) {
   const token = await getUserToken(
     getIsEnableAuthToggle(),

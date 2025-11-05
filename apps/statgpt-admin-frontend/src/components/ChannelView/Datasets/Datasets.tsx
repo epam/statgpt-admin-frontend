@@ -3,7 +3,7 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { exportChannel } from '@/src/app/channels/actions';
+import { deduplicateDataset, exportChannel } from '@/src/app/channels/actions';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { GridView } from '@/src/components/GridView/GridView';
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
@@ -22,7 +22,7 @@ import {
   RELOAD_ALL_DATASETS_CHANNEL_URL,
 } from '@/src/server/channels-api';
 import { AddDatasets } from '../AddDataSets/AddDataSets';
-import { IconDownload, IconRefreshDot } from '@tabler/icons-react';
+import { IconCopy, IconDownload, IconRefreshDot } from '@tabler/icons-react';
 
 interface Props {
   selectedChannelId?: string;
@@ -107,6 +107,16 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     }
   }, []);
 
+  const deduplicate = useCallback(() => {
+    deduplicateDataset(selectedChannelId as string).then(() => {
+      showNotification({
+        type: NotificationType.success,
+        title: 'Deduplication in progress',
+        description: 'The deduplication runs in the background',
+      });
+    });
+  }, []);
+
   useEffect(() => {
     if (selectedChannelId != null && selectedChannelDataSets.length === 0) {
       updateDataSet();
@@ -148,6 +158,13 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
             cssClass="secondary mr-3"
             icon={<IconDownload width={18} height={18} />}
             onClick={() => exportEntity()}
+          />
+
+          <Button
+            title="Deduplicate"
+            cssClass="secondary mr-3"
+            icon={<IconCopy width={18} height={18} />}
+            onClick={() => deduplicate()}
           />
 
           <Button
