@@ -15,7 +15,7 @@ export const RELOAD_DIMENSIONS_DATA_SETS_WITH_ID_URL = (id?: string | number) =>
 
 export class DataSetsApi extends BaseApi {
   getDataSets(token: JWT | null): Promise<RequestData<DataSet> | null> {
-    return this.get(DATA_SETS_URL, token);
+    return this.get(`${DATA_SETS_URL}?limit=500`, token);
   }
 
   createDataSet(
