@@ -203,7 +203,7 @@ export class ChannelsApi extends BaseApi {
     id: string,
     token: JWT | null,
   ): Promise<RequestData<DataSet> | null> {
-    return this.get(CHANNEL_DATA_SETS_URL(id), token);
+    return this.get(`${CHANNEL_DATA_SETS_URL(id)}?limit=500`, token);
   }
 
   deduplicateDataset(
