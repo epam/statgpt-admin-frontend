@@ -22,7 +22,7 @@ export const Button: FC<Props> = ({
       onClick={() => onClick?.()}
       disabled={disable}
     >
-      {icon}
+      <p className="mr-2"> {icon}</p>
       {title}
     </button>
   );

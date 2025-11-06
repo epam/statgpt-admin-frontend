@@ -41,6 +41,9 @@ export const CHANNEL_ID_EXPORT_URL = (id?: string | number): string =>
 export const CHANNEL_DATA_SETS_URL = (id: string | number): string =>
   `${CHANNEL_ID_URL(id)}/datasets`;
 
+export const CHANNEL_DEDUPLICATE_URL = (id: string | number): string =>
+  `${CHANNEL_DATA_SETS_URL(id)}/deduplicate`;
+
 export const RELOAD_ALL_DATASETS_CHANNEL_URL = (id: string | number): string =>
   `${CHANNEL_DATA_SETS_URL(id)}/reload-indicators`;
 
@@ -201,6 +204,13 @@ export class ChannelsApi extends BaseApi {
     token: JWT | null,
   ): Promise<RequestData<DataSet> | null> {
     return this.get(CHANNEL_DATA_SETS_URL(id), token);
+  }
+
+  deduplicateDataset(
+    id: string,
+    token: JWT | null,
+  ): Promise<RequestData<DataSet> | null> {
+    return this.get(CHANNEL_DEDUPLICATE_URL(id), token);
   }
 
   removeChannelDataset(
