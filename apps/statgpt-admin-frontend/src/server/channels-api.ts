@@ -210,7 +210,7 @@ export class ChannelsApi extends BaseApi {
     id: string,
     token: JWT | null,
   ): Promise<RequestData<DataSet> | null> {
-    return this.get(CHANNEL_DEDUPLICATE_URL(id), token);
+    return this.post(CHANNEL_DEDUPLICATE_URL(id), {}, void 0, token);
   }
 
   removeChannelDataset(
