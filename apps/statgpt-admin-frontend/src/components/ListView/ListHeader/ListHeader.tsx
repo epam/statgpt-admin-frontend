@@ -4,13 +4,13 @@ import { useRouter } from 'next/navigation';
 import { FC, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { importChannel } from '@/src/app/channels/actions';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { Menu } from '@/src/constants/menu';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '@/src/models/notification';
 import { AddEntityModal } from '../AddEntityModal';
 import { ImportChannelModal } from './ImportChannelModal';
+import { sendPostRequest } from '../../../server/api';
 
 interface Props {
   title: string;
@@ -35,19 +35,20 @@ export const ListHeader: FC<Props> = ({ title, count }) => {
     const formData = new FormData();
     formData.append('file', files[0], files[0].name);
 
-    importChannel(formData, updateDatasets, updateDataSources, cleanUp).then(
-      (res) => {
-        if (res.ok) {
-          router.refresh();
-        } else {
-          showNotification({
-            type: NotificationType.error,
-            title: 'Import Failed',
-            description: (res as { res: string }).res,
-          });
-        }
-      },
-    );
+    sendPostRequest(
+      `/api/channels/import?updateDatasets=${updateDatasets}&updateDataSources=${updateDataSources}&cleanUp=${cleanUp}`,
+      formData,
+    ).then((res) => {
+      if ((res as { ok: boolean }).ok) {
+        router.refresh();
+      } else {
+        showNotification({
+          type: NotificationType.error,
+          title: 'Import Failed',
+          description: (res as { res: string }).res,
+        });
+      }
+    });
   };
 
   return (
