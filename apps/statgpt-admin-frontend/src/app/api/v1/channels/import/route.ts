@@ -3,7 +3,6 @@ import { NextRequest } from 'next/server';
 import { channelsApi } from '@/src/app/api/api';
 
 export const runtime = 'nodejs';
-export const maxBodySize = '3000mb';
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
