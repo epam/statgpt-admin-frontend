@@ -18,5 +18,5 @@ export async function POST(req: NextRequest) {
     updateDataSources,
     cleanUp,
     token,
-  );
+  ) as any;
 }
