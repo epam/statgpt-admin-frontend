@@ -33,7 +33,7 @@ export const InputWithIcon: FC<Props> = ({
   return (
     <div
       className={classNames(
-        'border border-solid border-primary rounded flex flex-row items-center p-0 hover:border-hover',
+        'border border-solid border-primary rounded flex flex-row gap-y-4 items-center p-0 hover:border-hover',
         iconAfterInput ? 'pr-2' : '',
         iconBeforeInput ? 'pl-2' : '',
         props.disabled ? 'bg-layer-3 text-secondary' : '',
@@ -42,7 +42,7 @@ export const InputWithIcon: FC<Props> = ({
     >
       {iconBeforeInput}
       <Input
-        cssClass={classNames('border-0 bg-transparent outline-0', cssClass)}
+        cssClass={classNames('border-0 bg-transparent outline-0 m-0', cssClass)}
         {...props}
       />
       {iconAfterInput}

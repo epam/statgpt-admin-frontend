@@ -114,23 +114,3 @@ export async function exportChannel(id: string) {
   );
   return channelsApi.exportChannel(id, token);
 }
-
-export async function importChannel(
-  formData: FormData,
-  updateDatasets: boolean,
-  updateDataSources: boolean,
-  cleanUp: boolean,
-) {
-  const token = await getUserToken(
-    getIsEnableAuthToggle(),
-    headers(),
-    cookies(),
-  );
-  return channelsApi.importChannel(
-    formData,
-    updateDatasets,
-    updateDataSources,
-    cleanUp,
-    token,
-  );
-}
