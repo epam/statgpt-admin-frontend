@@ -11,14 +11,13 @@ export async function POST(req: NextRequest) {
   const updateDataSources = search.get('updateDataSources') === 'true';
   const cleanUp = search.get('cleanUp') === 'true';
   const token = await getToken({ req });
-
-  return NextResponse.json(
-    channelsApi.importChannel(
-      formData,
-      updateDatasets,
-      updateDataSources,
-      cleanUp,
-      token,
-    ),
+  const res = await channelsApi.importChannel(
+    formData,
+    updateDatasets,
+    updateDataSources,
+    cleanUp,
+    token,
   );
+
+  return NextResponse.json(res);
 }

@@ -8,5 +8,6 @@ export async function POST(req: NextRequest) {
   const search = req.nextUrl.searchParams;
   const targetPath = search.get('targetPath') as string;
 
-  return NextResponse.json(documentsApi.uploadFile(formData, targetPath));
+  const res = await documentsApi.uploadFile(formData, targetPath);
+  return NextResponse.json(res);
 }
