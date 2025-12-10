@@ -28,11 +28,6 @@ const nextConfig = {
     // See: https://github.com/gregberge/svgr
     svgr: false,
   },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '3072mb', // 3 GB for import/export functions
-    },
-  },
   poweredByHeader: false,
   async headers() {
     return [
