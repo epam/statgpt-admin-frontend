@@ -1,5 +1,5 @@
 import { getToken } from 'next-auth/jwt';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { channelsApi } from '@/src/app/api/api';
 
 export const runtime = 'nodejs';
@@ -12,11 +12,13 @@ export async function POST(req: NextRequest) {
   const cleanUp = search.get('cleanUp') === 'true';
   const token = await getToken({ req });
 
-  return channelsApi.importChannel(
-    formData,
-    updateDatasets,
-    updateDataSources,
-    cleanUp,
-    token,
-  ) as any;
+  return NextResponse.json(
+    channelsApi.importChannel(
+      formData,
+      updateDatasets,
+      updateDataSources,
+      cleanUp,
+      token,
+    ),
+  );
 }
