@@ -36,7 +36,7 @@ export const ListHeader: FC<Props> = ({ title, count }) => {
     formData.append('file', files[0], files[0].name);
 
     sendPostRequest(
-      `/api/channels/import?updateDatasets=${updateDatasets}&updateDataSources=${updateDataSources}&cleanUp=${cleanUp}`,
+      `/api/v1/channels/import?updateDatasets=${updateDatasets}&updateDataSources=${updateDataSources}&cleanUp=${cleanUp}`,
       formData,
     ).then((res) => {
       if ((res as { ok: boolean }).ok) {
