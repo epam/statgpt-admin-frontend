@@ -1,6 +1,6 @@
 {
   "name": "@statgpt-admin-frontend/source",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "scripts": {
     "start": "nx serve statgpt-admin-frontend --port=4100",
