@@ -78,7 +78,7 @@
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "@rspack/core": "1.4.10",
-    "@modern-js/utils": "2.69.4"
+    "@modern-js/utils": "2.69.5"
   },
   "engines": {
     "node": ">=22.2.0",
