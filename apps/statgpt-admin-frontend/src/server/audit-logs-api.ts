@@ -3,7 +3,6 @@ import { JWT } from 'next-auth/jwt';
 import { RequestData } from '@/src/models/request-data';
 import { MAIN_API } from './api';
 import { BaseApi } from './base-api';
-import { mockAuditLogs } from './__moks__/api-logs';
 
 export const AUDIT_LOGS_URL = `${MAIN_API}/audit-logs`;
 
