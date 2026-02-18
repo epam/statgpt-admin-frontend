@@ -6,6 +6,7 @@ import DataSets from '@/public/icons/menu/datasets.svg';
 import Documents from '@/public/icons/menu/documents.svg';
 import { Menu, MenuUrl } from '@/src/constants/menu';
 import { MenuItem } from './MenuItem/MenuItem';
+import { IconLogs } from '@tabler/icons-react';
 
 interface Props {
   disableMenuItems?: string;
@@ -46,6 +47,14 @@ export const MenuSideBar: FC<Props> = ({ disableMenuItems }) => {
           icon={<Channels />}
           title={Menu.CHANNELS}
           url={MenuUrl.CHANNELS}
+        />
+      )}
+
+      {!disableItems.includes('audit-logs') && (
+        <MenuItem
+          icon={<IconLogs className="size-[18px]" />}
+          title={Menu.AUDIT_LOGS}
+          url={MenuUrl.AUDIT_LOGS}
         />
       )}
     </nav>

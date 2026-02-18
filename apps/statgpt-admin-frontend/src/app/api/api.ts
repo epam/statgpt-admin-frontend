@@ -1,3 +1,4 @@
+import { AuditLogsApi } from '@/src/server/audit-logs-api';
 import { ChannelsApi } from '@/src/server/channels-api';
 import { DataSetsApi } from '@/src/server/data-sets-api';
 import { DataSourcesApi } from '@/src/server/data-sources-api';
@@ -18,4 +19,8 @@ export const dataSetsApi = new DataSetsApi({
 export const documentsApi = new DocumentsApi({
   dial: process.env.DIAL_API_URL || '',
   dialKey: process.env.DIAL_API_KEY || '',
+});
+
+export const auditLogsApi = new AuditLogsApi({
+  host: process.env.API_URL || '',
 });

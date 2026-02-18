@@ -85,3 +85,40 @@ export const DOCUMENTS_COLUMNS_WITH_ACTIONS: ColDef[] = [
   },
   ACTION_COLUMN(Menu.DOCUMENTS, [EntityOperation.Delete]),
 ];
+
+export const AUDIT_LOGS_COLUMNS: ColDef[] = [
+  {
+    field: 'action_type',
+    headerName: 'Action',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'entity_type',
+    headerName: 'Entity type',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'entity_id',
+    headerName: 'Entity ID',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'entity_name',
+    headerName: 'Entity name',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'performed_by',
+    headerName: 'Initiated',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'id',
+    headerName: 'Activity ID',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'created_at',
+    headerName: 'Time',
+  },
+];
