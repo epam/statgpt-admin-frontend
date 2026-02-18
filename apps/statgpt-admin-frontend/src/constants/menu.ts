@@ -3,6 +3,7 @@ export enum Menu {
   DATA_SETS = 'Datasets',
   DOCUMENTS = 'Documents',
   CHANNELS = 'Channels',
+  AUDIT_LOGS = 'Audit Logs',
 }
 
 export enum MenuUrl {
@@ -10,6 +11,7 @@ export enum MenuUrl {
   DATA_SETS = '/data-sets',
   DOCUMENTS = '/documents',
   CHANNELS = '/channels',
+  AUDIT_LOGS = '/audit-logs',
 }
 
 export const MENU_MAP: Record<MenuUrl, Menu> = {
@@ -17,4 +19,5 @@ export const MENU_MAP: Record<MenuUrl, Menu> = {
   [MenuUrl.DATA_SETS]: Menu.DATA_SETS,
   [MenuUrl.DATA_SOURCES]: Menu.DATA_SOURCES,
   [MenuUrl.DOCUMENTS]: Menu.DOCUMENTS,
+  [MenuUrl.AUDIT_LOGS]: Menu.AUDIT_LOGS,
 };
