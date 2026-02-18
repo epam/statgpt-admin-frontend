@@ -38,8 +38,10 @@ export const Modal: FC<Props> = ({
 
           {children[0]}
         </div>
-        <div className={styles.modal__body}>{children[1]}</div>
-        <div className={styles.modal__footer}>{children[2]}</div>
+        {children[1] && <div className={styles.modal__body}>{children[1]}</div>}
+        {children[2] && (
+          <div className={styles.modal__footer}>{children[2]}</div>
+        )}
       </div>
     </div>
   );

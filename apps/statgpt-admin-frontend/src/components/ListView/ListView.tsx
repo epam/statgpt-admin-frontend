@@ -1,5 +1,5 @@
 import { ColDef } from 'ag-grid-community';
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 
 import { Menu } from '@/src/constants/menu';
 import { BaseEntity } from '@/src/models/base-entity';
@@ -10,6 +10,7 @@ interface Props {
   colDefs: ColDef[];
   data: BaseEntity[];
   emptyDataTitle: string;
+  customHeader?: ReactNode;
 }
 
 export const ListView: FC<Props> = ({
@@ -17,6 +18,7 @@ export const ListView: FC<Props> = ({
   colDefs,
   emptyDataTitle,
   data,
+  customHeader,
 }) => {
   return (
     <div className="flex flex-col h-full rounded bg-layer-2 common-paddings">
@@ -25,6 +27,7 @@ export const ListView: FC<Props> = ({
         colDefs={colDefs}
         data={data}
         emptyDataTitle={emptyDataTitle}
+        customHeader={customHeader}
       />
     </div>
   );

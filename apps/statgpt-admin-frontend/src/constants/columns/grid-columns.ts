@@ -6,6 +6,7 @@ import {
   CONNECTION_TYPE_COLUMN,
 } from '@/src/constants/columns/common-columns';
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
+// import { AUDIT_LOG_DETAILS_CELL_RENDERER_KEY } from '@/src/components/AuditLogs/AuditLogDetails/AuditLogDetailsCellRenderer';
 
 export const DATA_SOURCE_COLUMNS: ColDef[] = [
   ...BASE_COLUMNS,
@@ -84,4 +85,47 @@ export const DOCUMENTS_COLUMNS_WITH_ACTIONS: ColDef[] = [
     filter: 'agTextColumnFilter',
   },
   ACTION_COLUMN(Menu.DOCUMENTS, [EntityOperation.Delete]),
+];
+
+export const AUDIT_LOGS_COLUMNS: ColDef[] = [
+  {
+    field: 'action_type',
+    headerName: 'Action',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'entity_type',
+    headerName: 'Entity type',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'entity_id',
+    headerName: 'Entity ID',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'entity_name',
+    headerName: 'Entity name',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'performed_by',
+    headerName: 'Initiated',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'id',
+    headerName: 'Activity ID',
+    filter: 'agTextColumnFilter',
+  },
+  {
+    field: 'created_at',
+    headerName: 'Time',
+  },
+  // {
+  //   width: 32,
+  //   maxWidth: 32,
+  //   cellRenderer: AUDIT_LOG_DETAILS_CELL_RENDERER_KEY,
+  //   cellClass: 'ag-grid__action-column',
+  // },
 ];
