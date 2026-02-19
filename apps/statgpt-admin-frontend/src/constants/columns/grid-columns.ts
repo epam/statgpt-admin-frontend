@@ -7,6 +7,7 @@ import {
   CONNECTION_TYPE_COLUMN,
 } from '@/src/constants/columns/common-columns';
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
+import { AUDIT_LOG_DETAILS_CELL_RENDERER_KEY } from '@/src/components/AuditLogs/AuditLogDetails/AuditLogDetailsCellRenderer';
 
 export const DATA_SOURCE_COLUMNS: ColDef[] = [
   ...BASE_COLUMNS,
@@ -124,5 +125,11 @@ export const AUDIT_LOGS_COLUMNS: ColDef[] = [
   {
     field: 'created_at',
     headerName: 'Time',
+  },
+  {
+    width: 32,
+    maxWidth: 32,
+    cellRenderer: AUDIT_LOG_DETAILS_CELL_RENDERER_KEY,
+    cellClass: 'ag-grid__action-column',
   },
 ];

@@ -1,0 +1,136 @@
+'use client';
+
+import { AuditLog, AuditLogDetails } from '@/src/models/audit-log';
+import { Modal } from '../../Modal/Modal';
+import { IconCopy } from '@tabler/icons-react';
+import { DiffEditor } from '@monaco-editor/react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
+import { sendGetRequest } from '@/src/server/api';
+import { DataField } from './DataField';
+
+export const AuditLogDetailsView = ({
+  data,
+  close,
+}: {
+  data: AuditLog;
+  close: () => void;
+}) => {
+  const [details, setDetails] = useState<AuditLogDetails | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setDetails(null);
+    setError(null);
+
+    startTransition(() => {
+      (async () => {
+        try {
+          const details = await sendGetRequest<any, AuditLogDetails>(
+            `/api/v1/audit-logs/${data.id}`,
+          );
+
+          if (!details) {
+            if (!cancelled) setError('Failed to load action details.');
+            return;
+          }
+
+          if (!cancelled) setDetails(details);
+        } catch {
+          if (!cancelled) setError('Failed to load action details.');
+        }
+      })();
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [data.id]);
+
+  const original = useMemo(() => {
+    return details?.state_before
+      ? JSON.stringify(details?.state_before, null, 2)
+      : '';
+  }, [details?.state_before]);
+
+  const modified = useMemo(
+    () =>
+      details?.state_after ? JSON.stringify(details?.state_after, null, 2) : '',
+    [details?.state_after],
+  );
+
+  const showLoader = isPending || (!details && !error);
+
+  return (
+    <Modal title="Action Details" close={close}>
+      <></>
+      <div className="flex flex-col gap-6 mx-6 my-4">
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-2 items-center">
+            <span className="text-primary heading-3">{data.trace_id}</span>
+            <IconCopy className="size-4 text-secondary" />
+          </div>
+          <div className="flex gap-10 overflow-x-scroll">
+            <DataField label="Action" value={data.action_type} />
+            <DataField label="Entity type" value={data.entity_type} />
+            <DataField label="Entity ID" value={data.entity_id} />
+            <DataField label="Entity name" value={data.entity_name} />
+            <DataField label="Initiated" value={data.performed_by_name} />
+            <DataField
+              label="Time"
+              value={
+                data.created_at
+                  ? new Date(data.created_at).toLocaleString()
+                  : ''
+              }
+            />
+          </div>
+        </div>
+        <div className="relative">
+          {(showLoader || error) && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded">
+              {error ? (
+                <span className="text-sm text-error">
+                  Failed to load action details.
+                </span>
+              ) : (
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  <span>Loading diff…</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {details && !error ? (
+            <DiffEditor
+              key={data.id}
+              height="600px"
+              original={original}
+              modified={modified}
+              loading="Loading diff…"
+              language="json"
+              keepCurrentOriginalModel
+              keepCurrentModifiedModel
+              options={{
+                renderSideBySide: true,
+                readOnly: true,
+                automaticLayout: true,
+                wordWrap: 'on',
+                diffWordWrap: 'on',
+                scrollBeyondLastLine: false,
+                renderWhitespace: 'selection',
+                minimap: { enabled: false },
+              }}
+              theme="vs-dark"
+            />
+          ) : (
+            <div className="h-[600px]" />
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+};
