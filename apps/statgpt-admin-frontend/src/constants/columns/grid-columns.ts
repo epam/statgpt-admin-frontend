@@ -1,3 +1,4 @@
+import { AuditLog } from '@/src/models/audit-log';
 import { ColDef } from 'ag-grid-community';
 
 import { Menu } from '@/src/constants/menu';
@@ -108,12 +109,15 @@ export const AUDIT_LOGS_COLUMNS: ColDef[] = [
     filter: 'agTextColumnFilter',
   },
   {
-    field: 'performed_by',
+    field: 'performed_by_name',
     headerName: 'Initiated',
     filter: 'agTextColumnFilter',
+    valueGetter: ({ data }: { data: AuditLog }) => {
+      return data?.performed_by_name ?? data?.performed_by ?? '';
+    },
   },
   {
-    field: 'id',
+    field: 'trace_id',
     headerName: 'Activity ID',
     filter: 'agTextColumnFilter',
   },
