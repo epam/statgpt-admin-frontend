@@ -7,6 +7,7 @@ import { DiffEditor } from '@monaco-editor/react';
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { sendGetRequest } from '@/src/server/api';
 import { DataField } from './DataField';
+import { CopyButton } from '../../BaseComponents/CopyButton/CopyButton';
 
 export const AuditLogDetailsView = ({
   data,
@@ -70,7 +71,9 @@ export const AuditLogDetailsView = ({
         <div className="flex flex-col gap-3">
           <div className="flex gap-2 items-center">
             <span className="text-primary heading-3">{data.trace_id}</span>
-            <IconCopy className="size-4 text-secondary" />
+            <CopyButton
+              onClick={() => navigator.clipboard.writeText(data.trace_id ?? '')}
+            />
           </div>
           <div className="flex gap-10 overflow-x-scroll">
             <DataField label="Action" value={data.action_type} />
@@ -104,31 +107,30 @@ export const AuditLogDetailsView = ({
             </div>
           )}
 
-          {details && !error ? (
-            <DiffEditor
-              key={data.id}
-              height="600px"
-              original={original}
-              modified={modified}
-              loading="Loading diff…"
-              language="json"
-              keepCurrentOriginalModel
-              keepCurrentModifiedModel
-              options={{
-                renderSideBySide: true,
-                readOnly: true,
-                automaticLayout: true,
-                wordWrap: 'on',
-                diffWordWrap: 'on',
-                scrollBeyondLastLine: false,
-                renderWhitespace: 'selection',
-                minimap: { enabled: false },
-              }}
-              theme="vs-dark"
-            />
-          ) : (
-            <div className="h-[600px]" />
-          )}
+          <div className="h-[600px]">
+            {details && !error && (
+              <DiffEditor
+                key={data.id}
+                original={original}
+                modified={modified}
+                loading="Loading diff…"
+                language="json"
+                keepCurrentOriginalModel
+                keepCurrentModifiedModel
+                options={{
+                  renderSideBySide: true,
+                  readOnly: true,
+                  automaticLayout: true,
+                  wordWrap: 'on',
+                  diffWordWrap: 'on',
+                  scrollBeyondLastLine: false,
+                  renderWhitespace: 'selection',
+                  minimap: { enabled: false },
+                }}
+                theme="vs-dark"
+              />
+            )}
+          </div>
         </div>
       </div>
     </Modal>
