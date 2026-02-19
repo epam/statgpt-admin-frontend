@@ -1,0 +1,1 @@
+export const DEFAULT_GRID_PAGE_SIZE = 100;

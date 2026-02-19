@@ -19,3 +19,13 @@ export interface AuditLogTimeRange {
   created_at_from?: string;
   created_at_to?: string;
 }
+
+export interface AuditLogRequestModel extends AuditLogTimeRange {
+  limit?: number;
+  offset?: number;
+  entity_type?: string;
+  action_type?: string;
+  item_id?: number;
+  entity_id?: string;
+  performed_by?: string;
+}
