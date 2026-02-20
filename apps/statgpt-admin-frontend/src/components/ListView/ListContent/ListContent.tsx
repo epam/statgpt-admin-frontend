@@ -2,26 +2,38 @@
 
 import { ColDef, GridOptions } from 'ag-grid-community';
 import { useRouter } from 'next/navigation';
-import { FC } from 'react';
+import { ReactNode } from 'react';
 
 import { Menu, MenuUrl } from '@/src/constants/menu';
 import { BaseEntity } from '@/src/models/base-entity';
-import { GridView } from '@/src/components/GridView/GridView';
+import {
+  GridView,
+  FetchRowsArgs,
+  FetchRowsResult,
+} from '@/src/components/GridView/GridView';
 import { ListHeader } from '../ListHeader/ListHeader';
 
-interface Props {
+interface Props<T = BaseEntity> {
   menuItem: Menu;
   colDefs: ColDef[];
-  data: BaseEntity[];
   emptyDataTitle: string;
+  customHeader?: ReactNode;
+  data?: T[];
+  fetchRows?: (args: FetchRowsArgs) => Promise<FetchRowsResult<T>>;
+  pageSize?: number;
+  totalCount?: number;
 }
 
-export const ListContent: FC<Props> = ({
+export function ListContent<T = BaseEntity>({
   menuItem,
   colDefs,
   emptyDataTitle,
   data,
-}) => {
+  customHeader,
+  fetchRows,
+  pageSize,
+  totalCount,
+}: Props<T>) {
   const router = useRouter();
   const columns = colDefs.map((col) => {
     if (col.field === 'metadata.publication_date') {
@@ -31,19 +43,21 @@ export const ListContent: FC<Props> = ({
           data,
         }: {
           data: { metadata: { publication_date: string } };
-        }) => new Date(data.metadata.publication_date).getTime(),
-        valueFormatter: ({ value }: { value: string }) =>
-          new Date(value).toLocaleDateString(),
+        }) =>
+          data?.metadata?.publication_date
+            ? new Date(data.metadata.publication_date).getTime()
+            : null,
+        valueFormatter: ({ value }: { value: number | null }) =>
+          value ? new Date(value).toLocaleDateString() : '',
       };
     }
     if (col.field === 'created_at') {
       return {
         ...col,
-        ...col,
         valueGetter: ({ data }: { data: { created_at: string } }) =>
-          new Date(data.created_at).getTime(),
-        valueFormatter: ({ value }: { value: string }) =>
-          new Date(value).toLocaleString(),
+          data?.created_at ? new Date(data.created_at).getTime() : null,
+        valueFormatter: ({ value }: { value: number | null }) =>
+          value ? new Date(value).toLocaleString() : '',
       };
     }
     return col;
@@ -62,17 +76,27 @@ export const ListContent: FC<Props> = ({
     },
   };
 
+  const headerCount =
+    typeof totalCount === 'number' ? totalCount : data?.length;
+
   return (
     <>
-      <ListHeader title={menuItem} count={data.length} />
+      {customHeader ? (
+        customHeader
+      ) : (
+        <ListHeader title={menuItem} count={headerCount ?? 0} />
+      )}
+
       <div className="flex-1 min-h-0 mt-4">
-        <GridView
+        <GridView<T>
           colDefs={columns}
           data={data}
+          fetchRows={fetchRows}
+          pageSize={pageSize}
           emptyDataTitle={emptyDataTitle}
           additionalOptions={gridOptions}
         />
       </div>
     </>
   );
-};
+}

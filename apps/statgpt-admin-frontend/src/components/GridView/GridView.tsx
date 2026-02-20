@@ -7,27 +7,50 @@ import {
   GridApi,
   GridOptions,
   ITooltipParams,
+  IGetRowsParams,
+  IDatasource,
   ModuleRegistry,
   themeBalham,
 } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
-import { FC, useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ActionColumn } from '@/src/components/ListView/ActionColumn/ActionColumn';
 import { ACTION_COLUMN_CELL_RENDERER_KEY } from '@/src/constants/columns/action';
 import { BaseEntity } from '@/src/models/base-entity';
 import { EmptyState } from './EmptyState/EmptyState';
+import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
+import {
+  AUDIT_LOG_DETAILS_CELL_RENDERER_KEY,
+  AuditLogDetailsCellRenderer,
+} from '../AuditLogs/AuditLogDetails/AuditLogDetailsCellRenderer';
 
-interface Props {
+export interface FetchRowsArgs {
+  offset: number;
+  limit: number;
+  sortModel?: unknown;
+  filterModel?: unknown;
+}
+
+export interface FetchRowsResult<T> {
+  rows: T[];
+  total?: number;
+}
+
+interface Props<T = BaseEntity> {
   colDefs: ColDef[];
-  data: BaseEntity[];
   emptyDataTitle: string;
   additionalOptions?: GridOptions;
+  data?: T[];
+  fetchRows?: (args: FetchRowsArgs) => Promise<FetchRowsResult<T>>;
+  pageSize?: number;
 }
+
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const GRID_CUSTOM_COMPONENT = {
   [ACTION_COLUMN_CELL_RENDERER_KEY]: ActionColumn,
+  [AUDIT_LOG_DETAILS_CELL_RENDERER_KEY]: AuditLogDetailsCellRenderer,
 };
 
 const GRID_THEME_COLORS = {
@@ -50,13 +73,25 @@ const GRID_THEME_COLORS = {
   },
 };
 
-export const GridView: FC<Props> = ({
+export function GridView<T = BaseEntity>({
   data,
   colDefs,
   emptyDataTitle,
   additionalOptions,
-}) => {
+  fetchRows,
+  pageSize = DEFAULT_GRID_PAGE_SIZE,
+}: Props<T>) {
   const [api, setApi] = useState<GridApi | null>(null);
+
+  const aliveRef = useRef(true);
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
+
+  const isInfinite = typeof fetchRows === 'function';
 
   useEffect(() => {
     if (api != null) {
@@ -64,10 +99,50 @@ export const GridView: FC<Props> = ({
     }
   }, [colDefs, api]);
 
-  return data.length ? (
+  const datasource: IDatasource | undefined = useMemo(() => {
+    if (!fetchRows) return undefined;
+
+    const ds: IDatasource = {
+      rowCount: undefined,
+      getRows: async (params: IGetRowsParams) => {
+        const { startRow, endRow, sortModel, filterModel } = params;
+        const limit = endRow - startRow;
+
+        try {
+          const res = await fetchRows({
+            offset: startRow,
+            limit,
+            sortModel,
+            filterModel,
+          });
+
+          if (!aliveRef.current) return;
+
+          const lastRow =
+            typeof res.total === 'number'
+              ? res.total
+              : res.rows.length < limit
+                ? startRow + res.rows.length
+                : undefined;
+
+          params.successCallback(res.rows, lastRow);
+        } catch {
+          if (!aliveRef.current) return;
+          params.failCallback();
+        }
+      },
+    };
+
+    return ds;
+  }, [fetchRows]);
+
+  const shouldShowEmpty = !isInfinite && (!data || data.length === 0);
+
+  return shouldShowEmpty ? (
+    <EmptyState title={emptyDataTitle} />
+  ) : (
     <div className="ag-theme-balham-dark h-full">
       <AgGridReact
-        rowData={data}
         columnDefs={colDefs}
         theme={themeBalham
           .withPart(colorSchemeDark)
@@ -76,18 +151,27 @@ export const GridView: FC<Props> = ({
         rowHeight={32}
         suppressCellFocus={true}
         components={GRID_CUSTOM_COMPONENT}
-        onGridReady={(e) => setApi(e.api)}
+        onGridReady={(e) => {
+          setApi(e.api);
+
+          if (datasource) {
+            e.api.setGridOption('datasource', datasource);
+          }
+        }}
         tooltipShowDelay={500}
         defaultColDef={{
           floatingFilter: true,
           tooltipValueGetter: (p: ITooltipParams) =>
-            p.data[(p.colDef as ColDef)?.field || ''],
+            p.data?.[(p.colDef as ColDef)?.field || ''],
         }}
         onGridSizeChanged={(e) => e.api.sizeColumnsToFit()}
+        rowModelType={isInfinite ? 'infinite' : undefined}
+        rowData={isInfinite ? undefined : (data ?? [])}
+        cacheBlockSize={isInfinite ? pageSize : undefined}
+        maxBlocksInCache={isInfinite ? 5 : undefined}
+        infiniteInitialRowCount={isInfinite ? pageSize : undefined}
         {...additionalOptions}
       />
     </div>
-  ) : (
-    <EmptyState title={emptyDataTitle} />
   );
-};
+}

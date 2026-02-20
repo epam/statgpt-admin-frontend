@@ -107,6 +107,6 @@ export const sendRequest = async <T extends object, R>(
     });
   } catch (e) {
     console.error('Error', e);
-    return new Promise(() => null);
+    return Promise.resolve(null);
   }
 };
