@@ -2,7 +2,6 @@
 
 import { AuditLog, AuditLogDetails } from '@/src/models/audit-log';
 import { Modal } from '../../Modal/Modal';
-import { IconCopy } from '@tabler/icons-react';
 import { DiffEditor } from '@monaco-editor/react';
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { sendGetRequest } from '@/src/server/api';
