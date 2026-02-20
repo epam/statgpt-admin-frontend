@@ -20,6 +20,10 @@ import { ACTION_COLUMN_CELL_RENDERER_KEY } from '@/src/constants/columns/action'
 import { BaseEntity } from '@/src/models/base-entity';
 import { EmptyState } from './EmptyState/EmptyState';
 import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
+import {
+  AUDIT_LOG_DETAILS_CELL_RENDERER_KEY,
+  AuditLogDetailsCellRenderer,
+} from '../AuditLogs/AuditLogDetails/AuditLogDetailsCellRenderer';
 
 export interface FetchRowsArgs {
   offset: number;
@@ -46,6 +50,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const GRID_CUSTOM_COMPONENT = {
   [ACTION_COLUMN_CELL_RENDERER_KEY]: ActionColumn,
+  [AUDIT_LOG_DETAILS_CELL_RENDERER_KEY]: AuditLogDetailsCellRenderer,
 };
 
 const GRID_THEME_COLORS = {
