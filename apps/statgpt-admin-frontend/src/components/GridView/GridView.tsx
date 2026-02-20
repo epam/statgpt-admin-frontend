@@ -44,6 +44,8 @@ interface Props<T = BaseEntity> {
   data?: T[];
   fetchRows?: (args: FetchRowsArgs) => Promise<FetchRowsResult<T>>;
   pageSize?: number;
+  queryKey?: string;
+  refreshToken?: number;
 }
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -80,6 +82,8 @@ export function GridView<T = BaseEntity>({
   additionalOptions,
   fetchRows,
   pageSize = DEFAULT_GRID_PAGE_SIZE,
+  queryKey,
+  refreshToken,
 }: Props<T>) {
   const [api, setApi] = useState<GridApi | null>(null);
 
@@ -92,6 +96,11 @@ export function GridView<T = BaseEntity>({
   }, []);
 
   const isInfinite = typeof fetchRows === 'function';
+
+  useEffect(() => {
+    if (!api || !isInfinite) return;
+    api.purgeInfiniteCache();
+  }, [api, isInfinite, queryKey, refreshToken]);
 
   useEffect(() => {
     if (api != null) {
