@@ -7,6 +7,7 @@ import { JWT } from 'next-auth/jwt';
 import { RequestData } from '@/src/models/request-data';
 import { MAIN_API } from './api';
 import { BaseApi } from './base-api';
+import { auditLogRequestToQueryString } from '../utils/audit-logs';
 
 const AUDIT_LOGS_URL = `${MAIN_API}/audit-logs`;
 const AUDIT_LOGS_ID_URL = (id?: string | number): string =>
@@ -21,7 +22,7 @@ export class AuditLogsApi extends BaseApi {
     let url = AUDIT_LOGS_URL;
 
     if (params) {
-      const queryString = paramsToQueryString(params);
+      const queryString = auditLogRequestToQueryString(params);
       if (queryString) {
         url += `?${queryString}`;
       }
@@ -41,7 +42,7 @@ export class AuditLogsApi extends BaseApi {
     let url = EXPORT_URL;
 
     if (params) {
-      const queryString = paramsToQueryString(params);
+      const queryString = auditLogRequestToQueryString(params);
       if (queryString) {
         url += `?${queryString}`;
       }
@@ -49,16 +50,4 @@ export class AuditLogsApi extends BaseApi {
 
     return this.streamRequest(url, token);
   }
-}
-
-function paramsToQueryString(params: AuditLogRequestModel): string {
-  const searchParams = new URLSearchParams();
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, String(value));
-    }
-  });
-
-  return searchParams.toString();
 }

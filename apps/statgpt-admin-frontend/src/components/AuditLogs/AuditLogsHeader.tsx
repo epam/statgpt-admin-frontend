@@ -8,7 +8,13 @@ import { downloadFromApiRoute } from '@/src/utils/client/download';
 import { TimePeriodDropdown } from './TimePeriodDropdown';
 import { useAuditLogFiltersInUrl } from '@/src/hooks/use-audit-logs-filters-in-url';
 
-export const AuditLogsHeader = ({ onRefresh }: { onRefresh: () => void }) => {
+export const AuditLogsHeader = ({
+  count,
+  onRefresh,
+}: {
+  count?: number;
+  onRefresh: () => void;
+}) => {
   const { showNotification, removeNotification } = useNotification();
   const { filters, setFilters } = useAuditLogFiltersInUrl();
 
@@ -49,7 +55,7 @@ export const AuditLogsHeader = ({ onRefresh }: { onRefresh: () => void }) => {
 
   return (
     <div className="flex flex-row items-center justify-between">
-      <h1>Audit</h1>
+      <h1>Audit: {count}</h1>
 
       <div className="flex flex-row gap-4 items-center">
         <TimePeriodDropdown
