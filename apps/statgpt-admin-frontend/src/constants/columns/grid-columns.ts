@@ -88,31 +88,39 @@ export const DOCUMENTS_COLUMNS_WITH_ACTIONS: ColDef[] = [
   ACTION_COLUMN(Menu.DOCUMENTS, [EntityOperation.Delete]),
 ];
 
+const EQUALS_ONLY_FILTER = {
+  filterOptions: ['equals'],
+  defaultOption: 'equals',
+  suppressAndOrCondition: true,
+  debounceMs: 400,
+};
+
 export const AUDIT_LOGS_COLUMNS: ColDef[] = [
   {
     field: 'action_type',
     headerName: 'Action',
     filter: 'agTextColumnFilter',
+    filterParams: EQUALS_ONLY_FILTER,
   },
   {
     field: 'entity_type',
     headerName: 'Entity type',
     filter: 'agTextColumnFilter',
+    filterParams: EQUALS_ONLY_FILTER,
   },
   {
     field: 'entity_id',
     headerName: 'Entity ID',
     filter: 'agTextColumnFilter',
+    filterParams: EQUALS_ONLY_FILTER,
   },
   {
     field: 'entity_name',
     headerName: 'Entity name',
-    filter: 'agTextColumnFilter',
   },
   {
     field: 'performed_by_name',
     headerName: 'Initiated',
-    filter: 'agTextColumnFilter',
     valueGetter: ({ data }: { data: AuditLog }) => {
       return data?.performed_by_name ?? data?.performed_by ?? '';
     },
@@ -120,7 +128,6 @@ export const AUDIT_LOGS_COLUMNS: ColDef[] = [
   {
     field: 'trace_id',
     headerName: 'Activity ID',
-    filter: 'agTextColumnFilter',
   },
   {
     field: 'created_at',

@@ -7,13 +7,19 @@ import type {
   FetchRowsArgs,
   FetchRowsResult,
 } from '@/src/components/GridView/GridView';
-import type { AuditLog, AuditLogDetails } from '@/src/models/audit-log';
+import type {
+  AuditLog,
+  AuditLogDetails,
+  AuditLogRequestModel,
+} from '@/src/models/audit-log';
 import { AUDIT_LOGS_COLUMNS } from '@/src/constants/columns/grid-columns';
 import { AuditLogsHeader } from './AuditLogsHeader';
 import type { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
 import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
 import { useAuditLogFiltersInUrl } from '@/src/hooks/use-audit-logs-filters-in-url';
+import { auditLogRequestToQueryString } from '@/src/utils/audit-logs';
+import { getTextEquals } from '@/src/utils/client/grid';
 
 export function AuditLogsListView() {
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
@@ -31,16 +37,24 @@ export function AuditLogsListView() {
     async (args: FetchRowsArgs): Promise<FetchRowsResult<AuditLog>> => {
       const { created_at_from, created_at_to } = filtersRef.current;
 
-      const query = new URLSearchParams({
-        offset: String(args.offset),
-        limit: String(args.limit),
-      });
+      const entity_type = getTextEquals(args.filterModel, 'entity_type');
+      const action_type = getTextEquals(args.filterModel, 'action_type');
+      const entity_id = getTextEquals(args.filterModel, 'entity_id');
 
-      if (created_at_from) query.set('created_at_from', created_at_from);
-      if (created_at_to) query.set('created_at_to', created_at_to);
+      const request: AuditLogRequestModel = {
+        offset: args.offset,
+        limit: args.limit,
+        created_at_from,
+        created_at_to,
+        ...(entity_type ? { entity_type } : {}),
+        ...(action_type ? { action_type } : {}),
+        ...(entity_id ? { entity_id } : {}),
+      };
+
+      const query = auditLogRequestToQueryString(request);
 
       const payload = await sendGetRequest<any, RequestData<AuditLogDetails>>(
-        `/api/v1/audit-logs?${query.toString()}`,
+        `/api/v1/audit-logs?${query}`,
       );
 
       if (!payload || !payload.data) {
@@ -62,12 +76,14 @@ export function AuditLogsListView() {
     <ListView<AuditLog>
       colDefs={AUDIT_LOGS_COLUMNS}
       customHeader={
-        <AuditLogsHeader onRefresh={() => setRefreshToken((x) => x + 1)} />
+        <AuditLogsHeader
+          onRefresh={() => setRefreshToken((x) => x + 1)}
+          count={totalCount}
+        />
       }
       emptyDataTitle="No audit logs"
       menuItem={Menu.AUDIT_LOGS}
       fetchRows={fetchRows}
-      totalCount={totalCount}
       pageSize={DEFAULT_GRID_PAGE_SIZE}
       queryKey={queryKey}
       refreshToken={refreshToken}
