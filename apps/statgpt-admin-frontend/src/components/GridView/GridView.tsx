@@ -1,5 +1,13 @@
 'use client';
 
+import React, {
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import {
   AllCommunityModule,
   ColDef,
@@ -13,7 +21,6 @@ import {
   themeBalham,
 } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ActionColumn } from '@/src/components/ListView/ActionColumn/ActionColumn';
 import { ACTION_COLUMN_CELL_RENDERER_KEY } from '@/src/constants/columns/action';
@@ -44,6 +51,8 @@ interface Props<T = BaseEntity> {
   data?: T[];
   fetchRows?: (args: FetchRowsArgs) => Promise<FetchRowsResult<T>>;
   pageSize?: number;
+  queryKey?: string;
+  refreshToken?: number;
 }
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -51,7 +60,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const GRID_CUSTOM_COMPONENT = {
   [ACTION_COLUMN_CELL_RENDERER_KEY]: ActionColumn,
   [AUDIT_LOG_DETAILS_CELL_RENDERER_KEY]: AuditLogDetailsCellRenderer,
-};
+} as const;
 
 const GRID_THEME_COLORS = {
   accentColor: 'var(--controls-bg-accent, #5C8DEA)',
@@ -71,15 +80,17 @@ const GRID_THEME_COLORS = {
   fontFamily: {
     googleFont: 'var(--theme-font, var(--font-inter))',
   },
-};
+} as const;
 
-export function GridView<T = BaseEntity>({
+function GridViewInner<T = BaseEntity>({
   data,
   colDefs,
   emptyDataTitle,
   additionalOptions,
   fetchRows,
   pageSize = DEFAULT_GRID_PAGE_SIZE,
+  queryKey,
+  refreshToken,
 }: Props<T>) {
   const [api, setApi] = useState<GridApi | null>(null);
 
@@ -92,6 +103,23 @@ export function GridView<T = BaseEntity>({
   }, []);
 
   const isInfinite = typeof fetchRows === 'function';
+
+  const gridTheme = useMemo(() => {
+    return themeBalham.withPart(colorSchemeDark).withParams(GRID_THEME_COLORS);
+  }, []);
+
+  const defaultColDef = useMemo<ColDef>(() => {
+    return {
+      floatingFilter: true,
+      tooltipValueGetter: (p: ITooltipParams) =>
+        p.data?.[(p.colDef as ColDef)?.field || ''],
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!api || !isInfinite) return;
+    api.purgeInfiniteCache();
+  }, [api, isInfinite, queryKey, refreshToken]);
 
   useEffect(() => {
     if (api != null) {
@@ -138,40 +166,46 @@ export function GridView<T = BaseEntity>({
 
   const shouldShowEmpty = !isInfinite && (!data || data.length === 0);
 
+  const onGridReady = useCallback((e: any) => {
+    setApi(e.api);
+  }, []);
+
+  const lastDatasourceRef = useRef<IDatasource | undefined>(undefined);
+  useEffect(() => {
+    if (!api || !isInfinite) return;
+    if (!datasource) return;
+
+    if (lastDatasourceRef.current !== datasource) {
+      lastDatasourceRef.current = datasource;
+      api.setGridOption('datasource', datasource);
+    }
+  }, [api, datasource, isInfinite]);
+
   return shouldShowEmpty ? (
     <EmptyState title={emptyDataTitle} />
   ) : (
     <div className="ag-theme-balham-dark h-full">
       <AgGridReact
         columnDefs={colDefs}
-        theme={themeBalham
-          .withPart(colorSchemeDark)
-          .withParams({ ...GRID_THEME_COLORS })}
+        theme={gridTheme}
         headerHeight={28}
         rowHeight={32}
         suppressCellFocus={true}
         components={GRID_CUSTOM_COMPONENT}
-        onGridReady={(e) => {
-          setApi(e.api);
-
-          if (datasource) {
-            e.api.setGridOption('datasource', datasource);
-          }
-        }}
+        onGridReady={onGridReady}
         tooltipShowDelay={500}
-        defaultColDef={{
-          floatingFilter: true,
-          tooltipValueGetter: (p: ITooltipParams) =>
-            p.data?.[(p.colDef as ColDef)?.field || ''],
-        }}
+        defaultColDef={defaultColDef}
         onGridSizeChanged={(e) => e.api.sizeColumnsToFit()}
         rowModelType={isInfinite ? 'infinite' : undefined}
         rowData={isInfinite ? undefined : (data ?? [])}
         cacheBlockSize={isInfinite ? pageSize : undefined}
         maxBlocksInCache={isInfinite ? 5 : undefined}
         infiniteInitialRowCount={isInfinite ? pageSize : undefined}
+        enableFilterHandlers={true}
         {...additionalOptions}
       />
     </div>
   );
 }
+
+export const GridView = memo(GridViewInner) as typeof GridViewInner;

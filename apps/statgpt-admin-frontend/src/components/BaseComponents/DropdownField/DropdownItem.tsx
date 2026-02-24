@@ -1,5 +1,4 @@
 import { useFloatingTree, useListItem, useMergeRefs } from '@floating-ui/react';
-import classNames from 'classnames';
 import {
   ButtonHTMLAttributes,
   FocusEvent,
@@ -12,18 +11,27 @@ import {
 import { MenuContext } from './DropdownComponent';
 import { menuItemClassNames } from './dropdown-css';
 import { DropdownItemsModel } from './dropdown.model';
+import { mergeClasses } from '@/src/utils/mergeClasses';
 
 interface DropdownMenuItemProps {
   dropdownItem?: DropdownItemsModel;
   item?: ReactNode;
   disabled?: boolean;
+  closeOnClick?: boolean;
 }
 
 export const DropdownMenuItem = forwardRef<
   HTMLButtonElement,
   DropdownMenuItemProps & ButtonHTMLAttributes<HTMLButtonElement>
 >(function DropdownMenuItem(
-  { className, dropdownItem, item: ItemComponent, disabled, ...props },
+  {
+    className,
+    dropdownItem,
+    item: ItemComponent,
+    disabled,
+    closeOnClick = true,
+    ...props
+  },
   forwardedRef,
 ) {
   const menu = useContext(MenuContext);
@@ -38,7 +46,7 @@ export const DropdownMenuItem = forwardRef<
         ref={useMergeRefs([item.ref, forwardedRef])}
         type="button"
         role="menuitem"
-        className={classNames(
+        className={mergeClasses(
           menuItemClassNames,
           'h-[34px] w-full px-3',
           disabled && '!cursor-not-allowed',
@@ -48,8 +56,16 @@ export const DropdownMenuItem = forwardRef<
         disabled={disabled}
         {...menu.getItemProps({
           onClick(event: MouseEvent<HTMLButtonElement>) {
+            if (!closeOnClick) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+
             props.onClick?.(event);
-            tree?.events.emit('click');
+
+            if (closeOnClick) {
+              tree?.events.emit('click');
+            }
           },
           onFocus(event: FocusEvent<HTMLButtonElement>) {
             props.onFocus?.(event);

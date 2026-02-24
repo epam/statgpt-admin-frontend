@@ -1,17 +1,20 @@
 import {
   AuditLog,
   AuditLogDetails,
+  AuditLogEnumValues,
   AuditLogRequestModel,
 } from '@/src/models/audit-log';
 import { JWT } from 'next-auth/jwt';
 import { RequestData } from '@/src/models/request-data';
 import { MAIN_API } from './api';
 import { BaseApi } from './base-api';
+import { auditLogRequestToQueryString } from '../utils/audit-logs';
 
-export const AUDIT_LOGS_URL = `${MAIN_API}/audit-logs`;
-
-export const AUDIT_LOGS_ID_URL = (id?: string | number): string =>
+const AUDIT_LOGS_URL = `${MAIN_API}/audit-logs`;
+const AUDIT_LOGS_ID_URL = (id?: string | number): string =>
   `${AUDIT_LOGS_URL}/${id}`;
+const EXPORT_URL = `${AUDIT_LOGS_URL}/export`;
+const ENUM_VALUES_URL = `${AUDIT_LOGS_URL}/enum-values`;
 
 export class AuditLogsApi extends BaseApi {
   getAuditLogs(
@@ -21,15 +24,7 @@ export class AuditLogsApi extends BaseApi {
     let url = AUDIT_LOGS_URL;
 
     if (params) {
-      const searchParams = new URLSearchParams();
-
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          searchParams.append(key, String(value));
-        }
-      });
-
-      const queryString = searchParams.toString();
+      const queryString = auditLogRequestToQueryString(params);
       if (queryString) {
         url += `?${queryString}`;
       }
@@ -43,5 +38,22 @@ export class AuditLogsApi extends BaseApi {
     token: JWT | null,
   ): Promise<RequestData<AuditLogDetails> | null> {
     return this.get(AUDIT_LOGS_ID_URL(id), token);
+  }
+
+  export(token: JWT | null, params?: AuditLogRequestModel) {
+    let url = EXPORT_URL;
+
+    if (params) {
+      const queryString = auditLogRequestToQueryString(params);
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+
+    return this.streamRequest(url, token);
+  }
+
+  getEnumValues(token: JWT | null): Promise<AuditLogEnumValues | null> {
+    return this.get(ENUM_VALUES_URL, token);
   }
 }

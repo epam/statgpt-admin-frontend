@@ -52,28 +52,17 @@ export const streamRequest = async (
         ...getApiHeaders({ jwt: token?.access_token }, true),
       },
     });
-    const reader = res?.body?.getReader();
-    const steam = new ReadableStream({
-      start(controller) {
-        return pump();
-        function pump(): unknown {
-          return reader?.read().then(({ done, value }) => {
-            // When no more data needs to be consumed, close the stream
-            if (done) {
-              controller.close();
-              return;
-            }
-            // Enqueue the next data chunk into our target stream
-            controller.enqueue(value);
-            return pump();
-          });
-        }
-      },
+
+    const headers = new Headers(res.headers);
+
+    return new Response(res.body, {
+      status: res.status,
+      statusText: res.statusText,
+      headers,
     });
-    return new Response(steam);
   } catch (e) {
     console.error('Error', e);
-    return new Promise(() => null);
+    return new Response('Proxy error', { status: 500 });
   }
 };
 
