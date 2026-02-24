@@ -1,17 +1,33 @@
-import { AgTextEqualsFilterModel } from '@/src/models/grid';
+import { GridTextFilterModel, GridTextFilterType } from '@/src/models/grid';
+
+function getGridTextFilterValue(
+  filterModel: unknown,
+  field: string,
+  expectedType: GridTextFilterType,
+): string | undefined {
+  const model = filterModel as Record<string, unknown> | undefined;
+  const filter = model?.[field] as Partial<GridTextFilterModel> | undefined;
+
+  if (!filter || filter.filterType !== 'text' || filter.type !== expectedType) {
+    return undefined;
+  }
+
+  const value = typeof filter.filter === 'string' ? filter.filter.trim() : '';
+  return value.length ? value : undefined;
+}
 
 export function getTextEquals(
   filterModel: unknown,
   field: string,
 ): string | undefined {
-  const model = filterModel as Record<string, any> | undefined;
-  const filter = model?.[field] as Partial<AgTextEqualsFilterModel> | undefined;
+  return getGridTextFilterValue(filterModel, field, 'equals');
+}
 
-  if (!filter || filter.filterType !== 'text' || filter.type !== 'equals')
-    return undefined;
-
-  const value = typeof filter.filter === 'string' ? filter.filter.trim() : '';
-  return value.length ? value : undefined;
+export function getTextContains(
+  filterModel: unknown,
+  field: string,
+): string | undefined {
+  return getGridTextFilterValue(filterModel, field, 'contains');
 }
 
 export function getNumberEquals(
