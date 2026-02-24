@@ -1,5 +1,4 @@
 import { ColDef } from 'ag-grid-community';
-import { ReactNode } from 'react';
 
 import { Menu } from '@/src/constants/menu';
 import { BaseEntity } from '@/src/models/base-entity';
@@ -13,7 +12,7 @@ interface Props<T = BaseEntity> {
   menuItem: Menu;
   colDefs: ColDef[];
   emptyDataTitle: string;
-  customHeader?: ReactNode;
+  withHeader?: boolean;
   data?: T[];
   fetchRows?: (args: FetchRowsArgs) => Promise<FetchRowsResult<T>>;
   pageSize?: number;
@@ -27,7 +26,7 @@ export function ListView<T = BaseEntity>({
   colDefs,
   emptyDataTitle,
   data,
-  customHeader,
+  withHeader,
   fetchRows,
   pageSize,
   totalCount,
@@ -44,7 +43,7 @@ export function ListView<T = BaseEntity>({
         pageSize={pageSize}
         totalCount={totalCount}
         emptyDataTitle={emptyDataTitle}
-        customHeader={customHeader}
+        withHeader={withHeader}
         queryKey={queryKey}
         refreshToken={refreshToken}
       />

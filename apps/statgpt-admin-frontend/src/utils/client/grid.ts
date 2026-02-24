@@ -25,3 +25,26 @@ export function getNumberEquals(
   const numberValue = Number(value);
   return Number.isFinite(numberValue) ? numberValue : undefined;
 }
+
+export function getEnumFilterValue(
+  filterModel: unknown,
+  field: string,
+): string | undefined {
+  const model = filterModel as Record<string, any> | undefined;
+  const filter = model?.[field] as { value?: string } | undefined;
+  const value = typeof filter?.value === 'string' ? filter.value.trim() : '';
+  return value || undefined;
+}
+
+export function normalizeEnumValues(values: readonly string[]) {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const v of values ?? []) {
+    const s = String(v);
+    if (!seen.has(s)) {
+      seen.add(s);
+      out.push(s);
+    }
+  }
+  return out;
+}

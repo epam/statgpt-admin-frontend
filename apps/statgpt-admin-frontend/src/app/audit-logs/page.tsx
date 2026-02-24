@@ -4,6 +4,7 @@ import { SIGN_IN_LINK } from '@/src/constants/auth';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 import { AuditLogsListView } from '@/src/components/AuditLogs/AuditLogsListView';
+import { auditLogsApi } from '../api/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,5 +17,7 @@ export default async function Page() {
     return redirect(SIGN_IN_LINK);
   }
 
-  return <AuditLogsListView />;
+  const enums = await auditLogsApi.getEnumValues(token);
+
+  return <AuditLogsListView enums={enums} />;
 }
