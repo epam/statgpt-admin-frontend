@@ -3,3 +3,5 @@ export interface AgTextEqualsFilterModel {
   type: 'equals';
   filter?: string;
 }
+
+export type EnumSelectFilterModel = { value: string } | null;

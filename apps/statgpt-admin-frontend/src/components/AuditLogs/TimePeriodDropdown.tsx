@@ -343,7 +343,11 @@ export const TimePeriodDropdown = ({
               preventOpenOnFocus
             />
 
-            <Button cssClass="primary" title="Apply" onClick={applyCustom} />
+            <Button
+              cssClass="primary w-fit"
+              title="Apply"
+              onClick={applyCustom}
+            />
           </div>
           <div className="w-full border border-primary my-1" />
         </>

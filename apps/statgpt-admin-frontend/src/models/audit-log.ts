@@ -29,3 +29,8 @@ export interface AuditLogRequestModel extends AuditLogTimeRange {
   entity_id?: string;
   performed_by?: string;
 }
+
+export interface AuditLogEnumValues {
+  entity_types: string[];
+  action_types: string[];
+}

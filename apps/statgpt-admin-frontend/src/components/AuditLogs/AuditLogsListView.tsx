@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ListView } from '@/src/components/ListView/ListView';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Menu } from '@/src/constants/menu';
 import type {
   FetchRowsArgs,
@@ -10,18 +9,24 @@ import type {
 import type {
   AuditLog,
   AuditLogDetails,
+  AuditLogEnumValues,
   AuditLogRequestModel,
 } from '@/src/models/audit-log';
-import { AUDIT_LOGS_COLUMNS } from '@/src/constants/columns/grid-columns';
 import { AuditLogsHeader } from './AuditLogsHeader';
 import type { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
 import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
 import { useAuditLogFiltersInUrl } from '@/src/hooks/use-audit-logs-filters-in-url';
 import { auditLogRequestToQueryString } from '@/src/utils/audit-logs';
-import { getTextEquals } from '@/src/utils/client/grid';
+import { getEnumFilterValue, getTextEquals } from '@/src/utils/client/grid';
+import { ListContent } from '../ListView/ListContent/ListContent';
+import { getAuditLogsColumns } from '@/src/constants/columns/audit-logs';
 
-export function AuditLogsListView() {
+interface AuditLogsListViewProps {
+  enums?: AuditLogEnumValues | null;
+}
+
+export function AuditLogsListView({ enums }: AuditLogsListViewProps) {
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
 
   const { filters, queryKey } = useAuditLogFiltersInUrl();
@@ -37,8 +42,9 @@ export function AuditLogsListView() {
     async (args: FetchRowsArgs): Promise<FetchRowsResult<AuditLog>> => {
       const { created_at_from, created_at_to } = filtersRef.current;
 
-      const entity_type = getTextEquals(args.filterModel, 'entity_type');
-      const action_type = getTextEquals(args.filterModel, 'action_type');
+      const entity_type = getEnumFilterValue(args.filterModel, 'entity_type');
+      const action_type = getEnumFilterValue(args.filterModel, 'action_type');
+
       const entity_id = getTextEquals(args.filterModel, 'entity_id');
 
       const request: AuditLogRequestModel = {
@@ -72,21 +78,24 @@ export function AuditLogsListView() {
     [],
   );
 
+  const columns = useMemo(() => getAuditLogsColumns({ enums }), [enums]);
+
   return (
-    <ListView<AuditLog>
-      colDefs={AUDIT_LOGS_COLUMNS}
-      customHeader={
-        <AuditLogsHeader
-          onRefresh={() => setRefreshToken((x) => x + 1)}
-          count={totalCount}
-        />
-      }
-      emptyDataTitle="No audit logs"
-      menuItem={Menu.AUDIT_LOGS}
-      fetchRows={fetchRows}
-      pageSize={DEFAULT_GRID_PAGE_SIZE}
-      queryKey={queryKey}
-      refreshToken={refreshToken}
-    />
+    <div className="flex flex-col h-full rounded bg-layer-2 common-paddings">
+      <AuditLogsHeader
+        onRefresh={() => setRefreshToken((x) => x + 1)}
+        count={totalCount}
+      />
+      <ListContent<AuditLog>
+        colDefs={columns}
+        emptyDataTitle="No audit logs"
+        menuItem={Menu.AUDIT_LOGS}
+        fetchRows={fetchRows}
+        pageSize={DEFAULT_GRID_PAGE_SIZE}
+        queryKey={queryKey}
+        refreshToken={refreshToken}
+        withHeader={false}
+      />
+    </div>
   );
 }
