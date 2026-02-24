@@ -18,6 +18,8 @@ interface Props<T = BaseEntity> {
   fetchRows?: (args: FetchRowsArgs) => Promise<FetchRowsResult<T>>;
   pageSize?: number;
   totalCount?: number;
+  queryKey?: string;
+  refreshToken?: number;
 }
 
 export function ListView<T = BaseEntity>({
@@ -29,6 +31,8 @@ export function ListView<T = BaseEntity>({
   fetchRows,
   pageSize,
   totalCount,
+  queryKey,
+  refreshToken,
 }: Props<T>) {
   return (
     <div className="flex flex-col h-full rounded bg-layer-2 common-paddings">
@@ -41,6 +45,8 @@ export function ListView<T = BaseEntity>({
         totalCount={totalCount}
         emptyDataTitle={emptyDataTitle}
         customHeader={customHeader}
+        queryKey={queryKey}
+        refreshToken={refreshToken}
       />
     </div>
   );

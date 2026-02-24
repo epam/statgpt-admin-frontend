@@ -22,6 +22,8 @@ interface Props<T = BaseEntity> {
   fetchRows?: (args: FetchRowsArgs) => Promise<FetchRowsResult<T>>;
   pageSize?: number;
   totalCount?: number;
+  queryKey?: string;
+  refreshToken?: number;
 }
 
 export function ListContent<T = BaseEntity>({
@@ -33,6 +35,8 @@ export function ListContent<T = BaseEntity>({
   fetchRows,
   pageSize,
   totalCount,
+  queryKey,
+  refreshToken,
 }: Props<T>) {
   const router = useRouter();
   const columns = colDefs.map((col) => {
@@ -95,6 +99,8 @@ export function ListContent<T = BaseEntity>({
           pageSize={pageSize}
           emptyDataTitle={emptyDataTitle}
           additionalOptions={gridOptions}
+          queryKey={queryKey}
+          refreshToken={refreshToken}
         />
       </div>
     </>

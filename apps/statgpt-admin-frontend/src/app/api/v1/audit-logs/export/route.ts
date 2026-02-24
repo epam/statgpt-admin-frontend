@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { auditLogsApi } from '../../api';
+import { auditLogsApi } from '../../../api';
 import { getToken } from 'next-auth/jwt';
 import { AuditLogRequestModel } from '@/src/models/audit-log';
 import { parseNumber } from '@/src/utils/number';
@@ -23,7 +23,5 @@ export async function GET(req: NextRequest) {
     created_at_to: searchParams.get('created_at_to') ?? undefined,
   };
 
-  const data = await auditLogsApi.getAuditLogs(token, params);
-
-  return Response.json(data);
+  return await auditLogsApi.export(token, params);
 }
