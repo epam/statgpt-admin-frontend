@@ -28,6 +28,10 @@
           @apply bg-layer-1 #{!important};
           @apply border-r border-solid border-primary #{!important};
         }
+
+        &::after {
+          @apply border-0;
+        }
       }
     }
 
