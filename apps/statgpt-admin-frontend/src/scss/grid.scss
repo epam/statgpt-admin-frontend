@@ -10,6 +10,7 @@
   @apply border-primary #{!important};
 
   .ag-header {
+
     .ag-header-viewport,
     .ag-pinned-left-header {
       .ag-floating-filter {
@@ -28,6 +29,14 @@
           @apply bg-layer-1 #{!important};
           @apply border-r border-solid border-primary #{!important};
         }
+      }
+    }
+
+    .ag-floating-filter:has(.enum-select-empty-filter) {
+      @apply justify-center;
+
+      .ag-floating-filter-body {
+        @apply hidden;
       }
     }
   }
@@ -53,6 +62,7 @@
   }
 
   .ag-checkbox-input-wrapper {
+
     .ag-checked,
     .ag-indeterminate {
       display: block;

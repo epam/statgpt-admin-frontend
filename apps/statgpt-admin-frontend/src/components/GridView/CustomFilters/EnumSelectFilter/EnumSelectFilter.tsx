@@ -30,22 +30,27 @@ export function EnumSelectFilter({
         {colDef?.headerName ?? colDef?.field ?? 'Filter'}
       </div>
 
-      <select
-        className="w-full rounded border border-primary bg-layer-2 px-2 py-1 text-sm text-primary outline-none"
-        value={selected}
-        onChange={(e) => {
-          const next = e.target.value;
-          onModelChange(next ? { value: next } : null);
-        }}
-      >
-        <option value="">{allLabel}</option>
+      <div className="relative">
+        <select
+          className="block w-full appearance-none rounded border border-primary bg-layer-2 py-1 pl-2 pr-8 text-sm text-primary outline-none"
+          value={selected}
+          onChange={(e) => {
+            const next = e.target.value;
+            onModelChange(next ? { value: next } : null);
+          }}
+        >
+          <option value="">{allLabel}</option>
+          {options.map((v) => (
+            <option key={v} value={v}>
+              {formatValue ? formatValue(v) : v}
+            </option>
+          ))}
+        </select>
 
-        {options.map((v) => (
-          <option key={v} value={v}>
-            {formatValue ? formatValue(v) : v}
-          </option>
-        ))}
-      </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+          <span className="ag-icon ag-icon-small-down" role="presentation" />
+        </div>
+      </div>
     </div>
   );
 }
