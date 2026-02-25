@@ -19,6 +19,7 @@
           margin: 0 !important;
         }
       }
+
       .ag-header-cell {
         @apply bg-layer-1 small font-semibold;
         @apply text-secondary border-r border-solid border-primary #{!important};
@@ -27,6 +28,14 @@
           @apply bg-layer-1 #{!important};
           @apply border-r border-solid border-primary #{!important};
         }
+      }
+    }
+  }
+
+  .ag-filter-wrapper {
+    .ag-text-field-input-wrapper {
+      .ag-text-field-input {
+        padding-left: 20px !important;
       }
     }
   }
@@ -43,31 +52,33 @@
     }
   }
 
-  .ag-checked,
-  .ag-indeterminate,
   .ag-checkbox-input-wrapper {
-    display: block;
-    width: 18px;
-    height: 18px;
-    margin-left: -2px;
-    border: 1px solid;
-    border-radius: 2px !important;
-    background-repeat: no-repeat;
+    .ag-checked,
+    .ag-indeterminate {
+      display: block;
+      width: 18px;
+      height: 18px;
+      margin-left: -2px;
+      border: 1px solid;
+      border-radius: 2px !important;
+      background-repeat: no-repeat;
 
-    box-shadow: none;
-    &::after {
-      content: '' !important;
+      box-shadow: none;
+
+      &::after {
+        content: '' !important;
+      }
     }
-  }
 
-  .ag-checked {
-    border: none;
-    background-image: url('/icons/checkbox-checked.svg') !important;
-  }
+    .ag-checked {
+      border: none;
+      background-image: url('/icons/checkbox-checked.svg') !important;
+    }
 
-  .ag-indeterminate {
-    border: none;
-    background-image: url('/icons/checkbox-indeterminate.svg') !important;
+    .ag-indeterminate {
+      border: none;
+      background-image: url('/icons/checkbox-indeterminate.svg') !important;
+    }
   }
 
   .ag-pinned-left-cols-container {
@@ -91,12 +102,14 @@
         @apply bg-accent-primary-alpha border-r-accent-primary-hover #{!important};
       }
     }
+
     .ag-row {
       border: none;
 
       &.ag-row-odd .ag-cell {
         @apply bg-layer-2;
       }
+
       .ag-cell {
         @apply text-primary small;
         padding-top: 6px;
