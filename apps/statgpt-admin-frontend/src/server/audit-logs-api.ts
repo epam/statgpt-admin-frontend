@@ -8,7 +8,7 @@ import { JWT } from 'next-auth/jwt';
 import { RequestData } from '@/src/models/request-data';
 import { MAIN_API } from './api';
 import { BaseApi } from './base-api';
-import { auditLogRequestToQueryString } from '../utils/audit-logs';
+import { mapAuditLogRequestToQueryString } from '../utils/audit-logs';
 
 const AUDIT_LOGS_URL = `${MAIN_API}/audit-logs`;
 const AUDIT_LOGS_ID_URL = (id?: string | number): string =>
@@ -24,7 +24,7 @@ export class AuditLogsApi extends BaseApi {
     let url = AUDIT_LOGS_URL;
 
     if (params) {
-      const queryString = auditLogRequestToQueryString(params);
+      const queryString = mapAuditLogRequestToQueryString(params);
       if (queryString) {
         url += `?${queryString}`;
       }
@@ -44,7 +44,7 @@ export class AuditLogsApi extends BaseApi {
     let url = EXPORT_URL;
 
     if (params) {
-      const queryString = auditLogRequestToQueryString(params);
+      const queryString = mapAuditLogRequestToQueryString(params);
       if (queryString) {
         url += `?${queryString}`;
       }

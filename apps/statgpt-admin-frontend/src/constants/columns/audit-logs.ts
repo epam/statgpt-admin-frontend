@@ -4,10 +4,10 @@ import { EnumSelectFloatingFilter } from '@/src/components/GridView/CustomFilter
 import { AuditLog, AuditLogEnumValues } from '@/src/models/audit-log';
 import { ColDef } from 'ag-grid-community';
 
-const EQUALS_ONLY_FILTER = {
-  filterOptions: ['equals'],
-  defaultOption: 'equals',
-  suppressAndOrCondition: true,
+const CONTAINS_TEXT_FILTER = {
+  filterOptions: ['contains'],
+  defaultOption: 'contains',
+  maxNumConditions: 1,
   debounceMs: 400,
 };
 
@@ -46,15 +46,19 @@ export const getAuditLogsColumns = ({
     field: 'entity_id',
     headerName: 'Entity ID',
     filter: 'agTextColumnFilter',
-    filterParams: EQUALS_ONLY_FILTER,
+    filterParams: CONTAINS_TEXT_FILTER,
   },
   {
     field: 'entity_name',
     headerName: 'Entity name',
+    filter: 'agTextColumnFilter',
+    filterParams: CONTAINS_TEXT_FILTER,
   },
   {
     field: 'performed_by_name',
     headerName: 'Initiated',
+    filter: 'agTextColumnFilter',
+    filterParams: CONTAINS_TEXT_FILTER,
     valueGetter: ({ data }: { data: AuditLog }) => {
       return data?.performed_by_name ?? data?.performed_by ?? '';
     },
@@ -62,6 +66,8 @@ export const getAuditLogsColumns = ({
   {
     field: 'trace_id',
     headerName: 'Activity ID',
+    filter: 'agTextColumnFilter',
+    filterParams: CONTAINS_TEXT_FILTER,
   },
   {
     field: 'created_at',

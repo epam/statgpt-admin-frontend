@@ -17,8 +17,8 @@ import type { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
 import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
 import { useAuditLogFiltersInUrl } from '@/src/hooks/use-audit-logs-filters-in-url';
-import { auditLogRequestToQueryString } from '@/src/utils/audit-logs';
-import { getEnumFilterValue, getTextEquals } from '@/src/utils/client/grid';
+import { mapAuditLogRequestToQueryString } from '@/src/utils/audit-logs';
+import { getEnumFilterValue, getTextContains } from '@/src/utils/client/grid';
 import { ListContent } from '../ListView/ListContent/ListContent';
 import { getAuditLogsColumns } from '@/src/constants/columns/audit-logs';
 
@@ -45,7 +45,13 @@ export function AuditLogsListView({ enums }: AuditLogsListViewProps) {
       const entity_type = getEnumFilterValue(args.filterModel, 'entity_type');
       const action_type = getEnumFilterValue(args.filterModel, 'action_type');
 
-      const entity_id = getTextEquals(args.filterModel, 'entity_id');
+      const trace_id = getTextContains(args.filterModel, 'trace_id');
+      const entity_id = getTextContains(args.filterModel, 'entity_id');
+      const entity_name = getTextContains(args.filterModel, 'entity_name');
+      const performed_by_name = getTextContains(
+        args.filterModel,
+        'performed_by_name',
+      );
 
       const request: AuditLogRequestModel = {
         offset: args.offset,
@@ -54,10 +60,13 @@ export function AuditLogsListView({ enums }: AuditLogsListViewProps) {
         created_at_to,
         ...(entity_type ? { entity_type } : {}),
         ...(action_type ? { action_type } : {}),
+        ...(trace_id ? { trace_id } : {}),
         ...(entity_id ? { entity_id } : {}),
+        ...(entity_name ? { entity_name } : {}),
+        ...(performed_by_name ? { performed_by_name } : {}),
       };
 
-      const query = auditLogRequestToQueryString(request);
+      const query = mapAuditLogRequestToQueryString(request);
 
       const payload = await sendGetRequest<any, RequestData<AuditLogDetails>>(
         `/api/v1/audit-logs?${query}`,

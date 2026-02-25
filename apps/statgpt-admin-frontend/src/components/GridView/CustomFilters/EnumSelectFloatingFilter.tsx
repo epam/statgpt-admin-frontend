@@ -1,12 +1,12 @@
 'use client';
 
-import { EnumSelectFilterModel } from '@/src/models/grid';
+import { GridEnumSelectFilterModel } from '@/src/models/grid';
 import { normalizeEnumValues } from '@/src/utils/client/grid';
 import React, { useMemo } from 'react';
 
 export interface EnumSelectFloatingFilterProps {
-  model: EnumSelectFilterModel;
-  onModelChange: (model: EnumSelectFilterModel) => void;
+  model: GridEnumSelectFilterModel;
+  onModelChange: (model: GridEnumSelectFilterModel) => void;
   values: readonly string[];
   allLabel?: string;
   formatValue?: (v: string) => string;
