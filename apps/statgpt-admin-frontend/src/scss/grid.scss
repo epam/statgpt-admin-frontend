@@ -30,6 +30,14 @@
         }
       }
     }
+
+    .ag-floating-filter:has(.enum-select-empty-filter) {
+      @apply justify-center;
+
+      .ag-floating-filter-body {
+        @apply hidden;
+      }
+    }
   }
 
   .ag-filter-wrapper {

@@ -1,6 +1,6 @@
 import { AUDIT_LOG_DETAILS_CELL_RENDERER_KEY } from '@/src/components/AuditLogs/AuditLogDetails/AuditLogDetailsCellRenderer';
-import { EnumSelectFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter';
-import { EnumSelectFloatingFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFloatingFilter';
+import { EnumSelectEmptyFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter/EnumSelectEmptyFilter';
+import { EnumSelectFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter/EnumSelectFilter';
 import { AuditLog, AuditLogEnumValues } from '@/src/models/audit-log';
 import { ColDef } from 'ag-grid-community';
 
@@ -24,10 +24,7 @@ export const getAuditLogsColumns = ({
       values: enums?.action_types ?? [],
     },
     floatingFilter: true,
-    floatingFilterComponent: EnumSelectFloatingFilter,
-    floatingFilterComponentParams: {
-      values: enums?.action_types ?? [],
-    },
+    floatingFilterComponent: EnumSelectEmptyFilter,
   },
   {
     field: 'entity_type',
@@ -37,10 +34,7 @@ export const getAuditLogsColumns = ({
       values: enums?.entity_types ?? [],
     },
     floatingFilter: true,
-    floatingFilterComponent: EnumSelectFloatingFilter,
-    floatingFilterComponentParams: {
-      values: enums?.entity_types ?? [],
-    },
+    floatingFilterComponent: EnumSelectEmptyFilter,
   },
   {
     field: 'entity_id',
