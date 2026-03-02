@@ -54,7 +54,7 @@ export default [
       ...nextPlugin.configs.recommended.rules,
       ...prettierPlugin.configs.recommended.rules,
       '@next/next/no-html-link-for-pages': 'off',
-      "no-redeclare": "off",
+      'no-redeclare': 'off',
       '@typescript-eslint/triple-slash-reference': 'off',
       '@nx/enforce-module-boundaries': [
         'error',
