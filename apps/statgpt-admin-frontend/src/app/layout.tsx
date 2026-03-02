@@ -1,6 +1,6 @@
+import { Inter } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Inter } from 'next/font/google';
 
 import { Header } from '@/src/components/Header/Header';
 import { MenuSideBar } from '@/src/components/Menu/Menu';
@@ -8,8 +8,9 @@ import { SIGN_IN_LINK } from '@/src/constants/auth';
 import { NotificationProvider } from '@/src/context/NotificationContext';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
-import { NextAuthProvider } from './provider';
+import { ReactNode } from 'react';
 import './global.scss';
+import { NextAuthProvider } from './provider';
 
 export const metadata = {
   title: 'StatGPT Admin',
@@ -24,7 +25,7 @@ const inter = Inter({
 export default async function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const isEnableAuth = getIsEnableAuthToggle();
   const token = await getUserToken(isEnableAuth, headers(), cookies());

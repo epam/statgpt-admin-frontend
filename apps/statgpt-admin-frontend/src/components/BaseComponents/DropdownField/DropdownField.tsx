@@ -9,8 +9,7 @@ import { DropdownProps } from './DropdownComponent';
 import { DropdownMenuItem } from './DropdownItem';
 
 interface Props
-  extends InputFieldBaseProps,
-    Omit<DropdownProps, 'selectedValue'> {
+  extends InputFieldBaseProps, Omit<DropdownProps, 'selectedValue'> {
   items: DropdownItemsModel[];
   selectedValue?: string;
   onChange: (value: string) => void;
