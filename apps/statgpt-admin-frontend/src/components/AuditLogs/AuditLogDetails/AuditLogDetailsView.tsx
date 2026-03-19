@@ -117,6 +117,7 @@ export const AuditLogDetailsView = ({
                 keepCurrentOriginalModel
                 keepCurrentModifiedModel
                 options={{
+                  useInlineViewWhenSpaceIsLimited: false,
                   renderSideBySide: true,
                   readOnly: true,
                   automaticLayout: true,
