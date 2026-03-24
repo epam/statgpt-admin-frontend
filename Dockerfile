@@ -1,10 +1,5 @@
 FROM node:24-alpine AS base
 
-# Upgrade Alpine packages with known vulnerabilities
-RUN apk upgrade --no-cache zlib
-# Upgrade npm to get patched bundled tar
-RUN npm install -g npm@latest
-
 FROM base AS deps
 WORKDIR /app
 
