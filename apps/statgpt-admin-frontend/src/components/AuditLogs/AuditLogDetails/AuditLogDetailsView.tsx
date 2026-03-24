@@ -49,6 +49,25 @@ export const AuditLogDetailsView = ({
     };
   }, [data.id]);
 
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (
+        event.key === 'Escape' ||
+        event.key === 'Esc' ||
+        event.keyCode === 27
+      ) {
+        event.preventDefault();
+        close();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscapeKey);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [close]);
+
   const original = useMemo(() => {
     return details?.state_before
       ? JSON.stringify(details?.state_before, null, 2)
@@ -117,6 +136,7 @@ export const AuditLogDetailsView = ({
                 keepCurrentOriginalModel
                 keepCurrentModifiedModel
                 options={{
+                  useInlineViewWhenSpaceIsLimited: false,
                   renderSideBySide: true,
                   readOnly: true,
                   automaticLayout: true,
