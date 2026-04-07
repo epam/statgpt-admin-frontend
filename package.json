@@ -84,7 +84,7 @@
     "glob": "11.1.0",
     "minimatch": "10.2.3",
     "picomatch": "4.0.4",
-    "serialize-javascript": "7.0.3"
+    "serialize-javascript": "7.0.5"
   },
   "engines": {
     "node": ">=22.2.0",
