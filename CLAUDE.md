@@ -21,19 +21,44 @@ npx nx test statgpt-admin-frontend
 npx nx lint statgpt-admin-frontend
 ```
 
+Build output: `dist/apps/statgpt-admin-frontend/`
+
 ## Architecture
 
 **Nx monorepo** with a single Next.js 15 App Router application in `apps/statgpt-admin-frontend/`. The app is an admin dashboard for the AI DIAL/StatGPT platform managing Data Sources, Datasets, Documents, Channels (with glossary terms and jobs), and Audit Logs.
+
+### Route Structure
+
+- `/` — redirects to `/data-sources`
+- `/data-sources`, `/data-sets`, `/documents`, `/channels` — CRUD list views
+- `/channels/[id]` — channel detail (client component using `useParams`)
+- `/channels/[id]/glossary`, `/channels/[id]/jobs` — nested channel sub-views
+- `/audit-logs` — audit log viewer with date range filtering
+- `/api/auth/[...nextauth]` — NextAuth provider
+- `/api/health` — health check
+- `/api/v1/*` — BFF route handlers mirroring backend entities
+
+Each route group has a co-located `actions.ts` file for Server Actions (mutations).
 
 ### Two-Tier API Pattern
 
 All API calls are server-side only — no direct browser-to-backend requests:
 
-1. **Server API classes** (`src/server/`): `BaseApi` wraps `fetch` with `get/post/put/delete/streamRequest`. Domain subclasses (`ChannelsApi`, `DataSetsApi`, etc.) call the upstream backend directly using a JWT forwarded as `Authorization: Bearer <token>`. Server Components and Server Actions call these directly.
+1. **Server API classes** (`src/server/`): `BaseApi` wraps `fetch` with `get/post/put/delete/streamRequest`. Domain subclasses (`ChannelsApi`, `DataSetsApi`, `DataSourcesApi`, `DocumentsApi`, `AuditLogsApi`) call the upstream backend directly using a JWT forwarded as `Authorization: Bearer <token>`. Server Components and Server Actions call these directly.
 
 2. **BFF Route Handlers** (`src/app/api/v1/`): Next.js API routes that Client Components call. These handlers authenticate via `getToken({ req })` from `next-auth/jwt` and delegate to the server API classes.
 
 Long-running operations (export/import) use **RxJS** `interval` + `race` + `timeout` to poll job status every 2 seconds with a 5-minute timeout (`src/server/channels-api.ts`).
+
+### Component Organization
+
+- **`src/components/BaseComponents/`** — 28 reusable UI primitives (Button, Input, Modal, ConfirmDialog, Dropdown with autocomplete, DatePicker, Loader, Field variants, LoadFileArea, Multiselect, etc.)
+- **`src/components/`** (top-level) — feature components: ListView, GridView (AG Grid wrapper), ChannelView, JobsView, TermsView, AuditLogs, AddDataSet/AddDataSourceModal/AddChannelsModal/AddDocument (multi-step flows), Configuration, Editor (Monaco), Menu, Header, Breadcrumbs
+- AG Grid column definitions live in `src/constants/columns/`; grid filter helpers in `src/utils/client/grid.ts`
+
+### Domain Models
+
+All domain models in `src/models/` extend `BaseEntity` (`id`, `title`, `description`, `created_at`, `updated_at`). `BaseEntityWithDetails` adds `details` + `preprocessing_status`. The `src/types/` directory contains only `PopUpState` enum for modal state.
 
 ### State Management
 
@@ -56,18 +81,24 @@ No global state library. State flows via:
 - **`DISABLE_MENU_ITEMS`** env var hides sidebar items at runtime
 - **pino** for server-side structured logging only — never use `console.log` on the server
 - **Strict TypeScript**: `strict: true`, `noImplicitAny: true`
+- **Dynamic routes** use `'use client'` with `useParams()` from `next/navigation`
+- **Routing constants** defined via `Menu` and `MenuUrl` enums in `src/constants/menu.ts`
 
 ### Notable Libraries
 
-- **AG Grid 34** (Community) — all data tables; uses infinite row model for server-paginated data (Audit Logs), client-side row data for smaller lists
+- **AG Grid 34** (Community) — all data tables; uses infinite row model for server-paginated data (Audit Logs), client-side row data for smaller lists. Default page size: 100.
 - **Monaco Editor** — JSON/YAML config editing in modals
-- **NextAuth.js v4** — multi-provider auth (OIDC, Azure AD, Cognito, Keycloak, GitLab); config in `src/utils/auth/auth-providers.ts`
+- **NextAuth.js v4** — multi-provider auth (OIDC, Azure AD, Cognito, Keycloak, GitLab, Okta, Auth0, Google); config in `src/utils/auth/auth-providers.ts`
 - **React DnD** — drag-and-drop
 - **Tailwind CSS 3** + SCSS for styling
 
+### Environment Variables
+
+Required: `API_URL`, `DIAL_API_URL`, `NEXTAUTH_SECRET` (for auth). Optional: `NEXTAUTH_URL` (production), `DIAL_API_KEY` (if JWT not configured), `DISABLE_MENU_ITEMS`. Auth providers are configured via `AUTH_<PROVIDER>_*` env vars (Azure AD, Google, Auth0, GitLab, Keycloak, Okta).
+
 ### Security
 
-CSP nonces are generated per-request in both `next.config.js` (static headers) and `middleware.ts` (dynamic injection). The middleware wraps NextAuth `withAuth` and injects the nonce into response headers.
+CSP nonces are generated per-request in both `next.config.js` (static headers) and `middleware.ts` (dynamic injection). The middleware wraps NextAuth `withAuth` and injects the nonce into response headers. Known CVEs in the base Docker image (`node:24-alpine`) are tracked in `.trivyignore`.
 
 ### Testing
 
