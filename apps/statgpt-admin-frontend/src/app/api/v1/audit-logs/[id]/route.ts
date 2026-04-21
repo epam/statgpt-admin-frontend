@@ -6,9 +6,13 @@ export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
-  const params = await context.params;
-  const token = await getToken({ req });
-  const data = await auditLogsApi.getAuditLogById(params.id, token);
+  try {
+    const params = await context.params;
+    const token = await getToken({ req });
+    const data = await auditLogsApi.getAuditLogById(params.id, token);
 
-  return Response.json(data);
+    return Response.json(data);
+  } catch {
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }

@@ -6,7 +6,11 @@ export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
-  const params = await context.params;
-  const token = await getToken({ req });
-  return (await channelsApi.downloadFile(params.id, token)) as any;
+  try {
+    const params = await context.params;
+    const token = await getToken({ req });
+    return (await channelsApi.downloadFile(params.id, token)) as any;
+  } catch {
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }
