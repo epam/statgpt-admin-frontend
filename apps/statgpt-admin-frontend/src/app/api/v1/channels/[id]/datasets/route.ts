@@ -3,6 +3,10 @@ import { channelsApi } from '../../../../api';
 import { getToken } from 'next-auth/jwt';
 
 export const dynamic = 'force-dynamic';
+interface ChannelDatasetPayload {
+  dsId?: string;
+  isReload?: boolean;
+}
 
 export async function GET(
   req: NextRequest,
@@ -31,7 +35,17 @@ export async function POST(
 ) {
   const params = await context.params;
   const token = await getToken({ req });
-  const res = await req.json();
+  let res: ChannelDatasetPayload;
+  try {
+    res = (await req.json()) as ChannelDatasetPayload;
+  } catch {
+    return Response.json({ error: 'Invalid JSON payload' }, { status: 400 });
+  }
+
+  if (!res.dsId) {
+    return Response.json({ error: 'Missing field: dsId' }, { status: 400 });
+  }
+
   const data = res.isReload
     ? await channelsApi.reloadDataSet(params.id, res.dsId, token)
     : await channelsApi.addChannelDataset(params.id, res.dsId, token);
