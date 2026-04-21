@@ -7,6 +7,7 @@ export const API = 'api/v1';
 export const MAIN_API = `${ADMIN}/${API}`;
 
 export const CACHE: RequestInit = { cache: 'no-store' };
+const PREVIEW_BODY_LENGTH = 1000;
 
 export const sendPostRequest = <T extends object, R>(
   url: string,
@@ -53,6 +54,20 @@ export const streamRequest = async (
       },
     });
 
+    const contentType = res.headers.get('content-type');
+    if (!res.ok && contentType?.toLowerCase().includes('text/html')) {
+      const bodyPreview = (await res.text()).slice(0, PREVIEW_BODY_LENGTH);
+      console.error(
+        'Proxy error: Unexpected HTML response from upstream',
+        res.status,
+        bodyPreview,
+      );
+      return Response.json(
+        { error: 'Unexpected HTML response from upstream service' },
+        { status: 502 },
+      );
+    }
+
     const headers = new Headers(res.headers);
 
     return new Response(res.body, {
@@ -62,7 +77,7 @@ export const streamRequest = async (
     });
   } catch (e) {
     console.error('Error', e);
-    return new Response('Proxy error', { status: 500 });
+    return Response.json({ error: 'Proxy error' }, { status: 500 });
   }
 };
 
