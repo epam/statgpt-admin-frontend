@@ -179,13 +179,17 @@ export const sendRequestSafe = async <T extends object, R>(
       console.error('Request error Url', response.url);
 
       const error = await parseApiError(response);
-      console.error('Request error', response.status, error.raw || error.message);
+      console.error(
+        'Request error',
+        response.status,
+        error.raw || error.message,
+      );
       return { ok: false, error };
     }
 
-    const data = (type === 'DELETE'
-      ? await response.text()
-      : await response.json()) as R;
+    const data = (
+      type === 'DELETE' ? await response.text() : await response.json()
+    ) as R;
     return { ok: true, data };
   } catch (e) {
     console.error('Error', e);
