@@ -1,6 +1,7 @@
 import { JWT } from 'next-auth/jwt';
 
 import { getApiHeaders } from '@/src/utils/auth/api-headers';
+import { parseApiError } from './api-error-parser';
 
 export const ADMIN = '';
 export const API = 'api/v1';
@@ -202,81 +203,4 @@ export const sendRequestSafe = async <T extends object, R>(
       },
     };
   }
-};
-
-const parseApiError = async (response: Response): Promise<ApiError> => {
-  const contentType = response.headers.get('content-type')?.toLowerCase() || '';
-  if (contentType.includes('application/json')) {
-    const payload = (await response.json()) as {
-      detail?: unknown;
-      message?: string;
-      error?: string;
-    };
-
-    if (typeof payload.message === 'string' && payload.message) {
-      return {
-        status: response.status,
-        message: payload.message,
-        details: payload.detail,
-        raw: payload,
-      };
-    }
-
-    if (Array.isArray(payload.detail) && payload.detail.length > 0) {
-      const validationMessage = payload.detail
-        .map((item) => {
-          if (!item || typeof item !== 'object') {
-            return '';
-          }
-
-          const loc = Array.isArray((item as { loc?: unknown[] }).loc)
-            ? ((item as { loc?: unknown[] }).loc as unknown[]).join('.')
-            : 'field';
-          const msg =
-            typeof (item as { msg?: unknown }).msg === 'string'
-              ? (item as { msg: string }).msg
-              : '';
-          return msg ? `${loc}: ${msg}` : '';
-        })
-        .filter(Boolean)
-        .join('; ');
-
-      return {
-        status: response.status,
-        message: validationMessage || 'Validation failed',
-        details: payload.detail,
-        raw: payload,
-      };
-    }
-
-    if (typeof payload.detail === 'string' && payload.detail) {
-      return {
-        status: response.status,
-        message: payload.detail,
-        details: payload.detail,
-        raw: payload,
-      };
-    }
-
-    if (typeof payload.error === 'string' && payload.error) {
-      return {
-        status: response.status,
-        message: payload.error,
-        raw: payload,
-      };
-    }
-
-    return {
-      status: response.status,
-      message: `Request failed with status ${response.status}`,
-      raw: payload,
-    };
-  }
-
-  const text = await response.text();
-  return {
-    status: response.status,
-    message: text || `Request failed with status ${response.status}`,
-    raw: text,
-  };
 };
