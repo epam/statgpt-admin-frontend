@@ -10,7 +10,7 @@ import { RequestData } from '@/src/models/request-data';
 
 interface Props {
   selectedDataSourceId?: number;
-  changeDataSet: (details: Record<string, unknown>) => void;
+  changeDataSet: (dataset: Pick<DataSet, 'title' | 'details'>) => void;
 }
 
 export const DataSetStep: FC<Props> = ({
@@ -23,7 +23,10 @@ export const DataSetStep: FC<Props> = ({
   const gridOptions: GridOptions = {
     rowSelection: 'single',
     onRowSelected: (event) => {
-      changeDataSet(event.data.details);
+      changeDataSet({
+        title: event.data.title,
+        details: event.data.details,
+      });
     },
   };
 

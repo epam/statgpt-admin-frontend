@@ -16,7 +16,7 @@ const NotificationPortal: FC<Props> = ({ notifications }) => {
   return (
     <>
       {createPortal(
-        <div className="flex flex-col fixed bottom-3 right-3 z-50">
+        <div className="flex flex-col fixed bottom-3 right-3 z-[200]">
           {notifications.map((notification) =>
             notification.type === NotificationType.dynamic ? (
               <DynamicNotification key={notification.id} {...notification} />

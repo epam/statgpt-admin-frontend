@@ -1,5 +1,5 @@
 import { JWT } from 'next-auth/jwt';
-import { sendRequest, streamRequest } from './api';
+import { ApiResult, sendRequest, sendRequestSafe, streamRequest } from './api';
 
 export interface BaseApiConfig {
   host?: string;
@@ -42,6 +42,40 @@ export class BaseApi {
     return this.sendRequest<T, R>(url, 'POST', dto, qs, initHeaders, token);
   }
 
+  protected async deleteSafe<T extends object, R>(
+    url: string,
+    token?: JWT | null,
+  ): Promise<ApiResult<R>> {
+    return this.sendRequestSafe<T, R>(
+      url,
+      'DELETE',
+      void 0,
+      void 0,
+      void 0,
+      token,
+    );
+  }
+
+  protected async putSafe<T extends object, R>(
+    url: string,
+    dto: T,
+    qs?: Record<string, string>,
+    initHeaders?: HeadersInit,
+    token?: JWT | null,
+  ): Promise<ApiResult<R>> {
+    return this.sendRequestSafe<T, R>(url, 'PUT', dto, qs, initHeaders, token);
+  }
+
+  protected async postSafe<T extends object, R>(
+    url: string,
+    dto: T,
+    qs?: Record<string, string>,
+    initHeaders?: HeadersInit,
+    token?: JWT | null,
+  ): Promise<ApiResult<R>> {
+    return this.sendRequestSafe<T, R>(url, 'POST', dto, qs, initHeaders, token);
+  }
+
   protected streamRequest(url: string, token?: JWT | null) {
     return streamRequest(`${this.config.host}${url}`, 'GET', token);
   }
@@ -76,6 +110,29 @@ export class BaseApi {
       : {};
 
     return sendRequest(
+      `${tempUrl ? this.config.dialTemp : this.config.host || this.config.dial}${url}`,
+      type,
+      dto,
+      qs,
+      { ...initHeaders, ...apiKey } as HeadersInit,
+      token,
+    );
+  }
+
+  private sendRequestSafe<T extends object, R>(
+    url: string,
+    type: string,
+    dto?: T,
+    qs?: Record<string, string>,
+    initHeaders?: HeadersInit,
+    token?: JWT | null,
+    tempUrl = false,
+  ): Promise<ApiResult<R>> {
+    const apiKey = this.config.dialKey
+      ? { 'Api-key': this.config.dialKey }
+      : {};
+
+    return sendRequestSafe(
       `${tempUrl ? this.config.dialTemp : this.config.host || this.config.dial}${url}`,
       type,
       dto,
