@@ -2,16 +2,18 @@ import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
 import { parse, stringify } from 'yaml';
 
-import { createDataSet } from '@/src/app/data-sets/actions';
 import { getDataSources } from '@/src/app/data-sources/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { Configuration } from '@/src/components/Configuration/Configuration';
 import { Modal } from '@/src/components/Modal/Modal';
 import { Stepper } from '@/src/components/Stepper/Stepper';
 import { BaseStep, DatasetStep } from '@/src/constants/steps';
+import { useNotification } from '@/src/context/NotificationContext';
 import { DataSet } from '@/src/models/data-sets';
+import { NotificationType } from '@/src/models/notification';
 import { DataSource } from '@/src/models/data-source';
 import { RequestData } from '@/src/models/request-data';
+import { sendPostRequest } from '@/src/server/api';
 import { Step } from '@/src/models/step';
 import { ModalsButtons } from './Buttons/ModalsButtons';
 import { DataSetStep } from './DataSetStep/DataSetStep';
@@ -23,6 +25,7 @@ interface Props {
 
 export const AddDataSetModal: FC<Props> = ({ close }) => {
   const router = useRouter();
+  const { showNotification } = useNotification();
   const dataSetSteps: Step[] = [
     {
       key: DatasetStep.DataSource,
@@ -55,10 +58,27 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
 
   const createDataset = () => {
     setIsLoadingDs(true);
-    createDataSet(newDataSet).then(() => {
-      router.refresh();
+    sendPostRequest<DataSet, { ok: boolean; res: DataSet | string }>(
+      '/api/v1/datasets',
+      newDataSet,
+    ).then((res) => {
       setIsLoadingDs(false);
-      close();
+      if (res?.ok) {
+        router.refresh();
+        close();
+        return;
+      }
+
+      const message =
+        typeof res?.res === 'string'
+          ? res.res
+          : 'Failed to create dataset. Please check required fields.';
+
+      showNotification({
+        type: NotificationType.error,
+        title: 'Dataset Creation Failed',
+        description: message,
+      });
     });
   };
 
@@ -88,9 +108,10 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
       return (
         <DataSetStep
           selectedDataSourceId={newDataSet?.data_source_id}
-          changeDataSet={(details) =>
+          changeDataSet={({ title, details }) =>
             setDataSet({
               ...(newDataSet || {}),
+              title,
               details,
             } as DataSet)
           }
@@ -133,7 +154,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
         activeStep={activeStep}
         setActiveStep={setActiveStep}
         isValidDataSourceStep={!newDataSet?.data_source_id}
-        isValidDataSetStep={!newDataSet?.details}
+        isValidDataSetStep={!newDataSet?.details || !newDataSet?.title}
       />
     </Modal>
   );

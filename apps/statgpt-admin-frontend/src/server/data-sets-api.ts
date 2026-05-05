@@ -2,7 +2,7 @@ import { JWT } from 'next-auth/jwt';
 
 import { DataSet } from '@/src/models/data-sets';
 import { RequestData } from '@/src/models/request-data';
-import { MAIN_API } from './api';
+import { ApiResult, MAIN_API } from './api';
 import { BaseApi } from './base-api';
 
 export const DATA_SETS_URL = `${MAIN_API}/datasets`;
@@ -23,6 +23,13 @@ export class DataSetsApi extends BaseApi {
     token: JWT | null,
   ): Promise<RequestData<DataSet> | null> {
     return this.post(DATA_SETS_URL, ds, void 0, void 0, token);
+  }
+
+  createDataSetSafe(
+    ds: DataSet,
+    token: JWT | null,
+  ): Promise<ApiResult<RequestData<DataSet>>> {
+    return this.postSafe(DATA_SETS_URL, ds, void 0, void 0, token);
   }
 
   removeDataSet(id: string, token: JWT | null): Promise<unknown> {
