@@ -8,12 +8,10 @@ import { Configuration } from '@/src/components/Configuration/Configuration';
 import { Modal } from '@/src/components/Modal/Modal';
 import { Stepper } from '@/src/components/Stepper/Stepper';
 import { BaseStep, DatasetStep } from '@/src/constants/steps';
-import { useNotification } from '@/src/context/NotificationContext';
 import { DataSet } from '@/src/models/data-sets';
-import { NotificationType } from '@/src/models/notification';
 import { DataSource } from '@/src/models/data-source';
-import { RequestData } from '@/src/models/request-data';
 import { sendPostRequest } from '@/src/server/api';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { Step } from '@/src/models/step';
 import { ModalsButtons } from './Buttons/ModalsButtons';
 import { DataSetStep } from './DataSetStep/DataSetStep';
@@ -25,7 +23,7 @@ interface Props {
 
 export const AddDataSetModal: FC<Props> = ({ close }) => {
   const router = useRouter();
-  const { showNotification } = useNotification();
+  const withNotification = useApiNotification();
   const dataSetSteps: Step[] = [
     {
       key: DatasetStep.DataSource,
@@ -49,36 +47,26 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   useEffect(() => {
     if (dataSources.length === 0 && !isLoadingData) {
       setIsLoadingDs(true);
-      getDataSources().then((data) => {
-        setIsLoadingDs(false);
-        setDataSources((data as RequestData<DataSource>).data);
-      });
+      withNotification(getDataSources(), 'Failed to Load Data Sources').then(
+        (result) => {
+          setIsLoadingDs(false);
+          if (result.ok) setDataSources(result.data.data);
+        },
+      );
     }
   }, [dataSources, isLoadingData]);
 
   const createDataset = () => {
     setIsLoadingDs(true);
-    sendPostRequest<DataSet, { ok: boolean; res: DataSet | string }>(
-      '/api/v1/datasets',
-      newDataSet,
-    ).then((res) => {
+    withNotification(
+      sendPostRequest('/api/v1/datasets', newDataSet),
+      'Dataset Creation Failed',
+    ).then((result) => {
       setIsLoadingDs(false);
-      if (res?.ok) {
+      if (result.ok) {
         router.refresh();
         close();
-        return;
       }
-
-      const message =
-        typeof res?.res === 'string'
-          ? res.res
-          : 'Failed to create dataset. Please check required fields.';
-
-      showNotification({
-        type: NotificationType.error,
-        title: 'Dataset Creation Failed',
-        description: message,
-      });
     });
   };
 

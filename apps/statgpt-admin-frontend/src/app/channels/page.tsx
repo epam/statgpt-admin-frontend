@@ -25,11 +25,9 @@ export default async function Page() {
 
   let data = { data: [] as Channel[] } as RequestData<Channel> | null;
 
-  try {
-    data = await channelsApi.getChannels(token);
-  } catch (e) {
-    logger.error(`Getting channels error ${e}`);
-  }
+  const result = await channelsApi.getChannels(token);
+  if (result.ok) data = result.data;
+  else logger.error(`Getting channels error ${result.error.message}`);
 
   return (
     <ListView
@@ -37,6 +35,7 @@ export default async function Page() {
       colDefs={CHANNELS_COLUMNS}
       data={data?.data || []}
       emptyDataTitle="No Channels"
+      initialError={result.ok ? null : result.error.message}
     />
   );
 }

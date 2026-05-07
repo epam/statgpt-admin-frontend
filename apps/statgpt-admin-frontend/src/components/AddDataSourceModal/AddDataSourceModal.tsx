@@ -11,6 +11,7 @@ import { Configuration } from '@/src/components/Configuration/Configuration';
 import { Modal } from '@/src/components/Modal/Modal';
 import { Stepper } from '@/src/components/Stepper/Stepper';
 import { BaseStep } from '@/src/constants/steps';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DataSource, DataSourceType } from '@/src/models/data-source';
 import { Step } from '@/src/models/step';
 import { ModalButtons } from './Buttons/ModalButtons';
@@ -39,6 +40,7 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
   const [dsTypes, setDsTypes] = useState<DataSourceType[]>([]);
   const [isValidDataSource, setIsValidDataSource] = useState(false);
   const router = useRouter();
+  const withNotification = useApiNotification();
 
   useEffect(() => {
     setIsValidDataSource(dataSource?.title != null && dataSource?.title !== '');
@@ -48,17 +50,25 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
     if (dsTypes.length === 0 && !isLoading) {
       setIsLoading(true);
 
-      getDataSourcesTypes().then((types) => {
+      withNotification(
+        getDataSourcesTypes(),
+        'Failed to Load Data Source Types',
+      ).then((result) => {
         setIsLoading(false);
-        setDsTypes(types?.data || []);
+        if (result.ok) setDsTypes(result.data.data);
       });
     }
   }, []);
 
   const create = () => {
-    createDataSource(dataSource).then(() => {
-      router.refresh();
-      close();
+    withNotification(
+      createDataSource(dataSource),
+      'Create Data Source Failed',
+    ).then((result) => {
+      if (result.ok) {
+        router.refresh();
+        close();
+      }
     });
   };
 

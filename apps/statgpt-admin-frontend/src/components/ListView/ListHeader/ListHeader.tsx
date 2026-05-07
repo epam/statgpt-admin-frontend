@@ -6,11 +6,10 @@ import { createPortal } from 'react-dom';
 
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { Menu } from '@/src/constants/menu';
-import { useNotification } from '@/src/context/NotificationContext';
-import { NotificationType } from '@/src/models/notification';
 import { AddEntityModal } from '../AddEntityModal';
 import { ImportChannelModal } from './ImportChannelModal';
 import { sendPostRequest } from '../../../server/api';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 
 interface Props {
   title: string;
@@ -22,8 +21,7 @@ export const ListHeader: FC<Props> = ({ title, count }) => {
   const [showImportModal, setShowImportModal] = useState(false);
 
   const router = useRouter();
-
-  const { showNotification } = useNotification();
+  const withNotification = useApiNotification();
 
   const uploadFile = (
     files: FileList,
@@ -35,18 +33,15 @@ export const ListHeader: FC<Props> = ({ title, count }) => {
     const formData = new FormData();
     formData.append('file', files[0], files[0].name);
 
-    sendPostRequest(
-      `/api/v1/channels/import?updateDatasets=${updateDatasets}&updateDataSources=${updateDataSources}&cleanUp=${cleanUp}`,
-      formData,
-    ).then((res) => {
-      if ((res as { ok: boolean }).ok) {
+    withNotification(
+      sendPostRequest(
+        `/api/v1/channels/import?updateDatasets=${updateDatasets}&updateDataSources=${updateDataSources}&cleanUp=${cleanUp}`,
+        formData,
+      ),
+      'Import Failed',
+    ).then((result) => {
+      if (result.ok) {
         router.refresh();
-      } else {
-        showNotification({
-          type: NotificationType.error,
-          title: 'Import Failed',
-          description: (res as { res: string }).res,
-        });
       }
     });
   };

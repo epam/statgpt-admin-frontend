@@ -12,6 +12,7 @@ import {
 
 import { Document, DocumentMetadata } from '@/src/models/document';
 import { RequestData } from '@/src/models/request-data';
+import { ApiResult } from './api';
 import { BaseApi } from './base-api';
 
 export const DIAL_DOCUMENTS_INDEX_LIST = `/indexing`;
@@ -30,38 +31,48 @@ enum TaskStatus {
   SUCCESS = 'SUCCESS',
 }
 export class DocumentsApi extends BaseApi {
-  getList(token: JWT | null): Promise<RequestData<Document> | null> {
+  getList(token: JWT | null): Promise<ApiResult<RequestData<Document>>> {
     return this.get(`${DIAL_DOCUMENTS_LIST}?limit=2000`, token);
   }
 
-  removeDocument(id: string): Promise<RequestData<Document> | null> {
+  removeDocument(id: string): Promise<ApiResult<string>> {
     return this.delete(`${DIAL_DOCUMENTS_LIST}/${id}`);
   }
 
-  getMetaData(): Promise<DocumentMetadata | null> {
+  getMetaData(): Promise<ApiResult<DocumentMetadata>> {
     return this.get(DIAL_DOCUMENTS_METADATA_LIST);
   }
 
-  uploadFile(formData: FormData, targetPath?: string): Promise<unknown> {
-    return this.post(
+  async uploadFile(
+    formData: FormData,
+    targetPath?: string,
+  ): Promise<ApiResult<void>> {
+    const initResult = await this.post<FormData, Task>(
       `${DOCUMENT_UPLOAD_URL}?${targetPath ? `target_path=${targetPath}&` : ''}async=${true}&use_cache=${true}`,
       formData,
       { overwrite: 'true' },
-    ).then((res) => {
-      const id = (res as Task).task_id;
+    );
 
-      return firstValueFrom(this.waitForTaskReady(id).pipe()).then((res) => {
-        return (res as Task).status === TaskStatus.FAILED
-          ? { ok: false }
-          : { ok: true };
-      });
+    if (!initResult.ok) {
+      return initResult;
+    }
+
+    const id = initResult.data.task_id;
+
+    return firstValueFrom(this.waitForTaskReady(id).pipe()).then((res) => {
+      return (res as Task).status === TaskStatus.FAILED
+        ? {
+            ok: false,
+            error: { status: 500, message: 'File upload processing failed' },
+          }
+        : { ok: true, data: undefined };
     });
   }
 
   private waitForTaskReady(id: string) {
     return race(interval(2000)).pipe(
       concatMap(() => {
-        return this.get(`${DOCUMENT_TASK_URL}/${id}`);
+        return this.getRaw(`${DOCUMENT_TASK_URL}/${id}`);
       }),
       filter((res) => {
         return (

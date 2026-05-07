@@ -14,36 +14,29 @@ export const RELOAD_DIMENSIONS_DATA_SETS_WITH_ID_URL = (id?: string | number) =>
   `${DATA_SETS_WITH_ID_URL(id)}/reload-dimensions`;
 
 export class DataSetsApi extends BaseApi {
-  getDataSets(token: JWT | null): Promise<RequestData<DataSet> | null> {
+  getDataSets(token: JWT | null): Promise<ApiResult<RequestData<DataSet>>> {
     return this.get(`${DATA_SETS_URL}?limit=500`, token);
   }
 
   createDataSet(
     ds: DataSet,
     token: JWT | null,
-  ): Promise<RequestData<DataSet> | null> {
+  ): Promise<ApiResult<RequestData<DataSet>>> {
     return this.post(DATA_SETS_URL, ds, void 0, void 0, token);
   }
 
-  createDataSetSafe(
-    ds: DataSet,
-    token: JWT | null,
-  ): Promise<ApiResult<RequestData<DataSet>>> {
-    return this.postSafe(DATA_SETS_URL, ds, void 0, void 0, token);
-  }
-
-  removeDataSet(id: string, token: JWT | null): Promise<unknown> {
+  removeDataSet(id: string, token: JWT | null): Promise<ApiResult<string>> {
     return this.delete(`${DATA_SETS_URL}/${id}`, token);
   }
 
-  updateDataSet(ds: DataSet, token: JWT | null): Promise<DataSet | null> {
+  updateDataSet(ds: DataSet, token: JWT | null): Promise<ApiResult<DataSet>> {
     return this.post(DATA_SETS_WITH_ID_URL(ds.id), ds, void 0, void 0, token);
   }
 
   reloadDimensionsDataSet(
     id: string,
     token: JWT | null,
-  ): Promise<DataSet | null> {
+  ): Promise<ApiResult<DataSet>> {
     return this.post(
       RELOAD_DIMENSIONS_DATA_SETS_WITH_ID_URL(id),
       {},

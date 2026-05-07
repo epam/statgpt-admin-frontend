@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { channelsApi } from '../../../../../api';
 import { getToken } from 'next-auth/jwt';
+import { apiResultToResponse } from '@/src/server/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,8 +12,9 @@ export async function POST(
   try {
     const params = await context.params;
     const token = await getToken({ req });
-    const data = await channelsApi.reloadDataSets(params.id, token);
-    return Response.json(data);
+    return apiResultToResponse(
+      await channelsApi.reloadDataSets(params.id, token),
+    );
   } catch {
     return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }

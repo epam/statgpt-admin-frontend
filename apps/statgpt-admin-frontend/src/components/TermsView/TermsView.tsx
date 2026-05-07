@@ -12,6 +12,7 @@ import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';
 import { EntityOperation } from '@/src/constants/columns/action';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { ChannelTerm } from '@/src/models/channel';
 import { GridOptions } from 'ag-grid-community';
 import { TermsActionColumn } from './ActionColumn/ActionColumn';
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export const TermsView: FC<Props> = ({ selectedChannelId }) => {
+  const withNotification = useApiNotification();
   const [isLoading, setIsLoading] = useState(false);
   const [isAddView, setIsLoadingAddView] = useState(false);
   const [terms, setTerms] = useState<ChannelTerm[]>([]);
@@ -31,8 +33,13 @@ export const TermsView: FC<Props> = ({ selectedChannelId }) => {
 
   const remove = (data: ChannelTerm) => {
     setIsLoading(true);
-    removeChannelTerm(data?.id?.toString() as string).then(() => {
-      setTerms(terms.filter((t) => t.id !== data.id));
+    withNotification(
+      removeChannelTerm(data?.id?.toString() as string),
+      'Delete Term Failed',
+    ).then((result) => {
+      if (result.ok) {
+        setTerms(terms.filter((t) => t.id !== data.id));
+      }
       setIsLoading(false);
     });
   };
@@ -40,21 +47,25 @@ export const TermsView: FC<Props> = ({ selectedChannelId }) => {
   const saveTerms = () => {
     setIsLoading(true);
     const isAdd = !terms.some((t) => t.id === editableTerm?.id);
-    (isAdd
-      ? addTerm(selectedChannelId, editableTerm as ChannelTerm)
-      : updateChannelTerms(editableTerm as ChannelTerm)
-    ).then(() => {
-      if (isAdd) {
-        setTerms([...terms, editableTerm as ChannelTerm]);
-      } else {
-        setTerms(
-          terms.map((t) =>
-            t.id === editableTerm?.id ? (editableTerm as ChannelTerm) : t,
-          ),
-        );
+    withNotification(
+      isAdd
+        ? addTerm(selectedChannelId, editableTerm as ChannelTerm)
+        : updateChannelTerms(editableTerm as ChannelTerm),
+      'Save Term Failed',
+    ).then((result) => {
+      if (result.ok) {
+        if (isAdd) {
+          setTerms([...terms, editableTerm as ChannelTerm]);
+        } else {
+          setTerms(
+            terms.map((t) =>
+              t.id === editableTerm?.id ? (editableTerm as ChannelTerm) : t,
+            ),
+          );
+        }
+        setIsLoadingAddView(false);
+        setEditableTerm(undefined);
       }
-      setIsLoadingAddView(false);
-      setEditableTerm(undefined);
       setIsLoading(false);
     });
   };
@@ -111,8 +122,11 @@ export const TermsView: FC<Props> = ({ selectedChannelId }) => {
 
   useEffect(() => {
     setIsLoading(true);
-    getChannelTerms(selectedChannelId).then((terms) => {
-      setTerms(terms || []);
+    withNotification(
+      getChannelTerms(selectedChannelId),
+      'Failed to Load Terms',
+    ).then((result) => {
+      setTerms(result.ok ? result.data : []);
       setIsLoading(false);
     });
   }, [selectedChannelId]);

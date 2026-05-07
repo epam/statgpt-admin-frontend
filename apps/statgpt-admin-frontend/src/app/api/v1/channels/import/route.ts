@@ -1,6 +1,7 @@
 import { getToken } from 'next-auth/jwt';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { channelsApi } from '@/src/app/api/api';
+import { apiResultToResponse } from '@/src/server/api';
 
 export const runtime = 'nodejs';
 
@@ -12,15 +13,15 @@ export async function POST(req: NextRequest) {
     const updateDataSources = search.get('updateDataSources') === 'true';
     const cleanUp = search.get('cleanUp') === 'true';
     const token = await getToken({ req });
-    const res = await channelsApi.importChannel(
-      formData,
-      updateDatasets,
-      updateDataSources,
-      cleanUp,
-      token,
+    return apiResultToResponse(
+      await channelsApi.importChannel(
+        formData,
+        updateDatasets,
+        updateDataSources,
+        cleanUp,
+        token,
+      ),
     );
-
-    return NextResponse.json(res);
   } catch {
     return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }
