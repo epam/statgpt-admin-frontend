@@ -47,7 +47,7 @@ This project uses:
 
 ```bash
 npm install
-mpn run start
+npm run start
 ```
 
 ## 💻 Development
