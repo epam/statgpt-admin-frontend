@@ -4,8 +4,10 @@ import { redirect } from 'next/navigation';
 
 import { Header } from '@/src/components/Header/Header';
 import { MenuSideBar } from '@/src/components/Menu/Menu';
+import { NoAccess } from '@/src/components/NoAccess/NoAccess';
 import { SIGN_IN_LINK } from '@/src/constants/auth';
 import { NotificationProvider } from '@/src/context/NotificationContext';
+import { Token } from '@/src/models/token';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 import { ReactNode } from 'react';
@@ -35,6 +37,24 @@ export default async function RootLayout({
     return redirect(SIGN_IN_LINK);
   }
 
+  const isAdmin = isEnableAuth ? ((token as Token)?.isAdmin ?? null) : null;
+
+  const content =
+    isAdmin === false ? (
+      <>
+        <Header showBreadcrumbs={false} />
+        <NoAccess />
+      </>
+    ) : (
+      <>
+        <Header />
+        <div className="flex flex-row h-full">
+          <MenuSideBar disableMenuItems={process.env.DISABLE_MENU_ITEMS} />
+          <div className="flex-1 min-w-0 p-4">{children}</div>
+        </div>
+      </>
+    );
+
   return (
     <html lang="en">
       <head>
@@ -43,16 +63,7 @@ export default async function RootLayout({
       <body className={inter.variable}>
         <NotificationProvider>
           <NextAuthProvider>
-            <div className="flex h-full flex-col">
-              <Header />
-
-              <div className="flex flex-row h-full">
-                <MenuSideBar
-                  disableMenuItems={process.env.DISABLE_MENU_ITEMS}
-                />
-                <div className="flex-1 min-w-0 p-4">{children}</div>
-              </div>
-            </div>
+            <div className="flex h-full flex-col">{content}</div>
           </NextAuthProvider>
         </NotificationProvider>
       </body>

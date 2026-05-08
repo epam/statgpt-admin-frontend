@@ -6,7 +6,11 @@ import { Breadcrumb } from '@/src/models/breadcrumbs';
 import { Breadcrumbs } from '@/src/components/Breadcrumbs/Breadcrumbs';
 import { UserMenu } from '@/src/components/Header/User/UserMenu';
 
-export const Header = () => {
+interface HeaderProps {
+  showBreadcrumbs?: boolean;
+}
+
+export const Header = ({ showBreadcrumbs = true }: HeaderProps) => {
   const pathname = usePathname() as MenuUrl;
   const router = useRouter();
 
@@ -37,9 +41,11 @@ export const Header = () => {
           <span className="mr-1">StatGPT</span>
           <span className="gradient">ADMIN</span>
         </div>
-        <div className="pl-[36px]">
-          <Breadcrumbs breadcrumbs={breadcrumbs} />
-        </div>
+        {showBreadcrumbs && (
+          <div className="pl-[36px]">
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
+          </div>
+        )}
       </div>
 
       <UserMenu />
