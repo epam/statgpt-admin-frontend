@@ -88,8 +88,8 @@
     "dompurify": "3.4.0"
   },
   "engines": {
-    "node": ">=22.2.0",
-    "npm": ">=10.7.0"
+    "node": ">=24.14.0",
+    "npm": ">=11.11.0"
   },
   "browser": {
     "fs": false,
