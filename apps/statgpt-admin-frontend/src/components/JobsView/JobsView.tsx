@@ -66,6 +66,7 @@ export const JobsView: FC<Props> = ({ selectedChannelId }) => {
     withNotification(
       getChannelJobs(selectedChannelId),
       'Failed to Load Jobs',
+      [403],
     ).then((result) => {
       if (!result.ok && result.error.status === 403) {
         setForbidden();

@@ -95,6 +95,7 @@ export function AuditLogsListView({
           `/api/v1/audit-logs?${query}`,
         ),
         'Failed to Load Audit Logs',
+        [403],
       );
 
       if (!result.ok) {

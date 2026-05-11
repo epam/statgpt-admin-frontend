@@ -27,6 +27,7 @@ export const ChannelView: FC<Props> = ({ selectedChannelId }) => {
       withNotification(
         getChannel(selectedChannelId),
         'Failed to Load Channel',
+        [403],
       ).then((result) => {
         if (!result.ok && result.error.status === 403) {
           setForbidden();

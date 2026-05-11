@@ -127,6 +127,7 @@ export const TermsView: FC<Props> = ({ selectedChannelId }) => {
     withNotification(
       getChannelTerms(selectedChannelId),
       'Failed to Load Terms',
+      [403],
     ).then((result) => {
       if (!result.ok && result.error.status === 403) {
         setForbidden();

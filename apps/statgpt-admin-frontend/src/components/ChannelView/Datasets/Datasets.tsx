@@ -51,6 +51,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           CHANNEL_DATA_SETS_URL(selectedChannelId),
         ),
         'Failed to Load Datasets',
+        [403],
       ).then((result) => {
         setIsLoadingChannelDataSets(false);
         if (!result.ok && result.error.status === 403) {
