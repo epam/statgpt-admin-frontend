@@ -40,9 +40,9 @@ export const EditDataEntity: FC<Props> = ({ close, entity, url }) => {
   };
 
   return (
-    <Modal title="Configuration" close={close}>
+    <Modal title="Configuration" close={close} height="80vh">
       <></>
-      <div className="h-[600px] common-paddings">
+      <div className="h-full common-paddings">
         <MonacoEditor
           value={config}
           onChange={(value) => setConfig(value || '')}
