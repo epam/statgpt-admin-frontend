@@ -40,6 +40,7 @@ export const DATA_SETS_COLUMNS: ColDef[] = [
   {
     field: 'data_source.title',
     headerName: 'Data Source',
+    filter: 'agTextColumnFilter',
   },
   {
     field: 'preprocessing_status',
