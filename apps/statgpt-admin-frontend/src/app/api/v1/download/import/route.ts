@@ -1,5 +1,6 @@
 import { documentsApi } from '@/src/app/api/api';
-import { NextRequest, NextResponse } from 'next/server';
+import { apiResultToResponse } from '@/src/server/api';
+import { NextRequest } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -9,8 +10,9 @@ export async function POST(req: NextRequest) {
     const search = req.nextUrl.searchParams;
     const targetPath = search.get('targetPath') as string;
 
-    const res = await documentsApi.uploadFile(formData, targetPath);
-    return NextResponse.json(res);
+    return apiResultToResponse(
+      await documentsApi.uploadFile(formData, targetPath),
+    );
   } catch {
     return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }

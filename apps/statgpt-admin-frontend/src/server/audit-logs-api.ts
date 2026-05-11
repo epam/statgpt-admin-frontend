@@ -6,7 +6,7 @@ import {
 } from '@/src/models/audit-log';
 import { JWT } from 'next-auth/jwt';
 import { RequestData } from '@/src/models/request-data';
-import { MAIN_API } from './api';
+import { ApiResult, MAIN_API } from './api';
 import { BaseApi } from './base-api';
 import { mapAuditLogRequestToQueryString } from '../utils/audit-logs';
 
@@ -20,7 +20,7 @@ export class AuditLogsApi extends BaseApi {
   getAuditLogs(
     token: JWT | null,
     params?: AuditLogRequestModel,
-  ): Promise<RequestData<AuditLog> | null> {
+  ): Promise<ApiResult<RequestData<AuditLog>>> {
     let url = AUDIT_LOGS_URL;
 
     if (params) {
@@ -36,7 +36,7 @@ export class AuditLogsApi extends BaseApi {
   getAuditLogById(
     id: string,
     token: JWT | null,
-  ): Promise<RequestData<AuditLogDetails> | null> {
+  ): Promise<ApiResult<RequestData<AuditLogDetails>>> {
     return this.get(AUDIT_LOGS_ID_URL(id), token);
   }
 
@@ -53,7 +53,7 @@ export class AuditLogsApi extends BaseApi {
     return this.streamRequest(url, token);
   }
 
-  getEnumValues(token: JWT | null): Promise<AuditLogEnumValues | null> {
+  getEnumValues(token: JWT | null): Promise<ApiResult<AuditLogEnumValues>> {
     return this.get(ENUM_VALUES_URL, token);
   }
 }

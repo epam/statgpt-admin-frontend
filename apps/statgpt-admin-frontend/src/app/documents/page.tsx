@@ -25,11 +25,9 @@ export default async function Page() {
 
   let data = { data: [] as Document[] } as RequestData<Document> | null;
 
-  try {
-    data = await documentsApi.getList(null);
-  } catch (e) {
-    logger.error(`Getting documents error ${e}`);
-  }
+  const result = await documentsApi.getList(null);
+  if (result.ok) data = result.data;
+  else logger.error(`Getting documents error ${result.error.message}`);
 
   return (
     <ListView
@@ -37,6 +35,7 @@ export default async function Page() {
       colDefs={DOCUMENTS_COLUMNS_WITH_ACTIONS}
       data={(data?.results as any[]) || []}
       emptyDataTitle="No Documents"
+      initialError={result.ok ? null : result.error.message}
     />
   );
 }

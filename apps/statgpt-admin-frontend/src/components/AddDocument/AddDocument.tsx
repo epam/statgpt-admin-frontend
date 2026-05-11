@@ -14,6 +14,7 @@ import { BaseStep } from '@/src/constants/steps';
 import { IconArrowLeft } from '@tabler/icons-react';
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { sendPostRequest } from '../../server/api';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 
 interface Props {
   close: () => void;
@@ -41,29 +42,36 @@ export const AddDocumentModal: FC<Props> = ({ close }) => {
 
   const [activeStep, setActiveStep] = useState(steps[0].key);
   const router = useRouter();
+  const withNotification = useApiNotification();
 
   useEffect(() => {
-    getMetaData().then((meta) => {
-      setConfiguration(meta);
-    });
+    withNotification(getMetaData(), 'Failed to Load Metadata').then(
+      (result) => {
+        if (result.ok) setConfiguration(result.data);
+      },
+    );
   }, []);
 
   const handleFileInput = (files?: FileList): void => {
     setFiles(files);
   };
 
-  const addDocument = (): void => {
+  const addDocument = async (): Promise<void> => {
     if (files) {
       const formData = new FormData();
       formData.append('attachment', files[0], files[0].name);
       formData.append('metadata', metadata);
-      sendPostRequest(
-        `/api/v1/download/import?targetPath=${targetPath}`,
-        formData,
-      ).then(() => {
+      const result = await withNotification(
+        sendPostRequest(
+          `/api/v1/download/import?targetPath=${targetPath}`,
+          formData,
+        ),
+        'Upload Failed',
+      );
+      if (result.ok) {
         router.refresh();
         close();
-      });
+      }
     }
   };
 

@@ -1,6 +1,7 @@
 import { getToken } from 'next-auth/jwt';
 import { NextRequest } from 'next/server';
 import { auditLogsApi } from '@/src/app/api/api';
+import { apiResultToResponse } from '@/src/server/api';
 
 export async function GET(
   req: NextRequest,
@@ -9,9 +10,9 @@ export async function GET(
   try {
     const params = await context.params;
     const token = await getToken({ req });
-    const data = await auditLogsApi.getAuditLogById(params.id, token);
-
-    return Response.json(data);
+    return apiResultToResponse(
+      await auditLogsApi.getAuditLogById(params.id, token),
+    );
   } catch {
     return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }

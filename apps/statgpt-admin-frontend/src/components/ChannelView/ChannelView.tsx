@@ -4,6 +4,7 @@ import { FC, useEffect, useState } from 'react';
 
 import { getChannel } from '@/src/app/channels/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { Channel } from '@/src/models/channel';
 import { DataSetsView } from './Datasets/Datasets';
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export const ChannelView: FC<Props> = ({ selectedChannelId }) => {
+  const withNotification = useApiNotification();
   const [selectedChannel, setSelectedChannel] = useState<Channel | undefined>(
     void 0,
   );
@@ -20,9 +22,12 @@ export const ChannelView: FC<Props> = ({ selectedChannelId }) => {
 
   useEffect(() => {
     if (selectedChannel == null) {
-      getChannel(selectedChannelId).then((data) => {
+      withNotification(
+        getChannel(selectedChannelId),
+        'Failed to Load Channel',
+      ).then((result) => {
         setIsLoadingChannel(false);
-        setSelectedChannel(data as Channel);
+        if (result.ok) setSelectedChannel(result.data);
       });
     }
   }, [selectedChannelId]);

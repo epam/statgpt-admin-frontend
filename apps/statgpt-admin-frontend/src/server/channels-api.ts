@@ -13,7 +13,7 @@ import {
 import { Channel, ChannelTerm } from '@/src/models/channel';
 import { DataSet } from '@/src/models/data-sets';
 import { RequestData } from '@/src/models/request-data';
-import { MAIN_API } from './api';
+import { ApiResult, MAIN_API } from './api';
 import { BaseApi } from './base-api';
 import { Job, JobStatus } from '@/src/models/job';
 
@@ -58,56 +58,97 @@ export const RELOAD_DATASET_CHANNEL_URL = (
 ): string => `${DATASET_CHANNEL_URL(id, dsId)}/reload-indicators`;
 
 export class ChannelsApi extends BaseApi {
-  getChannels(token: JWT | null): Promise<RequestData<Channel> | null> {
+  getChannels(token: JWT | null): Promise<ApiResult<RequestData<Channel>>> {
     return this.get(CHANNELS_URL, token);
   }
 
-  exportChannel(
+  async exportChannel(
     id: string,
     token: JWT | null,
-  ): Promise<{ ok: boolean; res?: unknown }> {
-    return this.post(CHANNEL_ID_EXPORT_URL(id), {}, void 0, void 0, token).then(
-      (res) => {
-        const id = (res as Job).id;
+  ): Promise<ApiResult<string>> {
+    const initResult = await this.post(
+      CHANNEL_ID_EXPORT_URL(id),
+      {},
+      void 0,
+      void 0,
+      token,
+    );
 
-        return firstValueFrom(this.waitForJobReady(id, token).pipe()).then(
-          (res) => {
-            if ((res as Job).status === JobStatus.FAILED) {
-              return { ok: false, res: (res as Job).reason_for_failure };
-            } else {
-              return { ok: true, res: `api/v1/channels/download/${id}` };
-            }
-          },
-        );
+    if (!initResult.ok) {
+      return initResult;
+    }
+
+    const jobId = (initResult.data as Job).id;
+
+    return firstValueFrom(this.waitForJobReady(jobId, token).pipe()).then(
+      (res) => {
+        if (res === null) {
+          return {
+            ok: false,
+            error: {
+              status: 500,
+              message: 'Failed to check export job status',
+            },
+          } as ApiResult<string>;
+        }
+        if ((res as Job).status === JobStatus.FAILED) {
+          return {
+            ok: false,
+            error: {
+              status: 500,
+              message: (res as Job).reason_for_failure || 'Export job failed',
+            },
+          } as ApiResult<string>;
+        }
+        return { ok: true, data: `api/v1/channels/download/${jobId}` };
       },
     );
   }
 
-  importChannel(
+  async importChannel(
     formData: FormData,
     updateDatasets: boolean,
     updateDataSources: boolean,
     cleanUp: boolean,
     token: JWT | null,
-  ): Promise<{ ok: boolean; res?: unknown }> {
-    return this.post(
+  ): Promise<ApiResult<null>> {
+    const initResult = await this.post(
       `${CHANNELS_IMPORT_URL}?update_data_sources=${updateDataSources}&update_datasets=${updateDatasets}&clean_up=${cleanUp}`,
       formData,
       void 0,
       void 0,
       token,
-    ).then((res) => {
-      const id = (res as Job).id;
+    );
 
-      return firstValueFrom(this.waitForJobReady(id, token).pipe()).then(
-        (res) => {
-          if ((res as Job).status === JobStatus.FAILED) {
-            return { ok: false, res: (res as Job).reason_for_failure };
-          }
-          return { ok: true };
-        },
-      );
-    });
+    if (!initResult.ok) {
+      return initResult;
+    }
+
+    const jobId = (initResult.data as Job).id;
+
+    return firstValueFrom(this.waitForJobReady(jobId, token).pipe()).then(
+      (res) => {
+        if (res === null) {
+          return {
+            ok: false,
+            error: {
+              status: 500,
+              message: 'Failed to check import job status',
+            },
+          } as ApiResult<null>;
+        }
+        if ((res as Job).status === JobStatus.FAILED) {
+          return {
+            ok: false,
+            error: {
+              status: 500,
+              message: (res as Job).reason_for_failure || 'Import job failed',
+            },
+          } as ApiResult<null>;
+        }
+        return { ok: true, data: null };
+      },
+    );
   }
 
   downloadFile(id: string, token: JWT | null) {
@@ -117,10 +158,10 @@ export class ChannelsApi extends BaseApi {
   private waitForJobReady(id: number, token: JWT | null) {
     return race(interval(2000)).pipe(
       concatMap(() => {
-        return this.get(CHANNELS_JOB_ID_URL(id), token);
+        return this.getRaw(CHANNELS_JOB_ID_URL(id), token);
       }),
       filter((res) => {
-        console.error('Preparing job', (res as Job).status);
+        if (res === null) return true;
         return (
           (res as Job).status === JobStatus.COMPLETED ||
           (res as Job).status === JobStatus.FAILED
@@ -135,29 +176,35 @@ export class ChannelsApi extends BaseApi {
     );
   }
 
-  getChannel(id: string, token: JWT | null): Promise<Channel | null> {
+  getChannel(id: string, token: JWT | null): Promise<ApiResult<Channel>> {
     return this.get(CHANNEL_ID_URL(id), token);
   }
 
   getChannelTerms(
     id: string,
     token: JWT | null,
-  ): Promise<ChannelTerm[] | null> {
-    return this.get(`${CHANNEL_TERMS_URL(id)}?limit=1000&offset=0`, token).then(
-      (res) => (res as { data: ChannelTerm[] }).data,
+  ): Promise<ApiResult<ChannelTerm[]>> {
+    return this.get<{ data: ChannelTerm[] }>(
+      `${CHANNEL_TERMS_URL(id)}?limit=1000&offset=0`,
+      token,
+    ).then((result) =>
+      result.ok ? { ok: true, data: result.data.data } : result,
     );
   }
 
-  getChannelJobs(id: string, token: JWT | null): Promise<Job[] | null> {
-    return this.get(`${CHANNEL_JOBS_URL(id)}?limit=1000&offset=0`, token).then(
-      (res) => (res as { data: Job[] }).data,
+  getChannelJobs(id: string, token: JWT | null): Promise<ApiResult<Job[]>> {
+    return this.get<{ data: Job[] }>(
+      `${CHANNEL_JOBS_URL(id)}?limit=1000&offset=0`,
+      token,
+    ).then((result) =>
+      result.ok ? { ok: true, data: result.data.data } : result,
     );
   }
 
   updateChannelTerms(
     term: ChannelTerm,
     token: JWT | null,
-  ): Promise<ChannelTerm[] | null> {
+  ): Promise<ApiResult<ChannelTerm[]>> {
     return this.post(
       `${MAIN_API}/terms/${term.id}`,
       term,
@@ -170,7 +217,7 @@ export class ChannelsApi extends BaseApi {
   removeChannelTerms(
     id: string,
     token: JWT | null,
-  ): Promise<ChannelTerm[] | null> {
+  ): Promise<ApiResult<string>> {
     return this.delete(`${CHANNEL_TERMS_URL(id)}/bulk`, token);
   }
 
@@ -178,18 +225,18 @@ export class ChannelsApi extends BaseApi {
     id: string,
     term: ChannelTerm,
     token: JWT | null,
-  ): Promise<ChannelTerm[] | null> {
+  ): Promise<ApiResult<ChannelTerm[]>> {
     return this.post(CHANNEL_TERMS_URL(id), term, void 0, void 0, token);
   }
 
-  removeChannelTerm(
-    id: string,
-    token: JWT | null,
-  ): Promise<ChannelTerm[] | null> {
+  removeChannelTerm(id: string, token: JWT | null): Promise<ApiResult<string>> {
     return this.delete(`${MAIN_API}/terms/${id}`, token);
   }
 
-  updateChannel(channel: Channel, token: JWT | null): Promise<Channel | null> {
+  updateChannel(
+    channel: Channel,
+    token: JWT | null,
+  ): Promise<ApiResult<Channel>> {
     return this.post(
       CHANNEL_ID_URL(channel.id),
       channel,
@@ -202,14 +249,14 @@ export class ChannelsApi extends BaseApi {
   getChannelDataset(
     id: string,
     token: JWT | null,
-  ): Promise<RequestData<DataSet> | null> {
+  ): Promise<ApiResult<RequestData<DataSet>>> {
     return this.get(`${CHANNEL_DATA_SETS_URL(id)}?limit=500`, token);
   }
 
   deduplicateDataset(
     id: string,
     token: JWT | null,
-  ): Promise<RequestData<DataSet> | null> {
+  ): Promise<ApiResult<RequestData<DataSet>>> {
     return this.post(CHANNEL_DEDUPLICATE_URL(id), {}, void 0, {}, token);
   }
 
@@ -217,7 +264,7 @@ export class ChannelsApi extends BaseApi {
     id: string,
     dataSetId: string,
     token: JWT | null,
-  ): Promise<RequestData<DataSet> | null> {
+  ): Promise<ApiResult<string>> {
     return this.delete(DATASET_CHANNEL_URL(id, dataSetId), token);
   }
 
@@ -225,7 +272,7 @@ export class ChannelsApi extends BaseApi {
     id: string,
     dataSetId: string,
     token: JWT | null,
-  ): Promise<RequestData<DataSet> | null> {
+  ): Promise<ApiResult<RequestData<DataSet>>> {
     return this.post(
       DATASET_CHANNEL_URL(id, dataSetId),
       {},
@@ -239,7 +286,7 @@ export class ChannelsApi extends BaseApi {
     id: string,
     dataSetId: string,
     token: JWT | null,
-  ): Promise<RequestData<DataSet> | null> {
+  ): Promise<ApiResult<RequestData<DataSet>>> {
     return this.post(
       RELOAD_DATASET_CHANNEL_URL(id, dataSetId),
       {},
@@ -252,7 +299,7 @@ export class ChannelsApi extends BaseApi {
   reloadDataSets(
     id: string,
     token: JWT | null,
-  ): Promise<RequestData<DataSet> | null> {
+  ): Promise<ApiResult<RequestData<DataSet>>> {
     return this.post(
       RELOAD_ALL_DATASETS_CHANNEL_URL(id),
       {},
@@ -262,11 +309,14 @@ export class ChannelsApi extends BaseApi {
     );
   }
 
-  createChannel(channel: Channel, token: JWT | null): Promise<Channel | null> {
+  createChannel(
+    channel: Channel,
+    token: JWT | null,
+  ): Promise<ApiResult<Channel>> {
     return this.post(CHANNELS_URL, channel, void 0, void 0, token);
   }
 
-  removeChannel(id: string, token: JWT | null): Promise<unknown> {
+  removeChannel(id: string, token: JWT | null): Promise<ApiResult<string>> {
     return this.delete(`${CHANNELS_URL}/${id}`, token);
   }
 }

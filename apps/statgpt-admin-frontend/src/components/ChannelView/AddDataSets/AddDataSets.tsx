@@ -5,6 +5,7 @@ import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { GridView } from '@/src/components/GridView/GridView';
 import { Modal } from '@/src/components/Modal/Modal';
 import { BASE_COLUMNS } from '@/src/constants/columns/common-columns';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DataSet } from '@/src/models/data-sets';
 import { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
@@ -19,6 +20,7 @@ export const AddDatasets: FC<Props> = ({ close, add }) => {
   const [dataSets, setDataSets] = useState<DataSet[]>([]);
   const [selectedDataSetIds, setSelectedDataSetIds] = useState<number[]>([]);
   const [isLoadingData, setIsLoadingDs] = useState(false);
+  const withNotification = useApiNotification();
 
   const gridOptions: GridOptions = {
     rowSelection: 'multiple',
@@ -34,9 +36,12 @@ export const AddDatasets: FC<Props> = ({ close, add }) => {
   useEffect(() => {
     if (dataSets.length === 0 && !isLoadingData) {
       setIsLoadingDs(true);
-      sendGetRequest(DATA_SETS_URL).then((data) => {
+      withNotification(
+        sendGetRequest<RequestData<DataSet>>(DATA_SETS_URL),
+        'Failed to Load Datasets',
+      ).then((result) => {
         setIsLoadingDs(false);
-        setDataSets((data as RequestData<DataSet>).data);
+        if (result.ok) setDataSets(result.data.data);
       });
     }
   }, []);

@@ -5,8 +5,8 @@ import { loadAvailableDataSets } from '@/src/app/data-sources/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';
 import { BASE_COLUMNS } from '@/src/constants/columns/common-columns';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DataSet } from '@/src/models/data-sets';
-import { RequestData } from '@/src/models/request-data';
 
 interface Props {
   selectedDataSourceId?: number;
@@ -17,6 +17,7 @@ export const DataSetStep: FC<Props> = ({
   selectedDataSourceId,
   changeDataSet,
 }) => {
+  const withNotification = useApiNotification();
   const [dataSets, setDataSets] = useState<DataSet[]>([]);
   const [isLoadingDs, setIsLoadingDs] = useState(false);
 
@@ -34,9 +35,12 @@ export const DataSetStep: FC<Props> = ({
     if (dataSets.length === 0 && !isLoadingDs && selectedDataSourceId != null) {
       setIsLoadingDs(true);
 
-      loadAvailableDataSets(selectedDataSourceId).then((data) => {
+      withNotification(
+        loadAvailableDataSets(selectedDataSourceId),
+        'Failed to Load Datasets',
+      ).then((result) => {
         setIsLoadingDs(false);
-        setDataSets((data as RequestData<DataSet>).data);
+        if (result.ok) setDataSets(result.data.data);
       });
     }
   }, [dataSets, selectedDataSourceId, isLoadingDs]);
