@@ -1,11 +1,8 @@
 import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
-import { parse } from 'yaml';
-
-import { useNotification } from '@/src/context/NotificationContext';
-import { NotificationType } from '@/src/models/notification';
 
 import { createChannel } from '@/src/app/channels/actions';
+import { useYamlParser } from '@/src/hooks/use-yaml-parser';
 import { Configuration } from '@/src/components/Configuration/Configuration';
 import { Modal } from '@/src/components/Modal/Modal';
 import { Stepper } from '@/src/components/Stepper/Stepper';
@@ -39,7 +36,7 @@ export const AddChannelsModal: FC<Props> = ({ close }) => {
 
   const [isValidChannel, setIsValidChannel] = useState(false);
   const router = useRouter();
-  const { showNotification } = useNotification();
+  const parseYaml = useYamlParser();
 
   useEffect(() => {
     setIsValidChannel(
@@ -53,19 +50,9 @@ export const AddChannelsModal: FC<Props> = ({ close }) => {
   const create = () => {
     let details = channel.details;
     if (rawConfig) {
-      try {
-        details = parse(rawConfig);
-      } catch (e) {
-        showNotification({
-          type: NotificationType.error,
-          title: 'Invalid Configuration',
-          description:
-            e instanceof Error
-              ? e.message
-              : 'YAML syntax error in configuration.',
-        });
-        return;
-      }
+      const parsed = parseYaml(rawConfig);
+      if (!parsed.ok) return;
+      details = parsed.value;
     }
     createChannel({ ...channel, details }).then(() => {
       router.refresh();

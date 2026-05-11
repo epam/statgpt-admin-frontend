@@ -1,6 +1,6 @@
 import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
-import { parse, stringify } from 'yaml';
+import { stringify } from 'yaml';
 
 import { getDataSources } from '@/src/app/data-sources/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
@@ -12,8 +12,7 @@ import { DataSet } from '@/src/models/data-sets';
 import { DataSource } from '@/src/models/data-source';
 import { sendPostRequest } from '@/src/server/api';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
-import { useNotification } from '@/src/context/NotificationContext';
-import { NotificationType } from '@/src/models/notification';
+import { useYamlParser } from '@/src/hooks/use-yaml-parser';
 import { Step } from '@/src/models/step';
 import { ModalsButtons } from './Buttons/ModalsButtons';
 import { DataSetStep } from './DataSetStep/DataSetStep';
@@ -26,7 +25,7 @@ interface Props {
 export const AddDataSetModal: FC<Props> = ({ close }) => {
   const router = useRouter();
   const withNotification = useApiNotification();
-  const { showNotification } = useNotification();
+  const parseYaml = useYamlParser();
   const dataSetSteps: Step[] = [
     {
       key: DatasetStep.DataSource,
@@ -63,19 +62,9 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   const createDataset = () => {
     let details = newDataSet.details;
     if (rawConfig) {
-      try {
-        details = parse(rawConfig);
-      } catch (e) {
-        showNotification({
-          type: NotificationType.error,
-          title: 'Invalid Configuration',
-          description:
-            e instanceof Error
-              ? e.message
-              : 'YAML syntax error in configuration.',
-        });
-        return;
-      }
+      const parsed = parseYaml(rawConfig);
+      if (!parsed.ok) return;
+      details = parsed.value;
     }
     setIsLoadingDs(true);
     withNotification(

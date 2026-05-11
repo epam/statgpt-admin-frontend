@@ -1,6 +1,5 @@
 import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
-import { parse } from 'yaml';
 
 import {
   createDataSource,
@@ -12,8 +11,7 @@ import { Modal } from '@/src/components/Modal/Modal';
 import { Stepper } from '@/src/components/Stepper/Stepper';
 import { BaseStep } from '@/src/constants/steps';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
-import { useNotification } from '@/src/context/NotificationContext';
-import { NotificationType } from '@/src/models/notification';
+import { useYamlParser } from '@/src/hooks/use-yaml-parser';
 import { DataSource, DataSourceType } from '@/src/models/data-source';
 import { Step } from '@/src/models/step';
 import { ModalButtons } from './Buttons/ModalButtons';
@@ -44,7 +42,7 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
   const [isValidDataSource, setIsValidDataSource] = useState(false);
   const router = useRouter();
   const withNotification = useApiNotification();
-  const { showNotification } = useNotification();
+  const parseYaml = useYamlParser();
 
   useEffect(() => {
     setIsValidDataSource(dataSource?.title != null && dataSource?.title !== '');
@@ -67,19 +65,9 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
   const create = () => {
     let details = dataSource.details;
     if (rawConfig) {
-      try {
-        details = parse(rawConfig);
-      } catch (e) {
-        showNotification({
-          type: NotificationType.error,
-          title: 'Invalid Configuration',
-          description:
-            e instanceof Error
-              ? e.message
-              : 'YAML syntax error in configuration.',
-        });
-        return;
-      }
+      const parsed = parseYaml(rawConfig);
+      if (!parsed.ok) return;
+      details = parsed.value;
     }
     withNotification(
       createDataSource({ ...dataSource, details }),
