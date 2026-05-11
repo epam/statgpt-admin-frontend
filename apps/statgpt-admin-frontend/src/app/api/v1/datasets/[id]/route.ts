@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { dataSetsApi } from '../../../api';
 import { getToken } from 'next-auth/jwt';
 import { DataSet } from '@/src/models/data-sets';
+import { apiResultToResponse } from '@/src/server/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,8 +13,9 @@ export async function DELETE(
   try {
     const params = await context.params;
     const token = await getToken({ req });
-    const data = await dataSetsApi.removeDataSet(params.id, token);
-    return Response.json(data);
+    return apiResultToResponse(
+      await dataSetsApi.removeDataSet(params.id, token),
+    );
   } catch {
     return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -28,8 +30,7 @@ export async function POST(req: NextRequest) {
     } catch {
       return Response.json({ error: 'Invalid JSON payload' }, { status: 400 });
     }
-    const data = await dataSetsApi.updateDataSet(res, token);
-    return Response.json(data);
+    return apiResultToResponse(await dataSetsApi.updateDataSet(res, token));
   } catch {
     return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }

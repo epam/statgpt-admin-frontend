@@ -24,6 +24,7 @@ import { RELOAD_DIMENSIONS_DATA_SETS_WITH_ID_URL } from '@/src/server/data-sets-
 import { getDeleteDescription, getDeleteTitle, getUrl } from './utils';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '../../../models/notification';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 
 interface Props extends CustomCellRendererProps {
   items: EntityOperation[];
@@ -45,11 +46,15 @@ export const ActionColumn: FC<Props> = ({
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
   const { showNotification, removeNotification } = useNotification();
+  const withNotification = useApiNotification();
+
   const confirmDelete = () => {
     if (listView === Menu.DOCUMENTS) {
-      removeDocument(data.id).then(() => {
-        router.refresh();
-      });
+      withNotification(removeDocument(data.id), 'Delete Failed').then(
+        (result) => {
+          if (result.ok) router.refresh();
+        },
+      );
       return;
     }
 
@@ -59,16 +64,21 @@ export const ActionColumn: FC<Props> = ({
     }
 
     if (listView === Menu.CHANNELS) {
-      removeChannel(data.id).then(() => {
-        router.refresh();
-      });
+      withNotification(removeChannel(data.id), 'Delete Failed').then(
+        (result) => {
+          if (result.ok) router.refresh();
+        },
+      );
       return;
     }
 
-    sendDeleteRequest(
-      `${getUrl(listView)}/${data.id || data.deployment_id}`,
-    ).then(() => {
-      router.refresh();
+    withNotification(
+      sendDeleteRequest(`${getUrl(listView)}/${data.id || data.deployment_id}`),
+      'Delete Failed',
+    ).then((result) => {
+      if (result.ok) {
+        router.refresh();
+      }
     });
   };
 
@@ -80,15 +90,15 @@ export const ActionColumn: FC<Props> = ({
       duration: undefined,
     });
     if (listView === Menu.CHANNELS) {
-      exportChannel(data.id || data.deployment_id).then((res) => {
+      exportChannel(data.id || data.deployment_id).then((result) => {
         removeNotification(id);
-        if ((res as { ok: boolean }).ok) {
-          window.open((res as { res: string }).res, '_blank');
+        if (result.ok) {
+          window.open(result.data, '_blank');
         } else {
           showNotification({
             type: NotificationType.error,
             title: 'Export Failed',
-            description: (res as { res: string }).res,
+            description: result.error.message,
           });
         }
       });
@@ -97,27 +107,31 @@ export const ActionColumn: FC<Props> = ({
 
   const recalculateDataSet = () => {
     if (listView === Menu.DATA_SETS) {
-      sendPostRequest(
-        RELOAD_DIMENSIONS_DATA_SETS_WITH_ID_URL(data.id),
-        {},
-      ).then(() => {
-        // add alert
-        close();
+      withNotification(
+        sendPostRequest(RELOAD_DIMENSIONS_DATA_SETS_WITH_ID_URL(data.id), {}),
+        'Recalculate Failed',
+      ).then((result) => {
+        if (result.ok) {
+          close();
+        }
       });
     }
 
     if (listView === Menu.CHANNELS) {
       const channelId = pathname.split('/')[2];
-      sendPostRequest(CHANNEL_DATA_SETS_URL(channelId), {
-        dsId: data.dataset_id,
-        isReload: true,
-      }).then((ds) => {
-        const status = (ds as DataSet).preprocessing_status;
-        node.updateData({
-          ...node.data,
-          preprocessing_status: status,
-        } as unknown as BaseEntity);
-        // add alert
+      withNotification(
+        sendPostRequest<{ dsId: number; isReload: boolean }, DataSet>(
+          CHANNEL_DATA_SETS_URL(channelId),
+          { dsId: data.dataset_id, isReload: true },
+        ),
+        'Recalculate Failed',
+      ).then((result) => {
+        if (result.ok) {
+          node.updateData({
+            ...node.data,
+            preprocessing_status: result.data.preprocessing_status,
+          } as unknown as BaseEntity);
+        }
         close();
       });
     }

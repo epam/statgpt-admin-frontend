@@ -24,11 +24,9 @@ export default async function Page() {
   }
   let data = { data: [] as DataSet[] } as RequestData<DataSet> | null;
 
-  try {
-    data = await dataSetsApi.getDataSets(token);
-  } catch (e) {
-    logger.error(`Getting data sets error ${e}`);
-  }
+  const result = await dataSetsApi.getDataSets(token);
+  if (result.ok) data = result.data;
+  else logger.error(`Getting data sets error ${result.error.message}`);
 
   return (
     <ListView
@@ -36,6 +34,7 @@ export default async function Page() {
       colDefs={DATA_SETS_COLUMNS_WITH_ACTIONS}
       data={data?.data || []}
       emptyDataTitle="No Datasets"
+      initialError={result.ok ? null : result.error.message}
     />
   );
 }

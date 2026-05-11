@@ -1,6 +1,5 @@
 import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
-import { parse } from 'yaml';
 
 import {
   createDataSource,
@@ -11,6 +10,8 @@ import { Configuration } from '@/src/components/Configuration/Configuration';
 import { Modal } from '@/src/components/Modal/Modal';
 import { Stepper } from '@/src/components/Stepper/Stepper';
 import { BaseStep } from '@/src/constants/steps';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { useYamlParser } from '@/src/hooks/use-yaml-parser';
 import { DataSource, DataSourceType } from '@/src/models/data-source';
 import { Step } from '@/src/models/step';
 import { ModalButtons } from './Buttons/ModalButtons';
@@ -35,10 +36,13 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
   const [dataSource, setDataSource] = useState<DataSource>({
     details: {},
   });
+  const [rawConfig, setRawConfig] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [dsTypes, setDsTypes] = useState<DataSourceType[]>([]);
   const [isValidDataSource, setIsValidDataSource] = useState(false);
   const router = useRouter();
+  const withNotification = useApiNotification();
+  const parseYaml = useYamlParser();
 
   useEffect(() => {
     setIsValidDataSource(dataSource?.title != null && dataSource?.title !== '');
@@ -48,17 +52,31 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
     if (dsTypes.length === 0 && !isLoading) {
       setIsLoading(true);
 
-      getDataSourcesTypes().then((types) => {
+      withNotification(
+        getDataSourcesTypes(),
+        'Failed to Load Data Source Types',
+      ).then((result) => {
         setIsLoading(false);
-        setDsTypes(types?.data || []);
+        if (result.ok) setDsTypes(result.data.data);
       });
     }
   }, []);
 
   const create = () => {
-    createDataSource(dataSource).then(() => {
-      router.refresh();
-      close();
+    let details = dataSource.details;
+    if (rawConfig) {
+      const parsed = parseYaml(rawConfig);
+      if (!parsed.ok) return;
+      details = parsed.value;
+    }
+    withNotification(
+      createDataSource({ ...dataSource, details }),
+      'Create Data Source Failed',
+    ).then((result) => {
+      if (result.ok) {
+        router.refresh();
+        close();
+      }
     });
   };
 
@@ -92,12 +110,7 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
       return (
         <Configuration
           height="100%"
-          onChangeConfig={(v) =>
-            setDataSource({
-              ...(dataSource || {}),
-              details: parse(v || ''),
-            } as DataSource)
-          }
+          onChangeConfig={(v) => setRawConfig(v || '')}
         />
       );
     }

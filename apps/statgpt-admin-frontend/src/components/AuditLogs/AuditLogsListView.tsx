@@ -17,6 +17,9 @@ import type { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
 import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
 import { useAuditLogFiltersInUrl } from '@/src/hooks/use-audit-logs-filters-in-url';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { useNotification } from '@/src/context/NotificationContext';
+import { NotificationType } from '@/src/models/notification';
 import { mapAuditLogRequestToQueryString } from '@/src/utils/audit-logs';
 import { getEnumFilterValue, getTextContains } from '@/src/utils/client/grid';
 import { ListContent } from '../ListView/ListContent/ListContent';
@@ -24,13 +27,30 @@ import { getAuditLogsColumns } from '@/src/constants/columns/audit-logs';
 
 interface AuditLogsListViewProps {
   enums?: AuditLogEnumValues | null;
+  initialError?: string | null;
 }
 
-export function AuditLogsListView({ enums }: AuditLogsListViewProps) {
+export function AuditLogsListView({
+  enums,
+  initialError,
+}: AuditLogsListViewProps) {
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
 
   const { filters, queryKey } = useAuditLogFiltersInUrl();
+  const withNotification = useApiNotification();
+  const { showNotification } = useNotification();
   const [refreshToken, setRefreshToken] = useState(0);
+
+  useEffect(() => {
+    if (initialError) {
+      showNotification({
+        type: NotificationType.error,
+        title: 'Failed to load data',
+        description: initialError,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtersRef = useRef(filters);
   useEffect(() => {
@@ -68,15 +88,19 @@ export function AuditLogsListView({ enums }: AuditLogsListViewProps) {
 
       const query = mapAuditLogRequestToQueryString(request);
 
-      const payload = await sendGetRequest<any, RequestData<AuditLogDetails>>(
-        `/api/v1/audit-logs?${query}`,
+      const result = await withNotification(
+        sendGetRequest<RequestData<AuditLogDetails>>(
+          `/api/v1/audit-logs?${query}`,
+        ),
+        'Failed to Load Audit Logs',
       );
 
-      if (!payload || !payload.data) {
+      if (!result.ok || !result.data.data) {
         setTotalCount(0);
         return { rows: [], total: 0 };
       }
 
+      const payload = result.data;
       const rows = payload.data ?? payload.results ?? [];
       const total =
         typeof payload.total === 'number' ? payload.total : payload.count;
@@ -84,7 +108,7 @@ export function AuditLogsListView({ enums }: AuditLogsListViewProps) {
       setTotalCount(total);
       return { rows, total };
     },
-    [],
+    [withNotification],
   );
 
   const columns = useMemo(() => getAuditLogsColumns({ enums }), [enums]);

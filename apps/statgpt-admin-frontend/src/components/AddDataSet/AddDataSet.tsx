@@ -1,6 +1,6 @@
 import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
-import { parse, stringify } from 'yaml';
+import { stringify } from 'yaml';
 
 import { getDataSources } from '@/src/app/data-sources/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
@@ -8,12 +8,11 @@ import { Configuration } from '@/src/components/Configuration/Configuration';
 import { Modal } from '@/src/components/Modal/Modal';
 import { Stepper } from '@/src/components/Stepper/Stepper';
 import { BaseStep, DatasetStep } from '@/src/constants/steps';
-import { useNotification } from '@/src/context/NotificationContext';
 import { DataSet } from '@/src/models/data-sets';
-import { NotificationType } from '@/src/models/notification';
 import { DataSource } from '@/src/models/data-source';
-import { RequestData } from '@/src/models/request-data';
 import { sendPostRequest } from '@/src/server/api';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { useYamlParser } from '@/src/hooks/use-yaml-parser';
 import { Step } from '@/src/models/step';
 import { ModalsButtons } from './Buttons/ModalsButtons';
 import { DataSetStep } from './DataSetStep/DataSetStep';
@@ -25,7 +24,8 @@ interface Props {
 
 export const AddDataSetModal: FC<Props> = ({ close }) => {
   const router = useRouter();
-  const { showNotification } = useNotification();
+  const withNotification = useApiNotification();
+  const parseYaml = useYamlParser();
   const dataSetSteps: Step[] = [
     {
       key: DatasetStep.DataSource,
@@ -41,6 +41,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   const [newDataSet, setDataSet] = useState<DataSet>({
     details: void 0,
   });
+  const [rawConfig, setRawConfig] = useState('');
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [isLoadingData, setIsLoadingDs] = useState(false);
 
@@ -49,36 +50,32 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   useEffect(() => {
     if (dataSources.length === 0 && !isLoadingData) {
       setIsLoadingDs(true);
-      getDataSources().then((data) => {
-        setIsLoadingDs(false);
-        setDataSources((data as RequestData<DataSource>).data);
-      });
+      withNotification(getDataSources(), 'Failed to Load Data Sources').then(
+        (result) => {
+          setIsLoadingDs(false);
+          if (result.ok) setDataSources(result.data.data);
+        },
+      );
     }
   }, [dataSources, isLoadingData]);
 
   const createDataset = () => {
+    let details = newDataSet.details;
+    if (rawConfig) {
+      const parsed = parseYaml(rawConfig);
+      if (!parsed.ok) return;
+      details = parsed.value;
+    }
     setIsLoadingDs(true);
-    sendPostRequest<DataSet, { ok: boolean; res: DataSet | string }>(
-      '/api/v1/datasets',
-      newDataSet,
-    ).then((res) => {
+    withNotification(
+      sendPostRequest('/api/v1/datasets', { ...newDataSet, details }),
+      'Dataset Creation Failed',
+    ).then((result) => {
       setIsLoadingDs(false);
-      if (res?.ok) {
+      if (result.ok) {
         router.refresh();
         close();
-        return;
       }
-
-      const message =
-        typeof res?.res === 'string'
-          ? res.res
-          : 'Failed to create dataset. Please check required fields.';
-
-      showNotification({
-        type: NotificationType.error,
-        title: 'Dataset Creation Failed',
-        description: message,
-      });
     });
   };
 
@@ -108,13 +105,10 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
       return (
         <DataSetStep
           selectedDataSourceId={newDataSet?.data_source_id}
-          changeDataSet={({ title, details }) =>
-            setDataSet({
-              ...(newDataSet || {}),
-              title,
-              details,
-            } as DataSet)
-          }
+          changeDataSet={({ title, details }) => {
+            setDataSet({ ...(newDataSet || {}), title, details } as DataSet);
+            setRawConfig(details ? stringify(details) : '');
+          }}
         />
       );
     }
@@ -123,13 +117,8 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
       return (
         <Configuration
           height="100%"
-          value={stringify(newDataSet.details)}
-          onChangeConfig={(v) =>
-            setDataSet({
-              ...(newDataSet || {}),
-              details: parse(v || ''),
-            } as DataSet)
-          }
+          value={rawConfig}
+          onChangeConfig={(v) => setRawConfig(v || '')}
         />
       );
     }

@@ -2,7 +2,7 @@
 
 import { ColDef, GridOptions } from 'ag-grid-community';
 import { useRouter } from 'next/navigation';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 
 import { Menu, MenuUrl } from '@/src/constants/menu';
 import { BaseEntity } from '@/src/models/base-entity';
@@ -12,6 +12,8 @@ import {
   FetchRowsResult,
 } from '@/src/components/GridView/GridView';
 import { ListHeader } from '../ListHeader/ListHeader';
+import { useNotification } from '@/src/context/NotificationContext';
+import { NotificationType } from '@/src/models/notification';
 
 interface Props<T = BaseEntity> {
   menuItem: Menu;
@@ -24,6 +26,7 @@ interface Props<T = BaseEntity> {
   totalCount?: number;
   queryKey?: string;
   refreshToken?: number;
+  initialError?: string | null;
 }
 
 export function ListContent<T = BaseEntity>({
@@ -37,8 +40,21 @@ export function ListContent<T = BaseEntity>({
   queryKey,
   refreshToken,
   withHeader = true,
+  initialError,
 }: Props<T>) {
   const router = useRouter();
+  const { showNotification } = useNotification();
+
+  useEffect(() => {
+    if (initialError) {
+      showNotification({
+        type: NotificationType.error,
+        title: 'Failed to load data',
+        description: initialError,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onCellClicked = useCallback(
     (event: any) => {

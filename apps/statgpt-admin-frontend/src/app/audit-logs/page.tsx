@@ -5,6 +5,7 @@ import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 import { AuditLogsListView } from '@/src/components/AuditLogs/AuditLogsListView';
 import { auditLogsApi } from '../api/api';
+import { logger } from '@/src/server/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,18 @@ export default async function Page() {
     return redirect(SIGN_IN_LINK);
   }
 
-  const enums = await auditLogsApi.getEnumValues(token);
+  const enumsResult = await auditLogsApi.getEnumValues(token);
+  if (!enumsResult.ok) {
+    logger.error(
+      `Getting audit log enum values error ${enumsResult.error.message}`,
+    );
+  }
+  const enums = enumsResult.ok ? enumsResult.data : null;
 
-  return <AuditLogsListView enums={enums} />;
+  return (
+    <AuditLogsListView
+      enums={enums}
+      initialError={enumsResult.ok ? null : enumsResult.error.message}
+    />
+  );
 }

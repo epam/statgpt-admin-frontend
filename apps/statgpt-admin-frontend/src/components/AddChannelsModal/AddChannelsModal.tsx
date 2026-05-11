@@ -1,8 +1,8 @@
 import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
-import { parse } from 'yaml';
 
 import { createChannel } from '@/src/app/channels/actions';
+import { useYamlParser } from '@/src/hooks/use-yaml-parser';
 import { Configuration } from '@/src/components/Configuration/Configuration';
 import { Modal } from '@/src/components/Modal/Modal';
 import { Stepper } from '@/src/components/Stepper/Stepper';
@@ -32,9 +32,11 @@ export const AddChannelsModal: FC<Props> = ({ close }) => {
     llm_model: '',
     details: {},
   });
+  const [rawConfig, setRawConfig] = useState('');
 
   const [isValidChannel, setIsValidChannel] = useState(false);
   const router = useRouter();
+  const parseYaml = useYamlParser();
 
   useEffect(() => {
     setIsValidChannel(
@@ -46,7 +48,13 @@ export const AddChannelsModal: FC<Props> = ({ close }) => {
   }, [channel]);
 
   const create = () => {
-    createChannel(channel).then(() => {
+    let details = channel.details;
+    if (rawConfig) {
+      const parsed = parseYaml(rawConfig);
+      if (!parsed.ok) return;
+      details = parsed.value;
+    }
+    createChannel({ ...channel, details }).then(() => {
       router.refresh();
       close();
     });
@@ -66,12 +74,7 @@ export const AddChannelsModal: FC<Props> = ({ close }) => {
       return (
         <Configuration
           height="100%"
-          onChangeConfig={(v) =>
-            setChannel({
-              ...channel,
-              details: parse(v || ''),
-            } as Channel)
-          }
+          onChangeConfig={(v) => setRawConfig(v || '')}
         />
       );
     }

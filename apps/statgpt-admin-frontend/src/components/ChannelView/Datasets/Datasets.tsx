@@ -1,4 +1,4 @@
-'use clients';
+'use client';
 
 import { FC, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -23,22 +23,58 @@ import {
 } from '@/src/server/channels-api';
 import { AddDatasets } from '../AddDataSets/AddDataSets';
 import { IconCopy, IconDownload, IconRefreshDot } from '@tabler/icons-react';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 
 interface Props {
   selectedChannelId?: string;
 }
 
 export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
+  const { showNotification, removeNotification } = useNotification();
+  const withNotification = useApiNotification();
+
+  const [showModal, setShowModal] = useState(false);
+  const [isLoadingChannelDataSets, setIsLoadingChannelDataSets] =
+    useState(false);
+
+  const [selectedChannelDataSets, setSelectedChannelDataSets] = useState<
+    DataSet[]
+  >([]);
+
+  const updateDataSet = useCallback(() => {
+    if (selectedChannelId != null && !isLoadingChannelDataSets) {
+      setIsLoadingChannelDataSets(true);
+      withNotification(
+        sendGetRequest<RequestData<DataSet>>(
+          CHANNEL_DATA_SETS_URL(selectedChannelId),
+        ),
+        'Failed to Load Datasets',
+      ).then((result) => {
+        setIsLoadingChannelDataSets(false);
+        if (result.ok) {
+          setSelectedChannelDataSets([...result.data.data]);
+        }
+      });
+    }
+  }, [selectedChannelId, isLoadingChannelDataSets, withNotification]);
+
   const deleteDataSet = (id?: number) => {
     setIsLoadingChannelDataSets(true);
-    sendDeleteRequest(
-      CHANNEL_DATA_SETS_URL(`${selectedChannelId as string}__${id as number}`),
-    ).then(() => {
-      updateDataSet();
+    withNotification(
+      sendDeleteRequest(
+        CHANNEL_DATA_SETS_URL(
+          `${selectedChannelId as string}__${id as number}`,
+        ),
+      ),
+      'Delete Failed',
+    ).then((result) => {
+      if (result.ok) {
+        updateDataSet();
+      } else {
+        setIsLoadingChannelDataSets(false);
+      }
     });
   };
-
-  const { showNotification, removeNotification } = useNotification();
 
   const exportEntity = () => {
     const id = showNotification({
@@ -47,15 +83,15 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       description: 'Preparing export files',
       duration: undefined,
     });
-    exportChannel(selectedChannelId || '').then((res) => {
+    exportChannel(selectedChannelId || '').then((result) => {
       removeNotification(id);
-      if ((res as { ok: boolean }).ok) {
-        window.open(`/${(res as { res: string }).res}`, '_blank');
+      if (result.ok) {
+        window.open(`/${result.data}`, '_blank');
       } else {
         showNotification({
           type: NotificationType.error,
           title: 'Export Failed',
-          description: (res as { res: string }).res,
+          description: result.error.message,
         });
       }
     });
@@ -89,33 +125,20 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     ),
   ];
 
-  const [showModal, setShowModal] = useState(false);
-  const [isLoadingChannelDataSets, setIsLoadingChannelDataSets] =
-    useState(false);
-
-  const [selectedChannelDataSets, setSelectedChannelDataSets] = useState<
-    DataSet[]
-  >([]);
-
-  const updateDataSet = useCallback(() => {
-    if (selectedChannelId != null && !isLoadingChannelDataSets) {
-      setIsLoadingChannelDataSets(true);
-      sendGetRequest(CHANNEL_DATA_SETS_URL(selectedChannelId)).then((data) => {
-        setIsLoadingChannelDataSets(false);
-        setSelectedChannelDataSets([...(data as RequestData<DataSet>).data]);
-      });
-    }
-  }, []);
-
   const deduplicate = useCallback(() => {
-    deduplicateDataset(selectedChannelId as string).then(() => {
-      showNotification({
-        type: NotificationType.success,
-        title: 'Deduplication in progress',
-        description: 'The deduplication runs in the background',
-      });
+    withNotification(
+      deduplicateDataset(selectedChannelId as string),
+      'Deduplication Failed',
+    ).then((result) => {
+      if (result.ok) {
+        showNotification({
+          type: NotificationType.success,
+          title: 'Deduplication in progress',
+          description: 'The deduplication runs in the background',
+        });
+      }
     });
-  }, []);
+  }, [selectedChannelId]);
 
   useEffect(() => {
     if (selectedChannelId != null && selectedChannelDataSets.length === 0) {
@@ -124,29 +147,45 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
   }, [selectedChannelId]);
 
   const recalculateIndexes = () => {
-    sendPostRequest(
-      RELOAD_ALL_DATASETS_CHANNEL_URL(selectedChannelId as string),
-    ).then(() => {
-      updateDataSet();
+    withNotification(
+      sendPostRequest(
+        RELOAD_ALL_DATASETS_CHANNEL_URL(selectedChannelId as string),
+      ),
+      'Recalculate Failed',
+    ).then((result) => {
+      if (result.ok) {
+        updateDataSet();
+      }
     });
   };
 
-  const addDataSetsIds = useCallback((ids: number[]) => {
-    const req$ = ids.map((id) => {
-      return sendPostRequest(
-        CHANNEL_DATA_SETS_URL(selectedChannelId as string),
-        { dsId: id },
-      );
-    });
+  const addDataSetsIds = useCallback(
+    (ids: number[]) => {
+      const req$ = ids.map((id) => {
+        return sendPostRequest(
+          CHANNEL_DATA_SETS_URL(selectedChannelId as string),
+          { dsId: id },
+        );
+      });
 
-    if (req$.length === 0) {
-      return;
-    }
-    Promise.all(req$).then(() => {
-      setShowModal(false);
-      updateDataSet();
-    });
-  }, []);
+      if (req$.length === 0) {
+        return;
+      }
+      Promise.all(req$).then((results) => {
+        const firstFailed = results.find((r) => !r.ok);
+        if (firstFailed && !firstFailed.ok) {
+          showNotification({
+            type: NotificationType.error,
+            title: 'Add Dataset Failed',
+            description: firstFailed.error.message,
+          });
+        }
+        setShowModal(false);
+        updateDataSet();
+      });
+    },
+    [selectedChannelId, showNotification, updateDataSet],
+  );
 
   return (
     <div className="flex flex-col h-full">

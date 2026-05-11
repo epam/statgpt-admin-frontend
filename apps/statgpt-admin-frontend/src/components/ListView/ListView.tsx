@@ -19,6 +19,7 @@ interface Props<T = BaseEntity> {
   totalCount?: number;
   queryKey?: string;
   refreshToken?: number;
+  initialError?: string | null;
 }
 
 export function ListView<T = BaseEntity>({
@@ -32,6 +33,7 @@ export function ListView<T = BaseEntity>({
   totalCount,
   queryKey,
   refreshToken,
+  initialError,
 }: Props<T>) {
   return (
     <div className="flex flex-col h-full rounded bg-layer-2 common-paddings">
@@ -46,6 +48,7 @@ export function ListView<T = BaseEntity>({
         withHeader={withHeader}
         queryKey={queryKey}
         refreshToken={refreshToken}
+        initialError={initialError}
       />
     </div>
   );

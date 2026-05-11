@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState, useTransition } from 'react';
 import { sendGetRequest } from '@/src/server/api';
 import { DataField } from './DataField';
 import { CopyButton } from '../../BaseComponents/CopyButton/CopyButton';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 
 export const AuditLogDetailsView = ({
   data,
@@ -18,6 +19,7 @@ export const AuditLogDetailsView = ({
   const [details, setDetails] = useState<AuditLogDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const withNotification = useApiNotification();
 
   useEffect(() => {
     let cancelled = false;
@@ -27,27 +29,25 @@ export const AuditLogDetailsView = ({
 
     startTransition(() => {
       (async () => {
-        try {
-          const details = await sendGetRequest<any, AuditLogDetails>(
-            `/api/v1/audit-logs/${data.id}`,
-          );
+        const result = await withNotification(
+          sendGetRequest<AuditLogDetails>(`/api/v1/audit-logs/${data.id}`),
+          'Failed to Load Action Details',
+        );
 
-          if (!details) {
-            if (!cancelled) setError('Failed to load action details.');
-            return;
-          }
-
-          if (!cancelled) setDetails(details);
-        } catch {
-          if (!cancelled) setError('Failed to load action details.');
+        if (!result.ok) {
+          if (!cancelled)
+            setError(result.error.message || 'Failed to load action details.');
+          return;
         }
+
+        if (!cancelled) setDetails(result.data);
       })();
     });
 
     return () => {
       cancelled = true;
     };
-  }, [data.id]);
+  }, [data.id, withNotification]);
 
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
@@ -113,9 +113,7 @@ export const AuditLogDetailsView = ({
           {(showLoader || error) && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded">
               {error ? (
-                <span className="text-sm text-error">
-                  Failed to load action details.
-                </span>
+                <span className="text-sm text-error">{error}</span>
               ) : (
                 <div className="flex items-center gap-3 text-sm">
                   <span className="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

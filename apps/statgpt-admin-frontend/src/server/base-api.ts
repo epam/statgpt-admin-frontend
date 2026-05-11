@@ -1,5 +1,6 @@
 import { JWT } from 'next-auth/jwt';
-import { ApiResult, sendRequest, sendRequestSafe, streamRequest } from './api';
+import { getApiHeaders } from '@/src/utils/auth/api-headers';
+import { ApiResult, sendRequestSafe, streamRequest } from './api';
 
 export interface BaseApiConfig {
   host?: string;
@@ -15,34 +16,7 @@ export class BaseApi {
     this.config = config;
   }
 
-  protected async delete<T extends object, R>(
-    url: string,
-    token?: JWT | null,
-  ): Promise<R | null> {
-    return this.sendRequest<T, R>(url, 'DELETE', void 0, void 0, void 0, token);
-  }
-
-  protected async put<T extends object, R>(
-    url: string,
-    dto: T,
-    qs?: Record<string, string>,
-    initHeaders?: HeadersInit,
-    token?: JWT | null,
-  ): Promise<R | null> {
-    return this.sendRequest<T, R>(url, 'PUT', dto, qs, initHeaders, token);
-  }
-
-  protected async post<T extends object, R>(
-    url: string,
-    dto: T,
-    qs?: Record<string, string>,
-    initHeaders?: HeadersInit,
-    token?: JWT | null,
-  ): Promise<R | null> {
-    return this.sendRequest<T, R>(url, 'POST', dto, qs, initHeaders, token);
-  }
-
-  protected async deleteSafe<T extends object, R>(
+  protected delete<T extends object, R>(
     url: string,
     token?: JWT | null,
   ): Promise<ApiResult<R>> {
@@ -56,7 +30,7 @@ export class BaseApi {
     );
   }
 
-  protected async putSafe<T extends object, R>(
+  protected put<T extends object, R>(
     url: string,
     dto: T,
     qs?: Record<string, string>,
@@ -66,7 +40,7 @@ export class BaseApi {
     return this.sendRequestSafe<T, R>(url, 'PUT', dto, qs, initHeaders, token);
   }
 
-  protected async postSafe<T extends object, R>(
+  protected post<T extends object, R>(
     url: string,
     dto: T,
     qs?: Record<string, string>,
@@ -84,6 +58,22 @@ export class BaseApi {
     url: string,
     token?: JWT | null,
     tempUrl = false,
+  ): Promise<ApiResult<R>> {
+    return this.sendRequestSafe<object, R>(
+      url,
+      'GET',
+      void 0,
+      void 0,
+      void 0,
+      token,
+      tempUrl,
+    );
+  }
+
+  protected getRaw<R extends object>(
+    url: string,
+    token?: JWT | null,
+    tempUrl = false,
   ): Promise<R | null> {
     return this.sendRequest<object, R>(
       url,
@@ -96,11 +86,11 @@ export class BaseApi {
     );
   }
 
-  private sendRequest<T extends object, R>(
+  private async sendRequest<T extends object, R>(
     url: string,
     type: string,
     dto?: T,
-    qs?: Record<string, string>,
+    _qs?: Record<string, string>,
     initHeaders?: HeadersInit,
     token?: JWT | null,
     tempUrl = false,
@@ -108,15 +98,32 @@ export class BaseApi {
     const apiKey = this.config.dialKey
       ? { 'Api-key': this.config.dialKey }
       : {};
-
-    return sendRequest(
-      `${tempUrl ? this.config.dialTemp : this.config.host || this.config.dial}${url}`,
-      type,
-      dto,
-      qs,
-      { ...initHeaders, ...apiKey } as HeadersInit,
-      token,
-    );
+    const fullUrl = `${tempUrl ? this.config.dialTemp : this.config.host || this.config.dial}${url}`;
+    try {
+      const r = await fetch(fullUrl, {
+        body: dto instanceof FormData ? dto : JSON.stringify(dto),
+        method: type,
+        cache: 'no-store',
+        headers: {
+          ...initHeaders,
+          ...apiKey,
+          ...getApiHeaders(
+            { jwt: token?.access_token },
+            dto instanceof FormData,
+          ),
+        } as HeadersInit,
+      });
+      if (!(r.status >= 200 && r.status < 300)) {
+        console.error('Request error Url', r.url);
+        const text = await r.text();
+        console.error('Request error', r.status, text);
+        return null;
+      }
+      return (type === 'DELETE' ? await r.text() : await r.json()) as R;
+    } catch (e) {
+      console.error('Error', e);
+      return null;
+    }
   }
 
   private sendRequestSafe<T extends object, R>(
