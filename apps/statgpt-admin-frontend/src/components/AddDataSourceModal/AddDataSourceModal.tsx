@@ -12,6 +12,8 @@ import { Modal } from '@/src/components/Modal/Modal';
 import { Stepper } from '@/src/components/Stepper/Stepper';
 import { BaseStep } from '@/src/constants/steps';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { useNotification } from '@/src/context/NotificationContext';
+import { NotificationType } from '@/src/models/notification';
 import { DataSource, DataSourceType } from '@/src/models/data-source';
 import { Step } from '@/src/models/step';
 import { ModalButtons } from './Buttons/ModalButtons';
@@ -36,11 +38,13 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
   const [dataSource, setDataSource] = useState<DataSource>({
     details: {},
   });
+  const [rawConfig, setRawConfig] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [dsTypes, setDsTypes] = useState<DataSourceType[]>([]);
   const [isValidDataSource, setIsValidDataSource] = useState(false);
   const router = useRouter();
   const withNotification = useApiNotification();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     setIsValidDataSource(dataSource?.title != null && dataSource?.title !== '');
@@ -61,8 +65,24 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
   }, []);
 
   const create = () => {
+    let details = dataSource.details;
+    if (rawConfig) {
+      try {
+        details = parse(rawConfig);
+      } catch (e) {
+        showNotification({
+          type: NotificationType.error,
+          title: 'Invalid Configuration',
+          description:
+            e instanceof Error
+              ? e.message
+              : 'YAML syntax error in configuration.',
+        });
+        return;
+      }
+    }
     withNotification(
-      createDataSource(dataSource),
+      createDataSource({ ...dataSource, details }),
       'Create Data Source Failed',
     ).then((result) => {
       if (result.ok) {
@@ -102,12 +122,7 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
       return (
         <Configuration
           height="360px"
-          onChangeConfig={(v) =>
-            setDataSource({
-              ...(dataSource || {}),
-              details: parse(v || ''),
-            } as DataSource)
-          }
+          onChangeConfig={(v) => setRawConfig(v || '')}
         />
       );
     }

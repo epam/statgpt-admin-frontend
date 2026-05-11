@@ -8,6 +8,8 @@ import { Modal } from '@/src/components/Modal/Modal';
 import { BaseEntityWithDetails } from '@/src/models/base-entity';
 import { sendPostRequest } from '@/src/server/api';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { useNotification } from '@/src/context/NotificationContext';
+import { NotificationType } from '@/src/models/notification';
 
 interface Props {
   close: () => void;
@@ -19,12 +21,28 @@ export const EditDataEntity: FC<Props> = ({ close, entity, url }) => {
   const [config, setConfig] = useState<string>(stringify(entity.details));
   const router = useRouter();
   const withNotification = useApiNotification();
+  const { showNotification } = useNotification();
 
   const updateEntity = async () => {
+    let parsedDetails: unknown;
+    try {
+      parsedDetails = parse(config);
+    } catch (e) {
+      showNotification({
+        type: NotificationType.error,
+        title: 'Invalid Configuration',
+        description:
+          e instanceof Error
+            ? e.message
+            : 'YAML syntax error in configuration.',
+      });
+      return;
+    }
+
     const result = await withNotification(
       sendPostRequest(`${url}/${entity.id}`, {
         ...entity,
-        details: parse(config),
+        details: parsedDetails,
       }),
       'Save Failed',
     );

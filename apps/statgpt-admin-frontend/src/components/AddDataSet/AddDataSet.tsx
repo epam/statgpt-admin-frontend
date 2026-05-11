@@ -12,6 +12,8 @@ import { DataSet } from '@/src/models/data-sets';
 import { DataSource } from '@/src/models/data-source';
 import { sendPostRequest } from '@/src/server/api';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { useNotification } from '@/src/context/NotificationContext';
+import { NotificationType } from '@/src/models/notification';
 import { Step } from '@/src/models/step';
 import { ModalsButtons } from './Buttons/ModalsButtons';
 import { DataSetStep } from './DataSetStep/DataSetStep';
@@ -24,6 +26,7 @@ interface Props {
 export const AddDataSetModal: FC<Props> = ({ close }) => {
   const router = useRouter();
   const withNotification = useApiNotification();
+  const { showNotification } = useNotification();
   const dataSetSteps: Step[] = [
     {
       key: DatasetStep.DataSource,
@@ -39,6 +42,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   const [newDataSet, setDataSet] = useState<DataSet>({
     details: void 0,
   });
+  const [rawConfig, setRawConfig] = useState('');
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [isLoadingData, setIsLoadingDs] = useState(false);
 
@@ -57,9 +61,25 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   }, [dataSources, isLoadingData]);
 
   const createDataset = () => {
+    let details = newDataSet.details;
+    if (rawConfig) {
+      try {
+        details = parse(rawConfig);
+      } catch (e) {
+        showNotification({
+          type: NotificationType.error,
+          title: 'Invalid Configuration',
+          description:
+            e instanceof Error
+              ? e.message
+              : 'YAML syntax error in configuration.',
+        });
+        return;
+      }
+    }
     setIsLoadingDs(true);
     withNotification(
-      sendPostRequest('/api/v1/datasets', newDataSet),
+      sendPostRequest('/api/v1/datasets', { ...newDataSet, details }),
       'Dataset Creation Failed',
     ).then((result) => {
       setIsLoadingDs(false);
@@ -96,13 +116,10 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
       return (
         <DataSetStep
           selectedDataSourceId={newDataSet?.data_source_id}
-          changeDataSet={({ title, details }) =>
-            setDataSet({
-              ...(newDataSet || {}),
-              title,
-              details,
-            } as DataSet)
-          }
+          changeDataSet={({ title, details }) => {
+            setDataSet({ ...(newDataSet || {}), title, details } as DataSet);
+            setRawConfig(details ? stringify(details) : '');
+          }}
         />
       );
     }
@@ -111,13 +128,8 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
       return (
         <Configuration
           height="633px"
-          value={stringify(newDataSet.details)}
-          onChangeConfig={(v) =>
-            setDataSet({
-              ...(newDataSet || {}),
-              details: parse(v || ''),
-            } as DataSet)
-          }
+          value={rawConfig}
+          onChangeConfig={(v) => setRawConfig(v || '')}
         />
       );
     }

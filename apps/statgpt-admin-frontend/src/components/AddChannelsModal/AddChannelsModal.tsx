@@ -2,6 +2,9 @@ import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
 import { parse } from 'yaml';
 
+import { useNotification } from '@/src/context/NotificationContext';
+import { NotificationType } from '@/src/models/notification';
+
 import { createChannel } from '@/src/app/channels/actions';
 import { Configuration } from '@/src/components/Configuration/Configuration';
 import { Modal } from '@/src/components/Modal/Modal';
@@ -32,9 +35,11 @@ export const AddChannelsModal: FC<Props> = ({ close }) => {
     llm_model: '',
     details: {},
   });
+  const [rawConfig, setRawConfig] = useState('');
 
   const [isValidChannel, setIsValidChannel] = useState(false);
   const router = useRouter();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     setIsValidChannel(
@@ -46,7 +51,23 @@ export const AddChannelsModal: FC<Props> = ({ close }) => {
   }, [channel]);
 
   const create = () => {
-    createChannel(channel).then(() => {
+    let details = channel.details;
+    if (rawConfig) {
+      try {
+        details = parse(rawConfig);
+      } catch (e) {
+        showNotification({
+          type: NotificationType.error,
+          title: 'Invalid Configuration',
+          description:
+            e instanceof Error
+              ? e.message
+              : 'YAML syntax error in configuration.',
+        });
+        return;
+      }
+    }
+    createChannel({ ...channel, details }).then(() => {
       router.refresh();
       close();
     });
@@ -66,12 +87,7 @@ export const AddChannelsModal: FC<Props> = ({ close }) => {
       return (
         <Configuration
           height="270px"
-          onChangeConfig={(v) =>
-            setChannel({
-              ...channel,
-              details: parse(v || ''),
-            } as Channel)
-          }
+          onChangeConfig={(v) => setRawConfig(v || '')}
         />
       );
     }
