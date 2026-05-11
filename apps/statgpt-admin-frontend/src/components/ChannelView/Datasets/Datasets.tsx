@@ -8,6 +8,7 @@ import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { GridView } from '@/src/components/GridView/GridView';
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { Menu } from '@/src/constants/menu';
+import { useAccessControl } from '@/src/context/AccessControlContext';
 import { useNotification } from '@/src/context/NotificationContext';
 import { DataSet } from '@/src/models/data-sets';
 import { NotificationType } from '@/src/models/notification';
@@ -32,6 +33,7 @@ interface Props {
 export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
   const { showNotification, removeNotification } = useNotification();
   const withNotification = useApiNotification();
+  const { setForbidden } = useAccessControl();
 
   const [showModal, setShowModal] = useState(false);
   const [isLoadingChannelDataSets, setIsLoadingChannelDataSets] =
@@ -51,6 +53,10 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
         'Failed to Load Datasets',
       ).then((result) => {
         setIsLoadingChannelDataSets(false);
+        if (!result.ok && result.error.status === 403) {
+          setForbidden();
+          return;
+        }
         if (result.ok) {
           setSelectedChannelDataSets([...result.data.data]);
         }

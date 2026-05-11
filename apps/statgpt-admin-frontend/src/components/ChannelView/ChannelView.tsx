@@ -2,6 +2,7 @@
 
 import { FC, useEffect, useState } from 'react';
 
+import { useAccessControl } from '@/src/context/AccessControlContext';
 import { getChannel } from '@/src/app/channels/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export const ChannelView: FC<Props> = ({ selectedChannelId }) => {
+  const { setForbidden } = useAccessControl();
   const withNotification = useApiNotification();
   const [selectedChannel, setSelectedChannel] = useState<Channel | undefined>(
     void 0,
@@ -26,6 +28,10 @@ export const ChannelView: FC<Props> = ({ selectedChannelId }) => {
         getChannel(selectedChannelId),
         'Failed to Load Channel',
       ).then((result) => {
+        if (!result.ok && result.error.status === 403) {
+          setForbidden();
+          return;
+        }
         setIsLoadingChannel(false);
         if (result.ok) setSelectedChannel(result.data);
       });

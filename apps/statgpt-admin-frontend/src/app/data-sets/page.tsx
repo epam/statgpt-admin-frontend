@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 
 import { dataSetsApi } from '@/src/app/api/api';
 import { ListView } from '@/src/components/ListView/ListView';
+import { MainShell } from '@/src/components/MainShell/MainShell';
+import { NoAccessView } from '@/src/components/NoAccess/NoAccessView';
 import { SIGN_IN_LINK } from '@/src/constants/auth';
 import { DATA_SETS_COLUMNS_WITH_ACTIONS } from '@/src/constants/columns/grid-columns';
 import { Menu } from '@/src/constants/menu';
@@ -26,15 +28,19 @@ export default async function Page() {
 
   const result = await dataSetsApi.getDataSets(token);
   if (result.ok) data = result.data;
-  else logger.error(`Getting data sets error ${result.error.message}`);
+  if (!result.ok && result.error.status === 403) return <NoAccessView />;
+  if (!result.ok)
+    logger.error(`Getting data sets error ${result.error.message}`);
 
   return (
-    <ListView
-      menuItem={Menu.DATA_SETS}
-      colDefs={DATA_SETS_COLUMNS_WITH_ACTIONS}
-      data={data?.data || []}
-      emptyDataTitle="No Datasets"
-      initialError={result.ok ? null : result.error.message}
-    />
+    <MainShell>
+      <ListView
+        menuItem={Menu.DATA_SETS}
+        colDefs={DATA_SETS_COLUMNS_WITH_ACTIONS}
+        data={data?.data || []}
+        emptyDataTitle="No Datasets"
+        initialError={result.ok ? null : result.error.message}
+      />
+    </MainShell>
   );
 }

@@ -3,7 +3,6 @@ import { TokenEndpointHandler } from 'next-auth/providers';
 import { TokenSet } from 'openid-client';
 
 import { Token } from '@/src/models/token';
-import { logger } from '@/src/server/logger';
 import { NextClient, RefreshToken } from './nextauth-client';
 
 const waitRefreshTokenTimeout = 5;
@@ -134,47 +133,6 @@ export const callbacks: Partial<
 > = {
   jwt: async (options) => {
     if (options.account) {
-      const claimName = process.env.ADMIN_ROLES_CLAIM;
-      const claimValue = process.env.ADMIN_ROLES_VALUES;
-
-      let isAdmin: boolean | null = null;
-
-      if ((claimName && !claimValue) || (!claimName && claimValue)) {
-        logger.warn(
-          { claimName, claimValue },
-          'ADMIN_ROLES_CLAIM and ADMIN_ROLES_VALUES must both be set — admin check skipped, isAdmin will be null',
-        );
-      }
-
-      if (claimName && claimValue) {
-        let roles = (options.profile as Record<string, unknown> | undefined)?.[
-          claimName
-        ];
-
-        if (!roles && options.account.access_token) {
-          try {
-            const payload = JSON.parse(
-              Buffer.from(
-                options.account.access_token.split('.')[1],
-                'base64url',
-              ).toString(),
-            ) as Record<string, unknown>;
-            roles = payload[claimName];
-          } catch {
-            logger.warn(
-              { providerId: options.account.provider, claimName },
-              'Failed to parse access token as JWT — roles claim unavailable, isAdmin will be null',
-            );
-          }
-        }
-
-        const allowedValues = claimValue.split(',').map((v) => v.trim());
-
-        isAdmin = Array.isArray(roles)
-          ? roles.some((r) => allowedValues.includes(r))
-          : allowedValues.includes(roles as string);
-      }
-
       return {
         ...options.token,
         jobTitle: options.profile?.job_title,
@@ -186,7 +144,6 @@ export const callbacks: Partial<
         refreshToken: options.account.refresh_token,
         providerId: options.account.provider,
         userId: options.user.id,
-        isAdmin,
       };
     }
 

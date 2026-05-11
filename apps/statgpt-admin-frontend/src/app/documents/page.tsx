@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 
 import { documentsApi } from '@/src/app/api/api';
 import { ListView } from '@/src/components/ListView/ListView';
+import { MainShell } from '@/src/components/MainShell/MainShell';
+import { NoAccessView } from '@/src/components/NoAccess/NoAccessView';
 import { SIGN_IN_LINK } from '@/src/constants/auth';
 import { DOCUMENTS_COLUMNS_WITH_ACTIONS } from '@/src/constants/columns/grid-columns';
 import { Menu } from '@/src/constants/menu';
@@ -27,15 +29,19 @@ export default async function Page() {
 
   const result = await documentsApi.getList(null);
   if (result.ok) data = result.data;
-  else logger.error(`Getting documents error ${result.error.message}`);
+  if (!result.ok && result.error.status === 403) return <NoAccessView />;
+  if (!result.ok)
+    logger.error(`Getting documents error ${result.error.message}`);
 
   return (
-    <ListView
-      menuItem={Menu.DOCUMENTS}
-      colDefs={DOCUMENTS_COLUMNS_WITH_ACTIONS}
-      data={(data?.results as any[]) || []}
-      emptyDataTitle="No Documents"
-      initialError={result.ok ? null : result.error.message}
-    />
+    <MainShell>
+      <ListView
+        menuItem={Menu.DOCUMENTS}
+        colDefs={DOCUMENTS_COLUMNS_WITH_ACTIONS}
+        data={(data?.results as any[]) || []}
+        emptyDataTitle="No Documents"
+        initialError={result.ok ? null : result.error.message}
+      />
+    </MainShell>
   );
 }

@@ -5,5 +5,4 @@ export interface Token extends JWT {
   providerId?: string;
   userId: string;
   refreshToken: string | TokenSet;
-  isAdmin: boolean | null;
 }

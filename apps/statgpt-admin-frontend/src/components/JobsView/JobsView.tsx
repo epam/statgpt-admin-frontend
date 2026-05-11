@@ -2,6 +2,7 @@
 
 import { FC, useEffect, useState } from 'react';
 
+import { useAccessControl } from '@/src/context/AccessControlContext';
 import { getChannelJobs } from '@/src/app/channels/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export const JobsView: FC<Props> = ({ selectedChannelId }) => {
+  const { setForbidden } = useAccessControl();
   const withNotification = useApiNotification();
   const [isLoading, setIsLoading] = useState(false);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -65,6 +67,10 @@ export const JobsView: FC<Props> = ({ selectedChannelId }) => {
       getChannelJobs(selectedChannelId),
       'Failed to Load Jobs',
     ).then((result) => {
+      if (!result.ok && result.error.status === 403) {
+        setForbidden();
+        return;
+      }
       setJobs(result.ok ? result.data : []);
       setIsLoading(false);
     });
