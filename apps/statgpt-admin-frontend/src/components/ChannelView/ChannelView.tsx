@@ -30,6 +30,7 @@ export const ChannelView: FC<Props> = ({ selectedChannelId }) => {
         [403],
       ).then((result) => {
         if (!result.ok && result.error.status === 403) {
+          setIsLoadingChannel(false);
           setForbidden();
           return;
         }

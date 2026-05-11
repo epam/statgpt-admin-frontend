@@ -22,15 +22,16 @@ export default async function Page() {
   }
 
   const enumsResult = await auditLogsApi.getEnumValues(token);
-  if (!enumsResult.ok && enumsResult.error.status === 403)
+  let enums = null;
+  if (enumsResult.ok) {
+    enums = enumsResult.data;
+  } else if (enumsResult.error.status === 403) {
     return <NoAccessView />;
-  if (!enumsResult.ok) {
+  } else {
     logger.error(
       `Getting audit log enum values error ${enumsResult.error.message}`,
     );
   }
-
-  const enums = enumsResult.ok ? enumsResult.data : null;
 
   return (
     <MainShell>

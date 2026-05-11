@@ -27,10 +27,13 @@ export default async function Page() {
   let data = { data: [] as DataSet[] } as RequestData<DataSet> | null;
 
   const result = await dataSetsApi.getDataSets(token);
-  if (result.ok) data = result.data;
-  if (!result.ok && result.error.status === 403) return <NoAccessView />;
-  if (!result.ok)
+  if (result.ok) {
+    data = result.data;
+  } else if (result.error.status === 403) {
+    return <NoAccessView />;
+  } else {
     logger.error(`Getting data sets error ${result.error.message}`);
+  }
 
   return (
     <MainShell>

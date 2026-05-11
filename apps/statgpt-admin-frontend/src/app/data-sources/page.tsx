@@ -28,10 +28,13 @@ export default async function Page() {
   let data = { data: [] as DataSource[] } as RequestData<DataSource> | null;
 
   const result = await dataSourcesApi.getDataSources(token);
-  if (result.ok) data = result.data;
-  if (!result.ok && result.error.status === 403) return <NoAccessView />;
-  if (!result.ok)
+  if (result.ok) {
+    data = result.data;
+  } else if (result.error.status === 403) {
+    return <NoAccessView />;
+  } else {
     logger.error(`Getting data sources error ${result.error.message}`);
+  }
 
   return (
     <MainShell>
