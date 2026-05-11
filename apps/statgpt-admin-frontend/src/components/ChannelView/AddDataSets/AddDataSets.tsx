@@ -47,7 +47,7 @@ export const AddDatasets: FC<Props> = ({ close, add }) => {
   }, []);
 
   return (
-    <Modal title="Add Datasets" close={close} height="880px">
+    <Modal title="Add Datasets" close={close} height="80vh">
       <></>
       <>
         {!isLoadingData && (

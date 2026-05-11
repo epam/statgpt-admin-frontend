@@ -73,7 +73,7 @@ export const AddChannelsModal: FC<Props> = ({ close }) => {
     if (activeStep === BaseStep.Configuration) {
       return (
         <Configuration
-          height="270px"
+          height="100%"
           onChangeConfig={(v) => setRawConfig(v || '')}
         />
       );
@@ -81,7 +81,7 @@ export const AddChannelsModal: FC<Props> = ({ close }) => {
   };
 
   return (
-    <Modal title="Add Channel" close={close} width="60%">
+    <Modal title="Add Channel" close={close} width="60%" height="80vh">
       <>
         <Stepper
           activeStep={activeStep}
