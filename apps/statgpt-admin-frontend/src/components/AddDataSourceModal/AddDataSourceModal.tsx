@@ -65,7 +65,7 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
   const getModalContent = () => {
     if (activeStep === BaseStep.Properties) {
       return isLoading ? (
-        <div className="flex items-center justify-center w-full h-[360px]">
+        <div className="flex items-center justify-center w-full h-full">
           <Loader />
         </div>
       ) : (
@@ -91,7 +91,7 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
     if (activeStep === BaseStep.Configuration) {
       return (
         <Configuration
-          height="360px"
+          height="100%"
           onChangeConfig={(v) =>
             setDataSource({
               ...(dataSource || {}),
@@ -104,7 +104,7 @@ export const AddDataSourceModal: FC<Props> = ({ close }) => {
   };
 
   return (
-    <Modal title="Add Data Source" close={close} width="1000px">
+    <Modal title="Add Data Source" close={close} width="1000px" height="80vh">
       <Stepper
         activeStep={activeStep}
         steps={DATA_SOURCE_STEPS}

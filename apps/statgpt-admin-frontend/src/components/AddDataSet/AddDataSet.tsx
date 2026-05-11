@@ -85,7 +85,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   const getModalContent = () => {
     if (isLoadingData) {
       return (
-        <div className="flex items-center w-full justify-center h-[633px]">
+        <div className="flex items-center w-full justify-center h-full">
           <Loader />
         </div>
       );
@@ -122,7 +122,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
     if (activeStep === BaseStep.Configuration) {
       return (
         <Configuration
-          height="633px"
+          height="100%"
           value={stringify(newDataSet.details)}
           onChangeConfig={(v) =>
             setDataSet({
@@ -136,7 +136,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   };
 
   return (
-    <Modal title="Add Dataset" close={close}>
+    <Modal title="Add Dataset" close={close} height="80vh">
       <>
         {!isLoadingData && (
           <Stepper

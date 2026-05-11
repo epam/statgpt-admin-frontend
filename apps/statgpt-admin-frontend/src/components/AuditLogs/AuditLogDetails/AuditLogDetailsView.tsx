@@ -83,10 +83,10 @@ export const AuditLogDetailsView = ({
   const showLoader = isPending || (!details && !error);
 
   return (
-    <Modal title="Action Details" close={close}>
+    <Modal title="Action Details" close={close} height="80vh">
       <></>
-      <div className="flex flex-col gap-6 mx-6 my-4">
-        <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-6 px-6 py-4 h-full">
+        <div className="flex flex-col gap-3 shrink-0">
           <div className="flex gap-2 items-center">
             <span className="text-primary heading-3">{data.trace_id}</span>
             <CopyButton
@@ -109,7 +109,7 @@ export const AuditLogDetailsView = ({
             />
           </div>
         </div>
-        <div className="relative">
+        <div className="relative flex-1 min-h-0">
           {(showLoader || error) && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded">
               {error ? (
@@ -125,7 +125,7 @@ export const AuditLogDetailsView = ({
             </div>
           )}
 
-          <div className="h-[600px]">
+          <div className="h-full">
             {details && !error && (
               <DiffEditor
                 key={data.id}
