@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState, useTransition } from 'react';
 import { sendGetRequest } from '@/src/server/api';
 import { DataField } from './DataField';
 import { CopyButton } from '../../BaseComponents/CopyButton/CopyButton';
+import { useApiNotification } from '@/src/hooks/use-api-notification';
 
 export const AuditLogDetailsView = ({
   data,
@@ -18,6 +19,7 @@ export const AuditLogDetailsView = ({
   const [details, setDetails] = useState<AuditLogDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const withNotification = useApiNotification();
 
   useEffect(() => {
     let cancelled = false;
@@ -27,8 +29,9 @@ export const AuditLogDetailsView = ({
 
     startTransition(() => {
       (async () => {
-        const result = await sendGetRequest<AuditLogDetails>(
-          `/api/v1/audit-logs/${data.id}`,
+        const result = await withNotification(
+          sendGetRequest<AuditLogDetails>(`/api/v1/audit-logs/${data.id}`),
+          'Failed to Load Action Details',
         );
 
         if (!result.ok) {
@@ -44,7 +47,7 @@ export const AuditLogDetailsView = ({
     return () => {
       cancelled = true;
     };
-  }, [data.id]);
+  }, [data.id, withNotification]);
 
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {

@@ -7,7 +7,6 @@ export const ADMIN = '';
 export const API = 'api/v1';
 export const MAIN_API = `${ADMIN}/${API}`;
 
-export const CACHE: RequestInit = { cache: 'no-store' };
 const PREVIEW_BODY_LENGTH = 1000;
 
 export interface ApiError {
