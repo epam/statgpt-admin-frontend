@@ -2,6 +2,7 @@
 
 import { FC, useEffect, useState } from 'react';
 
+import { useAccessControl } from '@/src/context/AccessControlContext';
 import {
   addTerm,
   getChannelTerms,
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export const TermsView: FC<Props> = ({ selectedChannelId }) => {
+  const { setForbidden } = useAccessControl();
   const withNotification = useApiNotification();
   const [isLoading, setIsLoading] = useState(false);
   const [isAddView, setIsLoadingAddView] = useState(false);
@@ -125,7 +127,12 @@ export const TermsView: FC<Props> = ({ selectedChannelId }) => {
     withNotification(
       getChannelTerms(selectedChannelId),
       'Failed to Load Terms',
+      [403],
     ).then((result) => {
+      if (!result.ok && result.error.status === 403) {
+        setForbidden();
+        return;
+      }
       setTerms(result.ok ? result.data : []);
       setIsLoading(false);
     });

@@ -1,10 +1,12 @@
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+
+import { AuditLogsListView } from '@/src/components/AuditLogs/AuditLogsListView';
+import { ForbiddenTrigger } from '@/src/components/NoAccess/ForbiddenTrigger';
 import { SIGN_IN_LINK } from '@/src/constants/auth';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
-import { AuditLogsListView } from '@/src/components/AuditLogs/AuditLogsListView';
-import { auditLogsApi } from '../api/api';
+import { auditLogsApi } from '../../api/api';
 import { logger } from '@/src/server/logger';
 
 export const dynamic = 'force-dynamic';
@@ -19,12 +21,16 @@ export default async function Page() {
   }
 
   const enumsResult = await auditLogsApi.getEnumValues(token);
-  if (!enumsResult.ok) {
+  let enums = null;
+  if (enumsResult.ok) {
+    enums = enumsResult.data;
+  } else if (enumsResult.error.status === 403) {
+    return <ForbiddenTrigger />;
+  } else {
     logger.error(
       `Getting audit log enum values error ${enumsResult.error.message}`,
     );
   }
-  const enums = enumsResult.ok ? enumsResult.data : null;
 
   return (
     <AuditLogsListView

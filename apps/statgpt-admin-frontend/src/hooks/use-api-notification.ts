@@ -16,9 +16,10 @@ export function useApiNotification() {
   const withNotificationRef = useRef(async function withNotification<R>(
     request: Promise<ApiResult<R>>,
     errorTitle = 'Request failed',
+    suppressStatuses: number[] = [],
   ): Promise<ApiResult<R>> {
     const result = await request;
-    if (!result.ok) {
+    if (!result.ok && !suppressStatuses.includes(result.error.status)) {
       showNotificationRef.current({
         type: NotificationType.error,
         title: errorTitle,

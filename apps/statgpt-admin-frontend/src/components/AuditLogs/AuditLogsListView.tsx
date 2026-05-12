@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useAccessControl } from '@/src/context/AccessControlContext';
 import { Menu } from '@/src/constants/menu';
 import type {
   FetchRowsArgs,
@@ -39,6 +40,7 @@ export function AuditLogsListView({
   const { filters, queryKey } = useAuditLogFiltersInUrl();
   const withNotification = useApiNotification();
   const { showNotification } = useNotification();
+  const { setForbidden } = useAccessControl();
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
@@ -93,9 +95,17 @@ export function AuditLogsListView({
           `/api/v1/audit-logs?${query}`,
         ),
         'Failed to Load Audit Logs',
+        [403],
       );
 
-      if (!result.ok || !result.data.data) {
+      if (!result.ok) {
+        if (result.error.status === 403) {
+          setForbidden();
+        }
+        setTotalCount(0);
+        return { rows: [], total: 0 };
+      }
+      if (!result.data.data) {
         setTotalCount(0);
         return { rows: [], total: 0 };
       }

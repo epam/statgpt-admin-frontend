@@ -1,12 +1,13 @@
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { dataSetsApi } from '@/src/app/api/api';
+import { channelsApi } from '@/src/app/api/api';
 import { ListView } from '@/src/components/ListView/ListView';
+import { ForbiddenTrigger } from '@/src/components/NoAccess/ForbiddenTrigger';
 import { SIGN_IN_LINK } from '@/src/constants/auth';
-import { DATA_SETS_COLUMNS_WITH_ACTIONS } from '@/src/constants/columns/grid-columns';
+import { CHANNELS_COLUMNS } from '@/src/constants/columns/grid-columns';
 import { Menu } from '@/src/constants/menu';
-import { DataSet } from '@/src/models/data-sets';
+import { Channel } from '@/src/models/channel';
 import { RequestData } from '@/src/models/request-data';
 import { logger } from '@/src/server/logger';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
@@ -22,18 +23,24 @@ export default async function Page() {
   if (isInvalidSession) {
     return redirect(SIGN_IN_LINK);
   }
-  let data = { data: [] as DataSet[] } as RequestData<DataSet> | null;
 
-  const result = await dataSetsApi.getDataSets(token);
-  if (result.ok) data = result.data;
-  else logger.error(`Getting data sets error ${result.error.message}`);
+  let data = { data: [] as Channel[] } as RequestData<Channel> | null;
+
+  const result = await channelsApi.getChannels(token);
+  if (result.ok) {
+    data = result.data;
+  } else if (result.error.status === 403) {
+    return <ForbiddenTrigger />;
+  } else {
+    logger.error(`Getting channels error ${result.error.message}`);
+  }
 
   return (
     <ListView
-      menuItem={Menu.DATA_SETS}
-      colDefs={DATA_SETS_COLUMNS_WITH_ACTIONS}
+      menuItem={Menu.CHANNELS}
+      colDefs={CHANNELS_COLUMNS}
       data={data?.data || []}
-      emptyDataTitle="No Datasets"
+      emptyDataTitle="No Channels"
       initialError={result.ok ? null : result.error.message}
     />
   );
