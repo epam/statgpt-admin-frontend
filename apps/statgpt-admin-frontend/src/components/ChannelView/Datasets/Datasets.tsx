@@ -152,7 +152,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       field: 'latest_version.updated_at',
       headerName: 'Latest Updated',
       filter: 'agTextColumnFilter',
-      valueFormatter: ({ value }) =>
+      valueFormatter: ({ value }: { value: string | null }) =>
         value ? new Date(value).toLocaleString() : '',
     },
     {
