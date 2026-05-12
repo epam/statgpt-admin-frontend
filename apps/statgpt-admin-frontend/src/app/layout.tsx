@@ -12,7 +12,7 @@ import './global.scss';
 import { NextAuthProvider } from './provider';
 
 export const metadata = {
-  title: 'StatGPT Admin Test',
+  title: 'StatGPT Admin',
 };
 
 const inter = Inter({
