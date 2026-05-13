@@ -70,6 +70,15 @@ export async function getChannelJobs(id: string) {
   return channelsApi.getChannelJobs(id, token);
 }
 
+export async function getChannelDatasets(id: string) {
+  const token = await getUserToken(
+    getIsEnableAuthToggle(),
+    headers(),
+    cookies(),
+  );
+  return channelsApi.getChannelDataset(id, token);
+}
+
 export async function addTerm(id: string, term: ChannelTerm) {
   const token = await getUserToken(
     getIsEnableAuthToggle(),
@@ -113,4 +122,20 @@ export async function exportChannel(id: string) {
     cookies(),
   );
   return channelsApi.exportChannel(id, token);
+}
+
+export async function getChannelDatasetAutoUpdateJobs(
+  channelId: string,
+  datasetId: string,
+) {
+  const token = await getUserToken(
+    getIsEnableAuthToggle(),
+    headers(),
+    cookies(),
+  );
+  return channelsApi.getChannelDatasetAutoUpdateJobs(
+    channelId,
+    datasetId,
+    token,
+  );
 }

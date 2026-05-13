@@ -14,7 +14,7 @@ export const Header = ({ showBreadcrumbs = true }: HeaderProps) => {
   const pathname = usePathname() as MenuUrl;
   const router = useRouter();
 
-  const [, root, selected, postfix] = pathname.split('/');
+  const [, root, selected, postfix, subId, deepPostfix] = pathname.split('/');
 
   const url = `/${root}` as MenuUrl;
   const breadcrumbs: Breadcrumb[] = [
@@ -30,7 +30,10 @@ export const Header = ({ showBreadcrumbs = true }: HeaderProps) => {
     breadcrumbs.push({ name: selected });
   }
 
-  if (postfix != null && postfix !== '') {
+  if (deepPostfix != null && deepPostfix !== '') {
+    breadcrumbs.push({ name: subId });
+    breadcrumbs.push({ name: 'Auto Update Jobs' });
+  } else if (postfix != null && postfix !== '') {
     breadcrumbs.push({ name: postfix === 'jobs' ? 'Jobs' : 'Terms' });
   }
 

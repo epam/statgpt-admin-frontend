@@ -13,6 +13,7 @@ import {
 import { Channel, ChannelTerm } from '@/src/models/channel';
 import { DataSet } from '@/src/models/data-sets';
 import { RequestData } from '@/src/models/request-data';
+import { AutoUpdateJob } from '@/src/models/auto-update-job';
 import { ApiResult, MAIN_API } from './api';
 import { BaseApi } from './base-api';
 import { Job, JobStatus } from '@/src/models/job';
@@ -56,6 +57,12 @@ export const RELOAD_DATASET_CHANNEL_URL = (
   id: string | number,
   dsId: string | number,
 ): string => `${DATASET_CHANNEL_URL(id, dsId)}/reload-indicators`;
+
+export const CHANNEL_DATASET_AUTO_UPDATE_JOBS_URL = (
+  channelId: string | number,
+  datasetId: string | number,
+): string =>
+  `${DATASET_CHANNEL_URL(channelId, datasetId)}/versions/auto-update-jobs`;
 
 export class ChannelsApi extends BaseApi {
   getChannels(token: JWT | null): Promise<ApiResult<RequestData<Channel>>> {
@@ -293,6 +300,19 @@ export class ChannelsApi extends BaseApi {
       void 0,
       void 0,
       token,
+    );
+  }
+
+  getChannelDatasetAutoUpdateJobs(
+    channelId: string,
+    datasetId: string,
+    token: JWT | null,
+  ): Promise<ApiResult<AutoUpdateJob[]>> {
+    return this.get<{ data: AutoUpdateJob[] }>(
+      `${CHANNEL_DATASET_AUTO_UPDATE_JOBS_URL(channelId, datasetId)}?limit=1000&offset=0`,
+      token,
+    ).then((result) =>
+      result.ok ? { ok: true, data: result.data.data } : result,
     );
   }
 
