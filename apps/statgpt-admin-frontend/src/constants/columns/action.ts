@@ -18,6 +18,7 @@ export const ACTION_COLUMN = (
   items: EntityOperation[],
   deleteEntity?: (id?: number) => void,
   key = ACTION_COLUMN_CELL_RENDERER_KEY,
+  onConfigureSaved?: () => void,
 ): ColDef => ({
   width: 32,
   maxWidth: 32,
@@ -27,5 +28,6 @@ export const ACTION_COLUMN = (
     listView,
     items,
     deleteEntity,
+    onConfigureSaved,
   },
 });

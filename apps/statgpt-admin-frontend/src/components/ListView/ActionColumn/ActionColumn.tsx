@@ -16,11 +16,16 @@ import { ActionItem } from '@/src/components/GridView/ActionColumn/ActionItem';
 import { EntityOperation } from '@/src/constants/columns/action';
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { Menu } from '@/src/constants/menu';
-import { BaseEntity, BaseEntityWithDetails } from '@/src/models/base-entity';
+import { BaseEntity } from '@/src/models/base-entity';
 import { DataSet } from '@/src/models/data-sets';
 import { sendDeleteRequest, sendPostRequest } from '@/src/server/api';
 import { CHANNEL_DATA_SETS_URL } from '@/src/server/channels-api';
-import { getDeleteDescription, getDeleteTitle, getUrl } from './utils';
+import {
+  getConfigureProps,
+  getDeleteDescription,
+  getDeleteTitle,
+  getUrl,
+} from './utils';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '../../../models/notification';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
@@ -29,6 +34,7 @@ interface Props extends CustomCellRendererProps {
   items: EntityOperation[];
   listView: Menu;
   deleteEntity?: (id?: number) => void;
+  onConfigureSaved?: () => void;
 }
 
 export const ActionColumn: FC<Props> = ({
@@ -36,6 +42,7 @@ export const ActionColumn: FC<Props> = ({
   listView,
   data,
   deleteEntity,
+  onConfigureSaved,
   node,
 }) => {
   const router = useRouter();
@@ -171,8 +178,8 @@ export const ActionColumn: FC<Props> = ({
         createPortal(
           <EditDataEntity
             close={() => setIsOpenEditModal(false)}
-            entity={data as BaseEntityWithDetails}
-            url={getUrl(listView)}
+            {...getConfigureProps(listView, data)}
+            onSuccess={onConfigureSaved}
           />,
           document.body,
         )}

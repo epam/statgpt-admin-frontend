@@ -162,8 +162,14 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     },
     ACTION_COLUMN(
       Menu.CHANNELS,
-      [EntityOperation.RecalculateIndex, EntityOperation.Delete],
+      [
+        EntityOperation.Configure,
+        EntityOperation.RecalculateIndex,
+        EntityOperation.Delete,
+      ],
       deleteDataSet.bind(this),
+      undefined,
+      updateDataSet,
     ),
   ];
 
