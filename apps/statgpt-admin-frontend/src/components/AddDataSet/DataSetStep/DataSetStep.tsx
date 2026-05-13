@@ -1,4 +1,4 @@
-import { GridOptions } from 'ag-grid-community';
+import { ColDef, GridOptions } from 'ag-grid-community';
 import { FC, useEffect, useState } from 'react';
 
 import { loadAvailableDataSets } from '@/src/app/data-sources/actions';
@@ -7,11 +7,21 @@ import { GridView } from '@/src/components/GridView/GridView';
 import { BASE_COLUMNS } from '@/src/constants/columns/common-columns';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DataSet } from '@/src/models/data-sets';
+import { generateShortUrn } from '@/src/utils/urn';
 
 interface Props {
   selectedDataSourceId?: number;
   changeDataSet: (dataset: Pick<DataSet, 'title' | 'details'>) => void;
 }
+
+const DATASET_URN_COLUMN: ColDef = {
+  headerName: 'Dataset URN',
+  filter: 'agTextColumnFilter',
+  valueGetter: ({ data }: { data: DataSet }) => {
+    const { urn } = data?.details ?? {};
+    return generateShortUrn(urn?.resourceId, urn?.version, urn?.agencyId);
+  },
+};
 
 export const DataSetStep: FC<Props> = ({
   selectedDataSourceId,
@@ -55,7 +65,7 @@ export const DataSetStep: FC<Props> = ({
 
       <div className="h-[568px]">
         <GridView
-          colDefs={BASE_COLUMNS}
+          colDefs={[...BASE_COLUMNS, DATASET_URN_COLUMN]}
           data={dataSets}
           additionalOptions={gridOptions}
           emptyDataTitle="No Datasets"
