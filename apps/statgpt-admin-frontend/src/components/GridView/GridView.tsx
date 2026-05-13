@@ -31,6 +31,10 @@ import {
   AUDIT_LOG_DETAILS_CELL_RENDERER_KEY,
   AuditLogDetailsCellRenderer,
 } from '../AuditLogs/AuditLogDetails/AuditLogDetailsCellRenderer';
+import {
+  DETAILS_TOOLTIP_KEY,
+  DetailsTooltip,
+} from './DetailsTooltip/DetailsTooltip';
 
 export interface FetchRowsArgs {
   offset: number;
@@ -60,6 +64,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const GRID_CUSTOM_COMPONENT = {
   [ACTION_COLUMN_CELL_RENDERER_KEY]: ActionColumn,
   [AUDIT_LOG_DETAILS_CELL_RENDERER_KEY]: AuditLogDetailsCellRenderer,
+  [DETAILS_TOOLTIP_KEY]: DetailsTooltip,
 } as const;
 
 const GRID_THEME_COLORS = {
@@ -111,8 +116,10 @@ function GridViewInner<T = BaseEntity>({
   const defaultColDef = useMemo<ColDef>(() => {
     return {
       floatingFilter: true,
-      tooltipValueGetter: (p: ITooltipParams) =>
-        p.data?.[(p.colDef as ColDef)?.field || ''],
+      tooltipValueGetter: (p: ITooltipParams) => {
+        if ((p.colDef as ColDef)?.tooltipField) return undefined;
+        return p.data?.[(p.colDef as ColDef)?.field || ''];
+      },
     };
   }, []);
 
