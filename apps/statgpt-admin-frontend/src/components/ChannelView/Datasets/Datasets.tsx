@@ -25,6 +25,7 @@ import {
 import { AddDatasets } from '../AddDataSets/AddDataSets';
 import { IconCopy, IconDownload, IconRefreshDot } from '@tabler/icons-react';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
 
 interface Props {
   selectedChannelId?: string;
@@ -123,6 +124,40 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     {
       field: 'preprocessing_status',
       headerName: 'Status',
+      filter: 'agTextColumnFilter',
+    },
+    {
+      field: 'dataset.status.status',
+      headerName: 'Dataset Status',
+      filter: 'agTextColumnFilter',
+      tooltipField: 'dataset.status.details',
+      tooltipComponent: DETAILS_TOOLTIP_KEY,
+    },
+    {
+      field: 'last_completed_version.version',
+      headerName: 'Completed Version',
+      filter: 'agTextColumnFilter',
+    },
+    {
+      field: 'last_completed_version.updated_at',
+      headerName: 'Completed At',
+      filter: 'agTextColumnFilter',
+    },
+    {
+      field: 'latest_version.version',
+      headerName: 'Latest Version',
+      filter: 'agTextColumnFilter',
+    },
+    {
+      field: 'latest_version.updated_at',
+      headerName: 'Latest Updated',
+      filter: 'agTextColumnFilter',
+      valueFormatter: ({ value }: { value: string | null }) =>
+        value ? new Date(value).toLocaleString() : '',
+    },
+    {
+      field: 'latest_version.preprocessing_status',
+      headerName: 'Latest Status',
       filter: 'agTextColumnFilter',
     },
     ACTION_COLUMN(
