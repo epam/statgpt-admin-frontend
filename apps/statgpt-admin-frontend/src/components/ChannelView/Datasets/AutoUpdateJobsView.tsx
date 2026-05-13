@@ -10,6 +10,7 @@ import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { useAccessControl } from '@/src/context/AccessControlContext';
+import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { AutoUpdateJob } from '@/src/models/auto-update-job';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
 import { ColDef } from 'ag-grid-community';
@@ -25,7 +26,8 @@ export const AutoUpdateJobsView: FC<Props> = ({
 }) => {
   const { setForbidden } = useAccessControl();
   const withNotification = useApiNotification();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  usePageInitialLoadingSync(isLoading);
   const [jobs, setJobs] = useState<AutoUpdateJob[]>([]);
   const [datasetName, setDatasetName] = useState<string>('');
 
