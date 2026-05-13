@@ -20,7 +20,6 @@ import { BaseEntity, BaseEntityWithDetails } from '@/src/models/base-entity';
 import { DataSet } from '@/src/models/data-sets';
 import { sendDeleteRequest, sendPostRequest } from '@/src/server/api';
 import { CHANNEL_DATA_SETS_URL } from '@/src/server/channels-api';
-import { RELOAD_DIMENSIONS_DATA_SETS_WITH_ID_URL } from '@/src/server/data-sets-api';
 import { getDeleteDescription, getDeleteTitle, getUrl } from './utils';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '../../../models/notification';
@@ -106,17 +105,6 @@ export const ActionColumn: FC<Props> = ({
   };
 
   const recalculateDataSet = () => {
-    if (listView === Menu.DATA_SETS) {
-      withNotification(
-        sendPostRequest(RELOAD_DIMENSIONS_DATA_SETS_WITH_ID_URL(data.id), {}),
-        'Recalculate Failed',
-      ).then((result) => {
-        if (result.ok) {
-          close();
-        }
-      });
-    }
-
     if (listView === Menu.CHANNELS) {
       const channelId = pathname.split('/')[2];
       withNotification(
@@ -174,6 +162,13 @@ export const ActionColumn: FC<Props> = ({
 
               if (item === EntityOperation.Jobs) {
                 router.push(`/channels/${data.id}/jobs`);
+              }
+
+              if (item === EntityOperation.Versions) {
+                const channelId = pathname.split('/')[2];
+                router.push(
+                  `/channels/${channelId}/datasets/${data.dataset_id}/versions`,
+                );
               }
             }}
           />

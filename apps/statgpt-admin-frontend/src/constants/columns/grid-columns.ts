@@ -56,7 +56,6 @@ export const DATA_SETS_COLUMNS_WITH_ACTIONS: ColDef[] = [
   ...DATA_SETS_COLUMNS,
   ACTION_COLUMN(Menu.DATA_SETS, [
     EntityOperation.Configure,
-    EntityOperation.RecalculateIndex,
     EntityOperation.Delete,
   ]),
 ];
