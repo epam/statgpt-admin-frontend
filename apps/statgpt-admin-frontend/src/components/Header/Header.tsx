@@ -5,6 +5,7 @@ import { MENU_MAP, MenuUrl } from '@/src/constants/menu';
 import { Breadcrumb } from '@/src/models/breadcrumbs';
 import { Breadcrumbs } from '@/src/components/Breadcrumbs/Breadcrumbs';
 import { UserMenu } from '@/src/components/Header/User/UserMenu';
+import { useNavigationLoading } from '@/src/context/NavigationLoadingContext';
 
 interface HeaderProps {
   showBreadcrumbs?: boolean;
@@ -13,8 +14,10 @@ interface HeaderProps {
 export const Header = ({ showBreadcrumbs = true }: HeaderProps) => {
   const pathname = usePathname() as MenuUrl;
   const router = useRouter();
+  const { isLoading } = useNavigationLoading();
 
-  const [, root, selected, postfix] = pathname.split('/');
+  const segments = pathname.split('/').filter(Boolean);
+  const [root, channelId, sub, datasetId, leaf] = segments;
 
   const url = `/${root}` as MenuUrl;
   const breadcrumbs: Breadcrumb[] = [
@@ -26,12 +29,24 @@ export const Header = ({ showBreadcrumbs = true }: HeaderProps) => {
     },
   ];
 
-  if (selected != null && selected !== '') {
-    breadcrumbs.push({ name: selected });
+  if (channelId != null && channelId !== '') {
+    breadcrumbs.push({
+      name: channelId,
+      click: () => router.push(`/channels/${channelId}`),
+    });
   }
 
-  if (postfix != null && postfix !== '') {
-    breadcrumbs.push({ name: postfix === 'jobs' ? 'Jobs' : 'Terms' });
+  if (sub === 'glossary') {
+    breadcrumbs.push({ name: 'Terms' });
+  } else if (sub === 'jobs') {
+    breadcrumbs.push({ name: 'Jobs' });
+  } else if (sub === 'datasets' && datasetId != null && leaf === 'versions') {
+    breadcrumbs.push({
+      name: datasetId,
+      click: () =>
+        router.push(`/channels/${channelId}/datasets/${datasetId}/versions`),
+    });
+    breadcrumbs.push({ name: 'Versions' });
   }
 
   return (
@@ -43,7 +58,11 @@ export const Header = ({ showBreadcrumbs = true }: HeaderProps) => {
         </div>
         {showBreadcrumbs && (
           <div className="pl-[36px]">
-            <Breadcrumbs breadcrumbs={breadcrumbs} />
+            {isLoading ? (
+              <div className="h-4 w-32 rounded bg-layer-4 animate-pulse" />
+            ) : (
+              <Breadcrumbs breadcrumbs={breadcrumbs} />
+            )}
           </div>
         )}
       </div>

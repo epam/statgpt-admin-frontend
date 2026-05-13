@@ -9,6 +9,7 @@ export enum EntityOperation {
   Terms = 'Glossary',
   Jobs = 'Jobs',
   Edit = 'Edit',
+  Versions = 'Versions',
 }
 
 export const ACTION_COLUMN_CELL_RENDERER_KEY = 'actionColumn';

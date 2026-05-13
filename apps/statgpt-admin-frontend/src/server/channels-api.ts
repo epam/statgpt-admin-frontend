@@ -11,6 +11,7 @@ import {
 } from 'rxjs';
 
 import { Channel, ChannelTerm } from '@/src/models/channel';
+import { ChannelDatasetVersion } from '@/src/models/channel-dataset-version';
 import { DataSet } from '@/src/models/data-sets';
 import { RequestData } from '@/src/models/request-data';
 import { ApiResult, MAIN_API } from './api';
@@ -56,6 +57,11 @@ export const RELOAD_DATASET_CHANNEL_URL = (
   id: string | number,
   dsId: string | number,
 ): string => `${DATASET_CHANNEL_URL(id, dsId)}/reload-indicators`;
+
+export const CHANNEL_DATASET_VERSIONS_URL = (
+  channelId: string | number,
+  datasetId: string | number,
+): string => `${DATASET_CHANNEL_URL(channelId, datasetId)}/versions`;
 
 export class ChannelsApi extends BaseApi {
   getChannels(token: JWT | null): Promise<ApiResult<RequestData<Channel>>> {
@@ -292,6 +298,17 @@ export class ChannelsApi extends BaseApi {
       {},
       void 0,
       void 0,
+      token,
+    );
+  }
+
+  getChannelDatasetVersions(
+    channelId: string,
+    datasetId: string,
+    token: JWT | null,
+  ): Promise<ApiResult<RequestData<ChannelDatasetVersion>>> {
+    return this.get(
+      `${CHANNEL_DATASET_VERSIONS_URL(channelId, datasetId)}?limit=500`,
       token,
     );
   }
