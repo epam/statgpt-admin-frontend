@@ -14,6 +14,8 @@ import {
 import { ListHeader } from '../ListHeader/ListHeader';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '@/src/models/notification';
+import { useNavigationLoading } from '@/src/context/NavigationLoadingContext';
+import { useIsomorphicLayoutEffect } from '@/src/utils/useIsomorphicLayoutEffect';
 
 interface Props<T = BaseEntity> {
   menuItem: Menu;
@@ -44,6 +46,11 @@ export function ListContent<T = BaseEntity>({
 }: Props<T>) {
   const router = useRouter();
   const { showNotification } = useNotification();
+  const { setLoading } = useNavigationLoading();
+
+  useIsomorphicLayoutEffect(() => {
+    setLoading(false);
+  }, [setLoading]);
 
   useEffect(() => {
     if (initialError) {

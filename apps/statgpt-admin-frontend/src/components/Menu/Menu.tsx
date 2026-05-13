@@ -1,3 +1,5 @@
+'use client';
+
 import { FC } from 'react';
 
 import Channels from '@/public/icons/menu/channels.svg';
@@ -5,57 +7,73 @@ import DataSource from '@/public/icons/menu/data-sources.svg';
 import DataSets from '@/public/icons/menu/datasets.svg';
 import Documents from '@/public/icons/menu/documents.svg';
 import { Menu, MenuUrl } from '@/src/constants/menu';
+import { useNavigationLoading } from '@/src/context/NavigationLoadingContext';
 import { MenuItem } from './MenuItem/MenuItem';
+import { MenuItemSkeleton } from './MenuItem/MenuItemSkeleton';
 import { IconLogs } from '@tabler/icons-react';
 
 interface Props {
   disableMenuItems?: string;
 }
+
 export const MenuSideBar: FC<Props> = ({ disableMenuItems }) => {
+  const { isLoading } = useNavigationLoading();
   const disableItems = disableMenuItems
     ? disableMenuItems.split(',').map((item) => item.toLowerCase().trim())
     : [];
 
   return (
     <nav className="flex flex-col p-2 bg-layer-3 w-[260px]">
-      {!disableItems.includes('datasources') && (
-        <MenuItem
-          icon={<DataSource />}
-          title={Menu.DATA_SOURCES}
-          url={MenuUrl.DATA_SOURCES}
-        />
-      )}
+      {isLoading ? (
+        <>
+          <MenuItemSkeleton />
+          <MenuItemSkeleton />
+          <MenuItemSkeleton />
+          <MenuItemSkeleton />
+          <MenuItemSkeleton />
+        </>
+      ) : (
+        <>
+          {!disableItems.includes('datasources') && (
+            <MenuItem
+              icon={<DataSource />}
+              title={Menu.DATA_SOURCES}
+              url={MenuUrl.DATA_SOURCES}
+            />
+          )}
 
-      {!disableItems.includes('datasources') && (
-        <MenuItem
-          icon={<DataSets />}
-          title={Menu.DATA_SETS}
-          url={MenuUrl.DATA_SETS}
-        />
-      )}
+          {!disableItems.includes('datasources') && (
+            <MenuItem
+              icon={<DataSets />}
+              title={Menu.DATA_SETS}
+              url={MenuUrl.DATA_SETS}
+            />
+          )}
 
-      {!disableItems.includes('documents') && (
-        <MenuItem
-          icon={<Documents />}
-          title={Menu.DOCUMENTS}
-          url={MenuUrl.DOCUMENTS}
-        />
-      )}
+          {!disableItems.includes('documents') && (
+            <MenuItem
+              icon={<Documents />}
+              title={Menu.DOCUMENTS}
+              url={MenuUrl.DOCUMENTS}
+            />
+          )}
 
-      {!disableItems.includes('channels') && (
-        <MenuItem
-          icon={<Channels />}
-          title={Menu.CHANNELS}
-          url={MenuUrl.CHANNELS}
-        />
-      )}
+          {!disableItems.includes('channels') && (
+            <MenuItem
+              icon={<Channels />}
+              title={Menu.CHANNELS}
+              url={MenuUrl.CHANNELS}
+            />
+          )}
 
-      {!disableItems.includes('audit-logs') && (
-        <MenuItem
-          icon={<IconLogs className="size-[18px]" />}
-          title={Menu.AUDIT_LOGS}
-          url={MenuUrl.AUDIT_LOGS}
-        />
+          {!disableItems.includes('audit-logs') && (
+            <MenuItem
+              icon={<IconLogs className="size-[18px]" />}
+              title={Menu.AUDIT_LOGS}
+              url={MenuUrl.AUDIT_LOGS}
+            />
+          )}
+        </>
       )}
     </nav>
   );

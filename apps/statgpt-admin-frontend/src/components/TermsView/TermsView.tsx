@@ -14,6 +14,7 @@ import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';
 import { EntityOperation } from '@/src/constants/columns/action';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { ChannelTerm } from '@/src/models/channel';
 import { GridOptions } from 'ag-grid-community';
 import { TermsActionColumn } from './ActionColumn/ActionColumn';
@@ -27,7 +28,9 @@ export const TermsView: FC<Props> = ({ selectedChannelId }) => {
   const { setForbidden } = useAccessControl();
   const withNotification = useApiNotification();
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isAddView, setIsLoadingAddView] = useState(false);
+  usePageInitialLoadingSync(isInitialLoading);
   const [terms, setTerms] = useState<ChannelTerm[]>([]);
   const [editableTerm, setEditableTerm] = useState<ChannelTerm | undefined>(
     void 0,
@@ -135,6 +138,7 @@ export const TermsView: FC<Props> = ({ selectedChannelId }) => {
       }
       setTerms(result.ok ? result.data : []);
       setIsLoading(false);
+      setIsInitialLoading(false);
     });
   }, [selectedChannelId]);
 
