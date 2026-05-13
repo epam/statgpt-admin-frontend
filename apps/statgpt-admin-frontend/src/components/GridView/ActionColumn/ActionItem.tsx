@@ -1,6 +1,7 @@
 import { FC, useCallback } from 'react';
 import {
   IconDownload,
+  IconHistory,
   IconList,
   IconPencilMinus,
   IconRefreshDot,
@@ -37,6 +38,10 @@ export const ActionItem: FC<Props> = ({ item }) => {
 
     if (item === EntityOperation.AutoUpdateJobs) {
       return <IconList width={18} height={18} />;
+    }
+
+    if (item === EntityOperation.Versions) {
+      return <IconHistory width={18} height={18} />;
     }
 
     return <IconTrashX width={18} height={18} />;

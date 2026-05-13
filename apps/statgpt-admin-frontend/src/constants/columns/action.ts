@@ -10,6 +10,7 @@ export enum EntityOperation {
   Jobs = 'Jobs',
   Edit = 'Edit',
   AutoUpdateJobs = 'Auto update jobs',
+  Versions = 'Versions',
 }
 
 export const ACTION_COLUMN_CELL_RENDERER_KEY = 'actionColumn';

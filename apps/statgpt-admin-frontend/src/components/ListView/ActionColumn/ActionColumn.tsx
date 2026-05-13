@@ -170,6 +170,13 @@ export const ActionColumn: FC<Props> = ({
                   `/channels/${channelId}/datasets/${data.id}/auto-update-jobs`,
                 );
               }
+
+              if (item === EntityOperation.Versions) {
+                const channelId = pathname.split('/')[2];
+                router.push(
+                  `/channels/${channelId}/datasets/${data.dataset_id}/versions`,
+                );
+              }
             }}
           />
         ))}
