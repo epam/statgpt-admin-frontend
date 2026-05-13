@@ -6,6 +6,7 @@ import { useAccessControl } from '@/src/context/AccessControlContext';
 import { getChannel } from '@/src/app/channels/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { Channel } from '@/src/models/channel';
 import { DataSetsView } from './Datasets/Datasets';
 
@@ -21,6 +22,7 @@ export const ChannelView: FC<Props> = ({ selectedChannelId }) => {
   );
 
   const [isLoadingChannel, setIsLoadingChannel] = useState(true);
+  usePageInitialLoadingSync(isLoadingChannel);
 
   useEffect(() => {
     if (selectedChannel == null) {

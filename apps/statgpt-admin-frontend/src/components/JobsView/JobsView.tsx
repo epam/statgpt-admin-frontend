@@ -7,6 +7,7 @@ import { getChannelJobs } from '@/src/app/channels/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { Job } from '@/src/models/job';
 import { ColDef } from 'ag-grid-community';
 import { JobsActionColumn } from './ActionColumn';
@@ -18,8 +19,9 @@ interface Props {
 export const JobsView: FC<Props> = ({ selectedChannelId }) => {
   const { setForbidden } = useAccessControl();
   const withNotification = useApiNotification();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [jobs, setJobs] = useState<Job[]>([]);
+  usePageInitialLoadingSync(isLoading);
 
   const columns: ColDef[] = [
     {
