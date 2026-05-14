@@ -161,7 +161,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       filter: 'agTextColumnFilter',
     },
     ACTION_COLUMN({
-      listView: Menu.CHANNELS,
+      listView: Menu.CHANNEL_DATASETS,
       items: [
         EntityOperation.Configure,
         EntityOperation.Versions,

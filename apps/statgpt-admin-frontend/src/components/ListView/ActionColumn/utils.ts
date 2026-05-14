@@ -8,7 +8,7 @@ export const getConfigureProps = (
   listView: Menu,
   data: Record<string, unknown>,
 ): { entity: BaseEntityWithDetails; url: string } => {
-  if (listView === Menu.CHANNELS) {
+  if (listView === Menu.CHANNEL_DATASETS) {
     return {
       entity: data.dataset as BaseEntityWithDetails,
       url: DATA_SETS_URL,
