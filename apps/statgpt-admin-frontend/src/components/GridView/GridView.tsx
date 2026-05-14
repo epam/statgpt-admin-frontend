@@ -26,6 +26,7 @@ import { ActionColumn } from '@/src/components/ListView/ActionColumn/ActionColum
 import { ACTION_COLUMN_CELL_RENDERER_KEY } from '@/src/constants/columns/action';
 import { BaseEntity } from '@/src/models/base-entity';
 import { EmptyState } from './EmptyState/EmptyState';
+import LoaderSmall from '@/src/components/BaseComponents/Loader/Loader';
 import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
 import {
   AUDIT_LOG_DETAILS_CELL_RENDERER_KEY,
@@ -57,6 +58,7 @@ interface Props<T = BaseEntity> {
   pageSize?: number;
   queryKey?: string;
   refreshToken?: number;
+  isLoading?: boolean;
 }
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -96,6 +98,7 @@ function GridViewInner<T = BaseEntity>({
   pageSize = DEFAULT_GRID_PAGE_SIZE,
   queryKey,
   refreshToken,
+  isLoading,
 }: Props<T>) {
   const [api, setApi] = useState<GridApi | null>(null);
 
@@ -187,6 +190,8 @@ function GridViewInner<T = BaseEntity>({
       api.setGridOption('datasource', datasource);
     }
   }, [api, datasource, isInfinite]);
+
+  if (isLoading) return <LoaderSmall />;
 
   return shouldShowEmpty ? (
     <EmptyState title={emptyDataTitle} />

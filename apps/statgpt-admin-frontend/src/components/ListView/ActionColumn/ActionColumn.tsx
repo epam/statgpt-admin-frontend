@@ -11,13 +11,18 @@ import {
   MenuItem as DropdownMenuItem,
 } from '@/src/components/BaseComponents/Dropdown/DropdownMenu';
 import { DeleteConfirmationModal } from '@/src/components/DeleteConfirmationModal/DeleteConfirmationModal';
+import { DataSetChannelResults } from '@/src/components/EditDataEntity/DataSetChannelResults';
 import { EditDataEntity } from '@/src/components/EditDataEntity/EditDataEntity';
 import { ActionItem } from '@/src/components/GridView/ActionColumn/ActionItem';
 import { EntityOperation } from '@/src/constants/columns/action';
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { Menu } from '@/src/constants/menu';
-import { BaseEntity } from '@/src/models/base-entity';
-import { DataSet } from '@/src/models/data-sets';
+import { BaseEntity, BaseEntityWithDetails } from '@/src/models/base-entity';
+import {
+  ChannelResult,
+  DataSet,
+  DataSetUpdateResponse,
+} from '@/src/models/data-sets';
 import { sendDeleteRequest, sendPostRequest } from '@/src/server/api';
 import { CHANNEL_DATA_SETS_URL } from '@/src/server/channels-api';
 import {
@@ -30,11 +35,18 @@ import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '../../../models/notification';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 
+const renderDataSetResults = (data: unknown) => {
+  const results = (data as DataSetUpdateResponse)?.channel_results;
+  if (!results?.length) return null;
+  return <DataSetChannelResults channelResults={results as ChannelResult[]} />;
+};
+
 interface Props extends CustomCellRendererProps {
   items: EntityOperation[];
   listView: Menu;
   deleteEntity?: (id?: number) => void;
   onConfigureSaved?: () => void;
+  onConfigureOpen?: (entity: BaseEntityWithDetails, url: string) => void;
 }
 
 export const ActionColumn: FC<Props> = ({
@@ -43,6 +55,7 @@ export const ActionColumn: FC<Props> = ({
   data,
   deleteEntity,
   onConfigureSaved,
+  onConfigureOpen,
   node,
 }) => {
   const router = useRouter();
@@ -156,7 +169,12 @@ export const ActionColumn: FC<Props> = ({
               }
 
               if (item === EntityOperation.Configure) {
-                setIsOpenEditModal(true);
+                if (onConfigureOpen) {
+                  const props = getConfigureProps(listView, data);
+                  onConfigureOpen(props.entity, props.url);
+                } else {
+                  setIsOpenEditModal(true);
+                }
               }
 
               if (item === EntityOperation.RecalculateIndex) {
@@ -187,6 +205,9 @@ export const ActionColumn: FC<Props> = ({
             close={() => setIsOpenEditModal(false)}
             {...getConfigureProps(listView, data)}
             onSuccess={onConfigureSaved}
+            renderResults={
+              listView === Menu.DATA_SETS ? renderDataSetResults : undefined
+            }
           />,
           document.body,
         )}

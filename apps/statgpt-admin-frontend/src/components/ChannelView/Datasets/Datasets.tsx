@@ -5,12 +5,19 @@ import { createPortal } from 'react-dom';
 
 import { deduplicateDataset, exportChannel } from '@/src/app/channels/actions';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
+import { DataSetChannelResults } from '@/src/components/EditDataEntity/DataSetChannelResults';
+import { EditDataEntity } from '@/src/components/EditDataEntity/EditDataEntity';
 import { GridView } from '@/src/components/GridView/GridView';
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { Menu } from '@/src/constants/menu';
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { useNotification } from '@/src/context/NotificationContext';
-import { DataSet } from '@/src/models/data-sets';
+import { BaseEntityWithDetails } from '@/src/models/base-entity';
+import {
+  ChannelResult,
+  DataSet,
+  DataSetUpdateResponse,
+} from '@/src/models/data-sets';
 import { NotificationType } from '@/src/models/notification';
 import { RequestData } from '@/src/models/request-data';
 import {
@@ -44,8 +51,28 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     DataSet[]
   >([]);
 
+  const [configureProps, setConfigureProps] = useState<{
+    entity: BaseEntityWithDetails;
+    url: string;
+  } | null>(null);
+
+  const onConfigureOpen = useCallback(
+    (entity: BaseEntityWithDetails, url: string) => {
+      setConfigureProps({ entity, url });
+    },
+    [],
+  );
+
+  const renderDataSetResults = useCallback((responseData: unknown) => {
+    const results = (responseData as DataSetUpdateResponse)?.channel_results;
+    if (!results?.length) return null;
+    return (
+      <DataSetChannelResults channelResults={results as ChannelResult[]} />
+    );
+  }, []);
+
   const updateDataSet = useCallback(() => {
-    if (selectedChannelId != null && !isLoadingChannelDataSets) {
+    if (selectedChannelId != null) {
       setIsLoadingChannelDataSets(true);
       withNotification(
         sendGetRequest<RequestData<DataSet>>(
@@ -64,7 +91,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
         }
       });
     }
-  }, [selectedChannelId, isLoadingChannelDataSets, withNotification]);
+  }, [selectedChannelId, withNotification]);
 
   const deleteDataSet = (id?: number) => {
     setIsLoadingChannelDataSets(true);
@@ -168,8 +195,8 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
         EntityOperation.RecalculateIndex,
         EntityOperation.Delete,
       ],
-      deleteEntity: deleteDataSet.bind(this),
-      onConfigureSaved: updateDataSet,
+      deleteEntity: deleteDataSet,
+      onConfigureOpen,
     }),
   ];
 
@@ -272,6 +299,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           data={selectedChannelDataSets}
           colDefs={gridColumns}
           emptyDataTitle="No Datasets"
+          isLoading={isLoadingChannelDataSets}
         />
       </div>
 
@@ -280,6 +308,18 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           <AddDatasets
             close={() => setShowModal(false)}
             add={(ids) => addDataSetsIds(ids)}
+          />,
+          document.body,
+        )}
+
+      {configureProps &&
+        createPortal(
+          <EditDataEntity
+            close={() => setConfigureProps(null)}
+            entity={configureProps.entity}
+            url={configureProps.url}
+            onSuccess={updateDataSet}
+            renderResults={renderDataSetResults}
           />,
           document.body,
         )}

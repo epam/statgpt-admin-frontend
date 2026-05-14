@@ -1,5 +1,5 @@
 import { useRouter } from 'next/navigation';
-import { FC, useState } from 'react';
+import { FC, ReactNode, useState } from 'react';
 import { stringify } from 'yaml';
 
 import { Button } from '@/src/components/BaseComponents/Button/Button';
@@ -15,6 +15,7 @@ interface Props {
   url: string;
   entity: BaseEntityWithDetails;
   onSuccess?: () => void;
+  renderResults?: (data: unknown) => ReactNode | null;
 }
 
 export const EditDataEntity: FC<Props> = ({
@@ -22,8 +23,10 @@ export const EditDataEntity: FC<Props> = ({
   entity,
   url,
   onSuccess,
+  renderResults,
 }) => {
   const [config, setConfig] = useState<string>(stringify(entity.details));
+  const [resultsContent, setResultsContent] = useState<ReactNode | null>(null);
   const router = useRouter();
   const withNotification = useApiNotification();
   const parseYaml = useYamlParser();
@@ -40,14 +43,46 @@ export const EditDataEntity: FC<Props> = ({
       'Save Failed',
     );
     if (result.ok) {
+      if (renderResults) {
+        const content = renderResults(result.data);
+        if (content) {
+          setResultsContent(content);
+          return;
+        }
+      }
+
       if (onSuccess) {
         onSuccess();
       } else {
         router.refresh();
       }
+
       close();
     }
   };
+
+  const closeResults = () => {
+    close();
+    if (onSuccess) {
+      setTimeout(onSuccess, 0);
+    } else {
+      router.refresh();
+    }
+  };
+
+  if (resultsContent) {
+    return (
+      <Modal title="Configuration Updated" close={closeResults} height="80vh">
+        <></>
+        <div className="h-full common-paddings overflow-y-auto">
+          {resultsContent}
+        </div>
+        <div className="flex flex-row justify-end w-full">
+          <Button cssClass="primary" title="Close" onClick={closeResults} />
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal title="Configuration" close={close} height="80vh">

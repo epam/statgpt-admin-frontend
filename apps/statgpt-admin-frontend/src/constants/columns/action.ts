@@ -1,5 +1,6 @@
 import { ColDef } from 'ag-grid-community';
 import { Menu } from '@/src/constants/menu';
+import { BaseEntityWithDetails } from '@/src/models/base-entity';
 
 export enum EntityOperation {
   Configure = 'Configure',
@@ -20,6 +21,7 @@ interface ActionColumnOptions {
   deleteEntity?: (id?: number) => void;
   key?: string;
   onConfigureSaved?: () => void;
+  onConfigureOpen?: (entity: BaseEntityWithDetails, url: string) => void;
 }
 
 export const ACTION_COLUMN = ({
@@ -28,6 +30,7 @@ export const ACTION_COLUMN = ({
   deleteEntity,
   key = ACTION_COLUMN_CELL_RENDERER_KEY,
   onConfigureSaved,
+  onConfigureOpen,
 }: ActionColumnOptions): ColDef => ({
   width: 32,
   maxWidth: 32,
@@ -38,5 +41,6 @@ export const ACTION_COLUMN = ({
     items,
     deleteEntity,
     onConfigureSaved,
+    onConfigureOpen,
   },
 });
