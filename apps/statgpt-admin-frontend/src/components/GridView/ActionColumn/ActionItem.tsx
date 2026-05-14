@@ -36,6 +36,10 @@ export const ActionItem: FC<Props> = ({ item }) => {
       return <Terms />;
     }
 
+    if (item === EntityOperation.AutoUpdateJobs) {
+      return <IconList width={18} height={18} />;
+    }
+
     if (item === EntityOperation.Versions) {
       return <IconHistory width={18} height={18} />;
     }

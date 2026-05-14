@@ -15,10 +15,10 @@ export const DATA_SOURCE_COLUMNS: ColDef[] = [
 
 export const DATA_SOURCE_COLUMNS_WITH_ACTIONS: ColDef[] = [
   ...DATA_SOURCE_COLUMNS,
-  ACTION_COLUMN(Menu.DATA_SOURCES, [
-    EntityOperation.Configure,
-    EntityOperation.Delete,
-  ]),
+  ACTION_COLUMN({
+    listView: Menu.DATA_SOURCES,
+    items: [EntityOperation.Configure, EntityOperation.Delete],
+  }),
 ];
 
 export const CHANNELS_COLUMNS: ColDef[] = [
@@ -27,13 +27,16 @@ export const CHANNELS_COLUMNS: ColDef[] = [
     field: 'deployment_id',
     headerName: 'Deployment ID',
   },
-  ACTION_COLUMN(Menu.CHANNELS, [
-    EntityOperation.Configure,
-    EntityOperation.Terms,
-    EntityOperation.Jobs,
-    EntityOperation.Delete,
-    EntityOperation.Export,
-  ]),
+  ACTION_COLUMN({
+    listView: Menu.CHANNELS,
+    items: [
+      EntityOperation.Configure,
+      EntityOperation.Terms,
+      EntityOperation.Jobs,
+      EntityOperation.Delete,
+      EntityOperation.Export,
+    ],
+  }),
 ];
 
 export const DATA_SETS_COLUMNS: ColDef[] = [
@@ -54,10 +57,10 @@ export const DATA_SETS_COLUMNS: ColDef[] = [
 
 export const DATA_SETS_COLUMNS_WITH_ACTIONS: ColDef[] = [
   ...DATA_SETS_COLUMNS,
-  ACTION_COLUMN(Menu.DATA_SETS, [
-    EntityOperation.Configure,
-    EntityOperation.Delete,
-  ]),
+  ACTION_COLUMN({
+    listView: Menu.DATA_SETS,
+    items: [EntityOperation.Configure, EntityOperation.Delete],
+  }),
 ];
 
 export const DOCUMENTS_COLUMNS_WITH_ACTIONS: ColDef[] = [
@@ -86,5 +89,5 @@ export const DOCUMENTS_COLUMNS_WITH_ACTIONS: ColDef[] = [
     headerName: 'Publication Type',
     filter: 'agTextColumnFilter',
   },
-  ACTION_COLUMN(Menu.DOCUMENTS, [EntityOperation.Delete]),
+  ACTION_COLUMN({ listView: Menu.DOCUMENTS, items: [EntityOperation.Delete] }),
 ];

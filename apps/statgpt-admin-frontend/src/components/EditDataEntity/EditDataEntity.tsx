@@ -14,9 +14,15 @@ interface Props {
   close: () => void;
   url: string;
   entity: BaseEntityWithDetails;
+  onSuccess?: () => void;
 }
 
-export const EditDataEntity: FC<Props> = ({ close, entity, url }) => {
+export const EditDataEntity: FC<Props> = ({
+  close,
+  entity,
+  url,
+  onSuccess,
+}) => {
   const [config, setConfig] = useState<string>(stringify(entity.details));
   const router = useRouter();
   const withNotification = useApiNotification();
@@ -34,7 +40,11 @@ export const EditDataEntity: FC<Props> = ({ close, entity, url }) => {
       'Save Failed',
     );
     if (result.ok) {
-      router.refresh();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.refresh();
+      }
       close();
     }
   };

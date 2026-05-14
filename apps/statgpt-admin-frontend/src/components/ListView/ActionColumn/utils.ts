@@ -1,7 +1,24 @@
 import { Menu } from '@/src/constants/menu';
+import { BaseEntityWithDetails } from '@/src/models/base-entity';
 import { CHANNELS_URL } from '@/src/server/channels-api';
 import { DATA_SETS_URL } from '@/src/server/data-sets-api';
 import { DATA_SOURCE_URL } from '@/src/server/data-sources-api';
+
+export const getConfigureProps = (
+  listView: Menu,
+  data: Record<string, unknown>,
+): { entity: BaseEntityWithDetails; url: string } => {
+  if (listView === Menu.CHANNEL_DATASETS) {
+    return {
+      entity: data.dataset as BaseEntityWithDetails,
+      url: DATA_SETS_URL,
+    };
+  }
+  return {
+    entity: data as unknown as BaseEntityWithDetails,
+    url: getUrl(listView),
+  };
+};
 
 export const getUrl = (item: Menu) => {
   if (item === Menu.DATA_SOURCES) {

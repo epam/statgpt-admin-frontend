@@ -172,15 +172,18 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       headerName: 'Latest Status',
       filter: 'agTextColumnFilter',
     },
-    ACTION_COLUMN(
-      Menu.CHANNEL_DATASETS,
-      [
+    ACTION_COLUMN({
+      listView: Menu.CHANNEL_DATASETS,
+      items: [
+        EntityOperation.Configure,
+        EntityOperation.AutoUpdateJobs,
         EntityOperation.Versions,
         EntityOperation.RecalculateIndex,
         EntityOperation.Delete,
       ],
-      deleteDataSet.bind(this),
-    ),
+      deleteEntity: deleteDataSet.bind(this),
+      onConfigureSaved: updateDataSet,
+    }),
   ];
 
   const deduplicate = useCallback(() => {

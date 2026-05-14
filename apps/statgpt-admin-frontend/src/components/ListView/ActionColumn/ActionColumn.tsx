@@ -16,10 +16,14 @@ import { ActionItem } from '@/src/components/GridView/ActionColumn/ActionItem';
 import { EntityOperation } from '@/src/constants/columns/action';
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { Menu } from '@/src/constants/menu';
-import { BaseEntityWithDetails } from '@/src/models/base-entity';
 import { sendDeleteRequest, sendPostRequest } from '@/src/server/api';
 import { RELOAD_DATASET_CHANNEL_URL } from '@/src/server/channels-api';
-import { getDeleteDescription, getDeleteTitle, getUrl } from './utils';
+import {
+  getConfigureProps,
+  getDeleteDescription,
+  getDeleteTitle,
+  getUrl,
+} from './utils';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '../../../models/notification';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
@@ -30,6 +34,7 @@ interface Props extends CustomCellRendererProps {
   items: EntityOperation[];
   listView: Menu;
   deleteEntity?: (id?: number) => void;
+  onConfigureSaved?: () => void;
 }
 
 export const ActionColumn: FC<Props> = ({
@@ -37,6 +42,7 @@ export const ActionColumn: FC<Props> = ({
   listView,
   data,
   deleteEntity,
+  onConfigureSaved,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -162,6 +168,13 @@ export const ActionColumn: FC<Props> = ({
                 router.push(`/channels/${data.id}/jobs`);
               }
 
+              if (item === EntityOperation.AutoUpdateJobs) {
+                const channelId = pathname.split('/')[2];
+                router.push(
+                  `/channels/${channelId}/datasets/${data.id}/auto-update-jobs`,
+                );
+              }
+
               if (item === EntityOperation.Versions) {
                 const channelId = pathname.split('/')[2];
                 router.push(
@@ -176,8 +189,8 @@ export const ActionColumn: FC<Props> = ({
         createPortal(
           <EditDataEntity
             close={() => setIsOpenEditModal(false)}
-            entity={data as BaseEntityWithDetails}
-            url={getUrl(listView)}
+            {...getConfigureProps(listView, data)}
+            onSuccess={onConfigureSaved}
           />,
           document.body,
         )}
