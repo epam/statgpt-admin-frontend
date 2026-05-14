@@ -40,13 +40,18 @@ export const Header = ({ showBreadcrumbs = true }: HeaderProps) => {
     breadcrumbs.push({ name: 'Terms' });
   } else if (sub === 'jobs') {
     breadcrumbs.push({ name: 'Jobs' });
-  } else if (sub === 'datasets' && datasetId != null && leaf === 'versions') {
-    breadcrumbs.push({
-      name: datasetId,
-      click: () =>
-        router.push(`/channels/${channelId}/datasets/${datasetId}/versions`),
-    });
-    breadcrumbs.push({ name: 'Versions' });
+  } else if (sub === 'datasets' && datasetId != null) {
+    if (leaf === 'versions') {
+      breadcrumbs.push({
+        name: datasetId,
+        click: () =>
+          router.push(`/channels/${channelId}/datasets/${datasetId}/versions`),
+      });
+      breadcrumbs.push({ name: 'Versions' });
+    } else if (leaf === 'auto-update-jobs') {
+      breadcrumbs.push({ name: datasetId });
+      breadcrumbs.push({ name: 'Auto Update Jobs' });
+    }
   }
 
   return (

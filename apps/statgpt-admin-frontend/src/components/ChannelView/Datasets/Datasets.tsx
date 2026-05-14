@@ -188,14 +188,16 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       filter: 'agTextColumnFilter',
     },
     ACTION_COLUMN({
-      listView: Menu.CHANNELS,
+      listView: Menu.CHANNEL_DATASETS,
       items: [
         EntityOperation.Configure,
+        EntityOperation.AutoUpdateJobs,
         EntityOperation.Versions,
         EntityOperation.RecalculateIndex,
         EntityOperation.Delete,
       ],
-      deleteEntity: deleteDataSet,
+      deleteEntity: deleteDataSet.bind(this),
+      onConfigureSaved: updateDataSet,
       onConfigureOpen,
     }),
   ];
