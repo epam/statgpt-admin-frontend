@@ -164,6 +164,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       listView: Menu.CHANNEL_DATASETS,
       items: [
         EntityOperation.Configure,
+        EntityOperation.AutoUpdateJobs,
         EntityOperation.Versions,
         EntityOperation.RecalculateIndex,
         EntityOperation.Delete,

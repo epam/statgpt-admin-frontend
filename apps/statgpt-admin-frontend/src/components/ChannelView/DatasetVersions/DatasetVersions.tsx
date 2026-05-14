@@ -3,7 +3,9 @@
 import { FC, useEffect, useState } from 'react';
 
 import { GridView } from '@/src/components/GridView/GridView';
+import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { useAccessControl } from '@/src/context/AccessControlContext';
+import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { ChannelDatasetVersion } from '@/src/models/channel-dataset-version';
 import { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
@@ -58,7 +60,8 @@ export const DatasetVersions: FC<Props> = ({ channelId, datasetId }) => {
 
   const [versions, setVersions] = useState<ChannelDatasetVersion[]>([]);
   const [datasetTitle, setDatasetTitle] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  usePageInitialLoadingSync(isLoading);
 
   useEffect(() => {
     if (!channelId || !datasetId) return;
@@ -76,7 +79,7 @@ export const DatasetVersions: FC<Props> = ({ channelId, datasetId }) => {
   }, [channelId, datasetId]);
 
   useEffect(() => {
-    if (!channelId || !datasetId || isLoading) return;
+    if (!channelId || !datasetId) return;
 
     setIsLoading(true);
     withNotification(
@@ -97,7 +100,11 @@ export const DatasetVersions: FC<Props> = ({ channelId, datasetId }) => {
     });
   }, [channelId, datasetId]);
 
-  return (
+  return isLoading ? (
+    <div className="flex items-center w-full justify-center h-full">
+      <Loader />
+    </div>
+  ) : (
     <div className="bg-layer-2 flex flex-col h-full common-paddings">
       <h1 className="mb-4">
         {datasetTitle ? `${datasetTitle} — Versions` : 'Dataset Versions'}
