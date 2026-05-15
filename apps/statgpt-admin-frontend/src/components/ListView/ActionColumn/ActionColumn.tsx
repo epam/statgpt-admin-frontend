@@ -17,12 +17,8 @@ import { ActionItem } from '@/src/components/GridView/ActionColumn/ActionItem';
 import { EntityOperation } from '@/src/constants/columns/action';
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { Menu } from '@/src/constants/menu';
-import { BaseEntity, BaseEntityWithDetails } from '@/src/models/base-entity';
-import {
-  ChannelResult,
-  DataSet,
-  DataSetUpdateResponse,
-} from '@/src/models/data-sets';
+import { BaseEntityWithDetails } from '@/src/models/base-entity';
+import { ChannelResult, DataSetUpdateResponse } from '@/src/models/data-sets';
 import { sendDeleteRequest, sendPostRequest } from '@/src/server/api';
 import { RELOAD_DATASET_CHANNEL_URL } from '@/src/server/channels-api';
 import {
