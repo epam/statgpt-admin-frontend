@@ -152,7 +152,10 @@ export const ActionColumn: FC<Props> = ({
                 exportEntity();
               }
 
-              if (item === EntityOperation.Configure) {
+              if (
+                item === EntityOperation.Configure ||
+                item === EntityOperation.EditDataset
+              ) {
                 setIsOpenEditModal(true);
               }
 

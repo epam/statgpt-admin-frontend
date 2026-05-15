@@ -175,7 +175,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     ACTION_COLUMN({
       listView: Menu.CHANNEL_DATASETS,
       items: [
-        EntityOperation.Configure,
+        EntityOperation.EditDataset,
         EntityOperation.AutoUpdateJobs,
         EntityOperation.Versions,
         EntityOperation.RecalculateIndex,
