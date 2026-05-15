@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { SIGN_IN_LINK } from '@/src/constants/auth';
 import { AccessControlProvider } from '@/src/context/AccessControlContext';
 import { NotificationProvider } from '@/src/context/NotificationContext';
+import { SidebarProvider } from '@/src/context/SidebarContext';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 import { ReactNode } from 'react';
@@ -42,7 +43,9 @@ export default async function RootLayout({
       <body className={inter.variable}>
         <NotificationProvider>
           <NextAuthProvider>
-            <AccessControlProvider>{children}</AccessControlProvider>
+            <AccessControlProvider>
+              <SidebarProvider>{children}</SidebarProvider>
+            </AccessControlProvider>
           </NextAuthProvider>
         </NotificationProvider>
       </body>

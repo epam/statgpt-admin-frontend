@@ -8,6 +8,8 @@ import DataSets from '@/public/icons/menu/datasets.svg';
 import Documents from '@/public/icons/menu/documents.svg';
 import { Menu, MenuUrl } from '@/src/constants/menu';
 import { useNavigationLoading } from '@/src/context/NavigationLoadingContext';
+import { useSidebar } from '@/src/context/SidebarContext';
+import { mergeClasses } from '@/src/utils/mergeClasses';
 import { MenuItem } from './MenuItem/MenuItem';
 import { MenuItemSkeleton } from './MenuItem/MenuItemSkeleton';
 import { IconLogs } from '@tabler/icons-react';
@@ -18,19 +20,25 @@ interface Props {
 
 export const MenuSideBar: FC<Props> = ({ disableMenuItems }) => {
   const { isLoading } = useNavigationLoading();
+  const { isCollapsed } = useSidebar();
   const disableItems = disableMenuItems
     ? disableMenuItems.split(',').map((item) => item.toLowerCase().trim())
     : [];
 
   return (
-    <nav className="flex flex-col p-2 bg-layer-3 w-[260px]">
+    <nav
+      className={mergeClasses(
+        'flex flex-col p-2 bg-layer-3 shrink-0 overflow-hidden transition-[width] duration-200 ease-in-out',
+        isCollapsed ? 'w-16' : 'w-[260px]',
+      )}
+    >
       {isLoading ? (
         <>
-          <MenuItemSkeleton />
-          <MenuItemSkeleton />
-          <MenuItemSkeleton />
-          <MenuItemSkeleton />
-          <MenuItemSkeleton />
+          <MenuItemSkeleton isCollapsed={isCollapsed} />
+          <MenuItemSkeleton isCollapsed={isCollapsed} />
+          <MenuItemSkeleton isCollapsed={isCollapsed} />
+          <MenuItemSkeleton isCollapsed={isCollapsed} />
+          <MenuItemSkeleton isCollapsed={isCollapsed} />
         </>
       ) : (
         <>
@@ -39,6 +47,7 @@ export const MenuSideBar: FC<Props> = ({ disableMenuItems }) => {
               icon={<DataSource />}
               title={Menu.DATA_SOURCES}
               url={MenuUrl.DATA_SOURCES}
+              isCollapsed={isCollapsed}
             />
           )}
 
@@ -47,6 +56,7 @@ export const MenuSideBar: FC<Props> = ({ disableMenuItems }) => {
               icon={<DataSets />}
               title={Menu.DATA_SETS}
               url={MenuUrl.DATA_SETS}
+              isCollapsed={isCollapsed}
             />
           )}
 
@@ -55,6 +65,7 @@ export const MenuSideBar: FC<Props> = ({ disableMenuItems }) => {
               icon={<Documents />}
               title={Menu.DOCUMENTS}
               url={MenuUrl.DOCUMENTS}
+              isCollapsed={isCollapsed}
             />
           )}
 
@@ -63,6 +74,7 @@ export const MenuSideBar: FC<Props> = ({ disableMenuItems }) => {
               icon={<Channels />}
               title={Menu.CHANNELS}
               url={MenuUrl.CHANNELS}
+              isCollapsed={isCollapsed}
             />
           )}
 
@@ -71,6 +83,7 @@ export const MenuSideBar: FC<Props> = ({ disableMenuItems }) => {
               icon={<IconLogs className="size-[18px]" />}
               title={Menu.AUDIT_LOGS}
               url={MenuUrl.AUDIT_LOGS}
+              isCollapsed={isCollapsed}
             />
           )}
         </>
