@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import {
@@ -26,12 +26,20 @@ import {
 import {
   CHANNEL_DATA_SETS_URL,
   RELOAD_ALL_DATASETS_CHANNEL_URL,
+  RELOAD_DATASET_CHANNEL_URL,
 } from '@/src/server/channels-api';
 import { AddDatasets } from '../AddDataSets/AddDataSets';
+import { ConfirmDialog } from '@/src/components/BaseComponents/ConfirmDialog/ConfirmDialog';
+import { PopUpState } from '@/src/types/modal';
+import { IconCopy, IconDownload } from '@tabler/icons-react';
 import { DeduplicationStats } from './DeduplicationStats';
-import { IconCopy, IconDownload, IconRefreshDot } from '@tabler/icons-react';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
+import {
+  Menu as DropdownMenu,
+  MenuItem as DropdownMenuItem,
+} from '@/src/components/BaseComponents/Dropdown/DropdownMenu';
+import ArrowUpIcon from '@/public/icons/arrow-up.svg';
 
 interface Props {
   selectedChannelId?: string;
@@ -43,8 +51,13 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
   const { setForbidden } = useAccessControl();
 
   const [showModal, setShowModal] = useState(false);
+  const [pendingRecalculateMode, setPendingRecalculateMode] = useState<
+    'sequential' | 'parallel' | null
+  >(null);
+  const [isRecalculateMenuOpen, setIsRecalculateMenuOpen] = useState(false);
   const [isLoadingChannelDataSets, setIsLoadingChannelDataSets] =
-    useState(false);
+    useState(true);
+  const isFetchingRef = useRef(false);
 
   const [selectedChannelDataSets, setSelectedChannelDataSets] = useState<
     DataSet[]
@@ -55,7 +68,8 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
   );
 
   const updateDataSet = useCallback(() => {
-    if (selectedChannelId != null && !isLoadingChannelDataSets) {
+    if (selectedChannelId != null && !isFetchingRef.current) {
+      isFetchingRef.current = true;
       setIsLoadingChannelDataSets(true);
       withNotification(
         sendGetRequest<RequestData<DataSet>>(
@@ -64,6 +78,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
         'Failed to Load Datasets',
         [403],
       ).then((result) => {
+        isFetchingRef.current = false;
         setIsLoadingChannelDataSets(false);
         if (!result.ok && result.error.status === 403) {
           setForbidden();
@@ -74,7 +89,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
         }
       });
     }
-  }, [selectedChannelId, isLoadingChannelDataSets, withNotification]);
+  }, [selectedChannelId, withNotification]);
 
   const deleteDataSet = (id?: number) => {
     setIsLoadingChannelDataSets(true);
@@ -219,17 +234,47 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     fetchIndexStatus();
   }, [selectedChannelId]);
 
-  const recalculateIndexes = () => {
-    withNotification(
-      sendPostRequest(
-        RELOAD_ALL_DATASETS_CHANNEL_URL(selectedChannelId as string),
-      ),
-      'Recalculate Failed',
-    ).then((result) => {
-      if (result.ok) {
-        updateDataSet();
-      }
-    });
+  const recalculateIndexes = (mode: 'sequential' | 'parallel') => {
+    setPendingRecalculateMode(null);
+    if (mode === 'parallel') {
+      if (selectedChannelDataSets.length === 0) return;
+      const requests = selectedChannelDataSets.map((ds) =>
+        sendPostRequest(
+          RELOAD_DATASET_CHANNEL_URL(selectedChannelId as string, ds.id!),
+        ),
+      );
+      withNotification(
+        Promise.all(requests).then(
+          (results) => results.find((r) => !r.ok) ?? results[0]!,
+        ),
+        'Recalculate Failed',
+      ).then((result) => {
+        if (result.ok) {
+          showNotification({
+            type: NotificationType.success,
+            title: 'Recalculation in progress',
+            description: 'All indexes are being recalculated in parallel',
+          });
+          updateDataSet();
+        }
+      });
+    } else {
+      withNotification(
+        sendPostRequest(
+          RELOAD_ALL_DATASETS_CHANNEL_URL(selectedChannelId as string),
+        ),
+        'Recalculate Failed',
+      ).then((result) => {
+        if (result.ok) {
+          showNotification({
+            type: NotificationType.success,
+            title: 'Recalculation in progress',
+            description: 'Indexes are being recalculated sequentially',
+          });
+          updateDataSet();
+        }
+      });
+    }
   };
 
   const addDataSetsIds = useCallback(
@@ -298,12 +343,35 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
             )}
           </div>
 
-          <Button
-            title="Recalculate all indexes"
-            cssClass="secondary mr-3"
-            icon={<IconRefreshDot width={18} height={18} />}
-            onClick={() => recalculateIndexes()}
-          />
+          <DropdownMenu
+            type="contextMenu"
+            listClassName="py-1"
+            onOpenChange={setIsRecalculateMenuOpen}
+            trigger={
+              <button
+                type="button"
+                className="secondary mr-3 flex items-center gap-2"
+              >
+                Recalculate all indexes
+                <ArrowUpIcon
+                  width={18}
+                  height={18}
+                  className={`transition-transform${isRecalculateMenuOpen ? '' : ' rotate-180'}`}
+                />
+              </button>
+            }
+          >
+            <DropdownMenuItem
+              className="small-medium hover:bg-accent-primary-alpha"
+              label="Sequential recalculation"
+              onClick={() => setPendingRecalculateMode('sequential')}
+            />
+            <DropdownMenuItem
+              className="small-medium hover:bg-accent-primary-alpha"
+              label="Parallel recalculation"
+              onClick={() => setPendingRecalculateMode('parallel')}
+            />
+          </DropdownMenu>
           <Button
             title="Add"
             cssClass="primary"
@@ -316,6 +384,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           data={selectedChannelDataSets}
           colDefs={gridColumns}
           emptyDataTitle="No Datasets"
+          isLoading={isLoadingChannelDataSets}
         />
       </div>
 
@@ -327,6 +396,20 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           />,
           document.body,
         )}
+
+      <ConfirmDialog
+        modalState={
+          pendingRecalculateMode != null ? PopUpState.Opened : PopUpState.Closed
+        }
+        header={`Confirm ${pendingRecalculateMode ?? ''} indexes recalculation`}
+        description="Recalculating all indexes may be time-consuming, depending on the selected mode and number of indexes."
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        onClose={(confirmed) => {
+          if (confirmed) recalculateIndexes(pendingRecalculateMode!);
+          setPendingRecalculateMode(null);
+        }}
+      />
     </div>
   );
 };
