@@ -3,13 +3,18 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { deduplicateDataset, exportChannel } from '@/src/app/channels/actions';
+import {
+  deduplicateDataset,
+  exportChannel,
+  getChannelIndexStatus,
+} from '@/src/app/channels/actions';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { GridView } from '@/src/components/GridView/GridView';
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { Menu } from '@/src/constants/menu';
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { useNotification } from '@/src/context/NotificationContext';
+import { ChannelIndexStatus } from '@/src/models/channel-index-status';
 import { DataSet } from '@/src/models/data-sets';
 import { NotificationType } from '@/src/models/notification';
 import { RequestData } from '@/src/models/request-data';
@@ -23,6 +28,7 @@ import {
   RELOAD_ALL_DATASETS_CHANNEL_URL,
 } from '@/src/server/channels-api';
 import { AddDatasets } from '../AddDataSets/AddDataSets';
+import { DeduplicationStats } from './DeduplicationStats';
 import { IconCopy, IconDownload, IconRefreshDot } from '@tabler/icons-react';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
@@ -43,6 +49,10 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
   const [selectedChannelDataSets, setSelectedChannelDataSets] = useState<
     DataSet[]
   >([]);
+
+  const [indexStatus, setIndexStatus] = useState<ChannelIndexStatus | null>(
+    null,
+  );
 
   const updateDataSet = useCallback(() => {
     if (selectedChannelId != null && !isLoadingChannelDataSets) {
@@ -189,10 +199,24 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     });
   }, [selectedChannelId]);
 
+  const fetchIndexStatus = useCallback(() => {
+    if (selectedChannelId != null) {
+      getChannelIndexStatus(selectedChannelId).then((result) => {
+        if (result.ok) {
+          setIndexStatus(result.data);
+        }
+      });
+    }
+  }, [selectedChannelId]);
+
   useEffect(() => {
     if (selectedChannelId != null && selectedChannelDataSets.length === 0) {
       updateDataSet();
     }
+  }, [selectedChannelId]);
+
+  useEffect(() => {
+    fetchIndexStatus();
   }, [selectedChannelId]);
 
   const recalculateIndexes = () => {
@@ -236,6 +260,9 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     [selectedChannelId, showNotification, updateDataSet],
   );
 
+  const deduplication = indexStatus?.vector_store.deduplication;
+  const deduplicationRequired = deduplication?.deduplication_required ?? true;
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-row items-center justify-between w-full mb-4">
@@ -248,12 +275,28 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
             onClick={() => exportEntity()}
           />
 
-          <Button
-            title="Deduplicate"
-            cssClass="secondary mr-3"
-            icon={<IconCopy width={18} height={18} />}
-            onClick={() => deduplicate()}
-          />
+          <div className="flex items-center mr-3">
+            <div className="relative group">
+              <Button
+                title="Deduplicate"
+                cssClass="secondary"
+                icon={<IconCopy width={18} height={18} />}
+                onClick={() => deduplicate()}
+                disable={!deduplicationRequired}
+              />
+              {!deduplicationRequired && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden group-hover:block w-72 rounded border border-primary bg-layer-2 px-3 py-2 text-xs text-primary shadow-lg z-10 whitespace-normal">
+                  Deduplication is not required: duplicates were found only
+                  among indicator dimensions, which are not eligible for
+                  deduplication.
+                </div>
+              )}
+            </div>
+
+            {deduplication != null && (
+              <DeduplicationStats deduplication={deduplication} />
+            )}
+          </div>
 
           <Button
             title="Recalculate all indexes"
