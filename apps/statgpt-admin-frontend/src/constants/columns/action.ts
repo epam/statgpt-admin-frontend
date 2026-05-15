@@ -15,12 +15,21 @@ export enum EntityOperation {
 
 export const ACTION_COLUMN_CELL_RENDERER_KEY = 'actionColumn';
 
-export const ACTION_COLUMN = (
-  listView: Menu,
-  items: EntityOperation[],
-  deleteEntity?: (id?: number) => void,
+interface ActionColumnOptions {
+  listView: Menu;
+  items: EntityOperation[];
+  deleteEntity?: (id?: number) => void;
+  key?: string;
+  onConfigureSaved?: () => void;
+}
+
+export const ACTION_COLUMN = ({
+  listView,
+  items,
+  deleteEntity,
   key = ACTION_COLUMN_CELL_RENDERER_KEY,
-): ColDef => ({
+  onConfigureSaved,
+}: ActionColumnOptions): ColDef => ({
   width: 32,
   maxWidth: 32,
   cellRenderer: key,
@@ -29,5 +38,6 @@ export const ACTION_COLUMN = (
     listView,
     items,
     deleteEntity,
+    onConfigureSaved,
   },
 });

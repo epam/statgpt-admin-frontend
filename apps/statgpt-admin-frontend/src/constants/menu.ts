@@ -3,6 +3,7 @@ export enum Menu {
   DATA_SETS = 'Datasets',
   DOCUMENTS = 'Documents',
   CHANNELS = 'Channels',
+  CHANNEL_DATASETS = 'Channel Datasets',
   AUDIT_LOGS = 'Audit Logs',
 }
 
