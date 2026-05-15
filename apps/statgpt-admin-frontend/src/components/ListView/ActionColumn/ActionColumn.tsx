@@ -24,7 +24,7 @@ import {
   DataSetUpdateResponse,
 } from '@/src/models/data-sets';
 import { sendDeleteRequest, sendPostRequest } from '@/src/server/api';
-import { CHANNEL_DATA_SETS_URL } from '@/src/server/channels-api';
+import { RELOAD_DATASET_CHANNEL_URL } from '@/src/server/channels-api';
 import {
   getConfigureProps,
   getDeleteDescription,
@@ -34,6 +34,8 @@ import {
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '../../../models/notification';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { ConfirmDialog } from '@/src/components/BaseComponents/ConfirmDialog/ConfirmDialog';
+import { PopUpState } from '@/src/types/modal';
 
 const renderDataSetResults = (data: unknown) => {
   const results = (data as DataSetUpdateResponse)?.channel_results;
@@ -56,7 +58,6 @@ export const ActionColumn: FC<Props> = ({
   deleteEntity,
   onConfigureSaved,
   onConfigureOpen,
-  node,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -64,6 +65,7 @@ export const ActionColumn: FC<Props> = ({
   const [, setIsOpen] = useState(false);
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
+  const [isOpenRecalculateModal, setIsOpenRecalculateModal] = useState(false);
   const { showNotification, removeNotification } = useNotification();
   const withNotification = useApiNotification();
 
@@ -125,22 +127,19 @@ export const ActionColumn: FC<Props> = ({
   };
 
   const recalculateDataSet = () => {
-    if (listView === Menu.CHANNELS) {
+    if (listView === Menu.CHANNEL_DATASETS) {
       const channelId = pathname.split('/')[2];
       withNotification(
-        sendPostRequest<{ dsId: number; isReload: boolean }, DataSet>(
-          CHANNEL_DATA_SETS_URL(channelId),
-          { dsId: data.dataset_id, isReload: true },
-        ),
+        sendPostRequest(RELOAD_DATASET_CHANNEL_URL(channelId, data.dataset_id)),
         'Recalculate Failed',
       ).then((result) => {
         if (result.ok) {
-          node.updateData({
-            ...node.data,
-            preprocessing_status: result.data.preprocessing_status,
-          } as unknown as BaseEntity);
+          showNotification({
+            type: NotificationType.success,
+            title: 'Recalculation in progress',
+            description: 'Index is being recalculated',
+          });
         }
-        close();
       });
     }
   };
@@ -178,7 +177,7 @@ export const ActionColumn: FC<Props> = ({
               }
 
               if (item === EntityOperation.RecalculateIndex) {
-                recalculateDataSet();
+                setIsOpenRecalculateModal(true);
               }
 
               if (item === EntityOperation.Terms) {
@@ -229,6 +228,20 @@ export const ActionColumn: FC<Props> = ({
           />,
           document.body,
         )}
+
+      <ConfirmDialog
+        modalState={
+          isOpenRecalculateModal ? PopUpState.Opened : PopUpState.Closed
+        }
+        header="Confirm index recalculation"
+        description="Recalculating all indexes may be time-consuming, depending on the selected mode and number of indexes."
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        onClose={(confirmed) => {
+          setIsOpenRecalculateModal(false);
+          if (confirmed) recalculateDataSet();
+        }}
+      />
     </>
   );
 };
