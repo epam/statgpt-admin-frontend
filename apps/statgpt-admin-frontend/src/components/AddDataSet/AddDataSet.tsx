@@ -4,7 +4,7 @@ import { stringify } from 'yaml';
 
 import { getDataSources } from '@/src/app/data-sources/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
-import { Configuration } from '@/src/components/Configuration/Configuration';
+import { DatasetConfigForm } from '@/src/components/DatasetConfigForm/DatasetConfigForm';
 import { Modal } from '@/src/components/Modal/Modal';
 import { Stepper } from '@/src/components/Stepper/Stepper';
 import { BaseStep, DatasetStep } from '@/src/constants/steps';
@@ -42,6 +42,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
     details: void 0,
   });
   const [rawConfig, setRawConfig] = useState('');
+  const [nameConfigTouched, setNameConfigTouched] = useState(false);
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [isLoadingData, setIsLoadingDs] = useState(false);
 
@@ -60,6 +61,11 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   }, [dataSources, isLoadingData]);
 
   const createDataset = () => {
+    if (!newDataSet?.title?.trim()) {
+      setNameConfigTouched(true);
+      return;
+    }
+
     let details = newDataSet.details;
     if (rawConfig) {
       const parsed = parseYaml(rawConfig);
@@ -68,7 +74,11 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
     }
     setIsLoadingDs(true);
     withNotification(
-      sendPostRequest('/api/v1/datasets', { ...newDataSet, details }),
+      sendPostRequest('/api/v1/datasets', {
+        ...newDataSet,
+        title: newDataSet.title.trim(),
+        details,
+      }),
       'Dataset Creation Failed',
     ).then((result) => {
       setIsLoadingDs(false);
@@ -115,11 +125,18 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
 
     if (activeStep === BaseStep.Configuration) {
       return (
-        <Configuration
-          height="100%"
-          value={rawConfig}
-          onChangeConfig={(v) => setRawConfig(v || '')}
-        />
+        <div className="flex flex-col common-paddings border-b border-solid border-b-tertiary h-full">
+          <DatasetConfigForm
+            name={newDataSet?.title ?? ''}
+            nameTouched={nameConfigTouched}
+            onNameChange={(value) => {
+              setDataSet({ ...newDataSet, title: value } as DataSet);
+              setNameConfigTouched(true);
+            }}
+            config={rawConfig}
+            onConfigChange={setRawConfig}
+          />
+        </div>
       );
     }
   };
