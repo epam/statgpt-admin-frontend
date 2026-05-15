@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { deduplicateDataset, exportChannel } from '@/src/app/channels/actions';
@@ -38,14 +38,16 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
 
   const [showModal, setShowModal] = useState(false);
   const [isLoadingChannelDataSets, setIsLoadingChannelDataSets] =
-    useState(false);
+    useState(true);
+  const isFetchingRef = useRef(false);
 
   const [selectedChannelDataSets, setSelectedChannelDataSets] = useState<
     DataSet[]
   >([]);
 
   const updateDataSet = useCallback(() => {
-    if (selectedChannelId != null && !isLoadingChannelDataSets) {
+    if (selectedChannelId != null && !isFetchingRef.current) {
+      isFetchingRef.current = true;
       setIsLoadingChannelDataSets(true);
       withNotification(
         sendGetRequest<RequestData<DataSet>>(
@@ -54,6 +56,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
         'Failed to Load Datasets',
         [403],
       ).then((result) => {
+        isFetchingRef.current = false;
         setIsLoadingChannelDataSets(false);
         if (!result.ok && result.error.status === 403) {
           setForbidden();
@@ -64,7 +67,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
         }
       });
     }
-  }, [selectedChannelId, isLoadingChannelDataSets, withNotification]);
+  }, [selectedChannelId, withNotification]);
 
   const deleteDataSet = (id?: number) => {
     setIsLoadingChannelDataSets(true);
@@ -273,6 +276,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           data={selectedChannelDataSets}
           colDefs={gridColumns}
           emptyDataTitle="No Datasets"
+          isLoading={isLoadingChannelDataSets}
         />
       </div>
 
