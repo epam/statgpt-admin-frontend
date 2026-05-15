@@ -27,7 +27,7 @@ interface Props {
 export const TermsView: FC<Props> = ({ selectedChannelId }) => {
   const { setForbidden } = useAccessControl();
   const withNotification = useApiNotification();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isAddView, setIsLoadingAddView] = useState(false);
   usePageInitialLoadingSync(isInitialLoading);

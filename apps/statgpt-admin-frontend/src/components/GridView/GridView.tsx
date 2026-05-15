@@ -26,6 +26,7 @@ import { ActionColumn } from '@/src/components/ListView/ActionColumn/ActionColum
 import { ACTION_COLUMN_CELL_RENDERER_KEY } from '@/src/constants/columns/action';
 import { BaseEntity } from '@/src/models/base-entity';
 import { EmptyState } from './EmptyState/EmptyState';
+import LoaderSmall from '@/src/components/BaseComponents/Loader/Loader';
 import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
 import {
   AUDIT_LOG_DETAILS_CELL_RENDERER_KEY,
@@ -57,6 +58,7 @@ interface Props<T = BaseEntity> {
   pageSize?: number;
   queryKey?: string;
   refreshToken?: number;
+  isLoading?: boolean;
 }
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -65,6 +67,7 @@ const GRID_CUSTOM_COMPONENT = {
   [ACTION_COLUMN_CELL_RENDERER_KEY]: ActionColumn,
   [AUDIT_LOG_DETAILS_CELL_RENDERER_KEY]: AuditLogDetailsCellRenderer,
   [DETAILS_TOOLTIP_KEY]: DetailsTooltip,
+  loadingOverlay: () => null,
 } as const;
 
 const GRID_THEME_COLORS = {
@@ -96,6 +99,7 @@ function GridViewInner<T = BaseEntity>({
   pageSize = DEFAULT_GRID_PAGE_SIZE,
   queryKey,
   refreshToken,
+  isLoading,
 }: Props<T>) {
   const [api, setApi] = useState<GridApi | null>(null);
 
@@ -171,7 +175,10 @@ function GridViewInner<T = BaseEntity>({
     return ds;
   }, [fetchRows]);
 
-  const shouldShowEmpty = !isInfinite && (!data || data.length === 0);
+  const shouldShowEmpty =
+    !isInfinite && !isLoading && (!data || data.length === 0);
+  const shouldShowLoader =
+    !isInfinite && isLoading && (!data || data.length === 0);
 
   const onGridReady = useCallback((e: any) => {
     setApi(e.api);
@@ -190,6 +197,8 @@ function GridViewInner<T = BaseEntity>({
 
   return shouldShowEmpty ? (
     <EmptyState title={emptyDataTitle} />
+  ) : shouldShowLoader ? (
+    <LoaderSmall />
   ) : (
     <div className="ag-theme-balham-dark h-full">
       <AgGridReact
@@ -199,6 +208,7 @@ function GridViewInner<T = BaseEntity>({
         rowHeight={32}
         suppressCellFocus={true}
         components={GRID_CUSTOM_COMPONENT}
+        loadingOverlayComponent="loadingOverlay"
         onGridReady={onGridReady}
         tooltipShowDelay={500}
         defaultColDef={defaultColDef}
