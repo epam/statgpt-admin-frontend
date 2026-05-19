@@ -92,10 +92,8 @@ export const AutoUpdateJobsView: FC<Props> = ({
 
       if (datasetsResult.ok) {
         const match = datasetsResult.data.data.find(
-          (ds) => String(ds.id) === selectedDatasetId,
-        ) as (typeof datasetsResult.data.data)[number] & {
-          dataset?: { title?: string };
-        };
+          (ds) => String(ds.dataset_id) === selectedDatasetId,
+        );
         if (match?.dataset?.title) {
           setDatasetName(match.dataset.title);
         }
