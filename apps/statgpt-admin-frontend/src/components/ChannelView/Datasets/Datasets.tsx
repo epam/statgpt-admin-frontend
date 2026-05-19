@@ -137,11 +137,6 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       filter: 'agTextColumnFilter',
     },
     {
-      field: 'preprocessing_status',
-      headerName: 'Status',
-      filter: 'agTextColumnFilter',
-    },
-    {
       field: 'dataset.status.status',
       headerName: 'Dataset Status',
       filter: 'agTextColumnFilter',
