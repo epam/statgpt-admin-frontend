@@ -4,6 +4,7 @@ import { BaseEntityWithDetails } from '@/src/models/base-entity';
 
 export enum EntityOperation {
   Configure = 'Configure',
+  EditDataset = 'Edit dataset',
   Delete = 'Delete',
   RecalculateIndex = 'Recalculate indexes',
   Export = 'Export',

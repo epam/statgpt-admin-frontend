@@ -59,7 +59,7 @@ export const DATA_SETS_COLUMNS_WITH_ACTIONS: ColDef[] = [
   ...DATA_SETS_COLUMNS,
   ACTION_COLUMN({
     listView: Menu.DATA_SETS,
-    items: [EntityOperation.Configure, EntityOperation.Delete],
+    items: [EntityOperation.EditDataset, EntityOperation.Delete],
   }),
 ];
 

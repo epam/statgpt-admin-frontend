@@ -5,6 +5,7 @@ import { stringify } from 'yaml';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { MonacoEditor } from '@/src/components/Editor/Editor';
 import { Modal } from '@/src/components/Modal/Modal';
+import { DatasetConfigForm } from '@/src/components/DatasetConfigForm/DatasetConfigForm';
 import { BaseEntityWithDetails } from '@/src/models/base-entity';
 import { sendPostRequest } from '@/src/server/api';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
@@ -15,6 +16,8 @@ interface Props {
   url: string;
   entity: BaseEntityWithDetails;
   onSuccess?: () => void;
+  title?: string;
+  showNameInput?: boolean;
   renderResults?: (data: unknown) => ReactNode | null;
 }
 
@@ -23,21 +26,33 @@ export const EditDataEntity: FC<Props> = ({
   entity,
   url,
   onSuccess,
+  title = 'Configuration',
+  showNameInput = false,
   renderResults,
 }) => {
   const [config, setConfig] = useState<string>(stringify(entity.details));
   const [resultsContent, setResultsContent] = useState<ReactNode | null>(null);
+  const [name, setName] = useState<string>(entity.title ?? '');
+  const [nameTouched, setNameTouched] = useState(false);
   const router = useRouter();
   const withNotification = useApiNotification();
   const parseYaml = useYamlParser();
 
+  const isNameInvalid = showNameInput && name.trim() === '';
+
   const updateEntity = async () => {
+    if (isNameInvalid) {
+      setNameTouched(true);
+      return;
+    }
+
     const parsed = parseYaml(config);
     if (!parsed.ok) return;
 
     const result = await withNotification(
       sendPostRequest(`${url}/${entity.id}`, {
         ...entity,
+        ...(showNameInput ? { title: name.trim() } : {}),
         details: parsed.value,
       }),
       'Save Failed',
@@ -85,14 +100,27 @@ export const EditDataEntity: FC<Props> = ({
   }
 
   return (
-    <Modal title="Configuration" close={close} height="80vh">
+    <Modal title={title} close={close} height="80vh">
       <></>
       <div className="h-full common-paddings">
-        <MonacoEditor
-          value={config}
-          onChange={(value) => setConfig(value || '')}
-          language="yaml"
-        />
+        {showNameInput ? (
+          <DatasetConfigForm
+            name={name}
+            nameTouched={nameTouched}
+            onNameChange={(value) => {
+              setName(value);
+              setNameTouched(true);
+            }}
+            config={config}
+            onConfigChange={setConfig}
+          />
+        ) : (
+          <MonacoEditor
+            value={config}
+            onChange={(value) => setConfig(value || '')}
+            language="yaml"
+          />
+        )}
       </div>
       <div className="flex flex-row justify-end w-full">
         <Button cssClass="secondary" title="Cancel" onClick={() => close()} />

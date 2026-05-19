@@ -16,7 +16,11 @@ interface Props {
 
 export const ActionItem: FC<Props> = ({ item }) => {
   const getIcon = useCallback(() => {
-    if (item === EntityOperation.Configure || item === EntityOperation.Edit) {
+    if (
+      item === EntityOperation.Configure ||
+      item === EntityOperation.EditDataset ||
+      item === EntityOperation.Edit
+    ) {
       return <IconPencilMinus width={18} height={18} />;
     }
 
