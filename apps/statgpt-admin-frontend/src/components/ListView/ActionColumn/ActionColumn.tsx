@@ -204,7 +204,7 @@ export const ActionColumn: FC<Props> = ({
             close={() => setIsOpenDeleteModal(false)}
             confirm={() => confirmDelete()}
             title={getDeleteTitle(listView)}
-            description={getDeleteDescription(listView)}
+            description={getDeleteDescription(listView, data)}
           />,
           document.body,
         )}

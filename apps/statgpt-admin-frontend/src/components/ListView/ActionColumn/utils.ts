@@ -63,7 +63,10 @@ export const getDeleteTitle = (item: Menu) => {
   return 'Confirm deleting Channel';
 };
 
-export const getDeleteDescription = (item: Menu) => {
+export const getDeleteDescription = (
+  item: Menu,
+  data?: Record<string, unknown>,
+) => {
   if (item === Menu.DATA_SOURCES) {
     return 'Are you sure that you want to remove Data Source?';
   }
@@ -74,6 +77,12 @@ export const getDeleteDescription = (item: Menu) => {
 
   if (item === Menu.DOCUMENTS) {
     return 'Are you sure that you want to remove Document?';
+  }
+
+  if (item === Menu.CHANNEL_DATASETS) {
+    const datasetName = (data?.dataset as Record<string, unknown> | undefined)
+      ?.title as string | undefined;
+    return `Are you sure that you want to remove ${datasetName ?? 'Dataset'} from this channel?`;
   }
 
   return 'Are you sure that you want to remove Channel?';
