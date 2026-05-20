@@ -7,11 +7,26 @@ import { DATA_SOURCE_URL } from '@/src/server/data-sources-api';
 export const getConfigureProps = (
   listView: Menu,
   data: Record<string, unknown>,
-): { entity: BaseEntityWithDetails; url: string } => {
+): {
+  entity: BaseEntityWithDetails;
+  url: string;
+  showNameInput?: boolean;
+  modalTitle?: string;
+} => {
   if (listView === Menu.CHANNEL_DATASETS) {
     return {
       entity: data.dataset as BaseEntityWithDetails,
       url: DATA_SETS_URL,
+      showNameInput: true,
+      modalTitle: 'Edit Dataset',
+    };
+  }
+  if (listView === Menu.DATA_SETS) {
+    return {
+      entity: data as unknown as BaseEntityWithDetails,
+      url: DATA_SETS_URL,
+      showNameInput: true,
+      modalTitle: 'Edit Dataset',
     };
   }
   return {
@@ -48,7 +63,10 @@ export const getDeleteTitle = (item: Menu) => {
   return 'Confirm deleting Channel';
 };
 
-export const getDeleteDescription = (item: Menu) => {
+export const getDeleteDescription = (
+  item: Menu,
+  data?: Record<string, unknown>,
+) => {
   if (item === Menu.DATA_SOURCES) {
     return 'Are you sure that you want to remove Data Source?';
   }
@@ -59,6 +77,12 @@ export const getDeleteDescription = (item: Menu) => {
 
   if (item === Menu.DOCUMENTS) {
     return 'Are you sure that you want to remove Document?';
+  }
+
+  if (item === Menu.CHANNEL_DATASETS) {
+    const datasetName = (data?.dataset as Record<string, unknown> | undefined)
+      ?.title as string | undefined;
+    return `Are you sure that you want to remove ${datasetName ?? 'Dataset'} from this channel?`;
   }
 
   return 'Are you sure that you want to remove Channel?';

@@ -11,6 +11,7 @@ import {
 } from 'rxjs';
 
 import { Channel, ChannelTerm } from '@/src/models/channel';
+import { ChannelDataset } from '@/src/models/channel-dataset';
 import { ChannelDatasetVersion } from '@/src/models/channel-dataset-version';
 import { ChannelIndexStatus } from '@/src/models/channel-index-status';
 import { DataSet } from '@/src/models/data-sets';
@@ -266,7 +267,7 @@ export class ChannelsApi extends BaseApi {
   getChannelDataset(
     id: string,
     token: JWT | null,
-  ): Promise<ApiResult<RequestData<DataSet>>> {
+  ): Promise<ApiResult<RequestData<ChannelDataset>>> {
     return this.get(`${CHANNEL_DATA_SETS_URL(id)}?limit=500`, token);
   }
 

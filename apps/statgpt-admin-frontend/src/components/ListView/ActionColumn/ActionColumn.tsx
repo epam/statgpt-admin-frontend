@@ -152,7 +152,10 @@ export const ActionColumn: FC<Props> = ({
                 exportEntity();
               }
 
-              if (item === EntityOperation.Configure) {
+              if (
+                item === EntityOperation.Configure ||
+                item === EntityOperation.EditDataset
+              ) {
                 setIsOpenEditModal(true);
               }
 
@@ -171,7 +174,7 @@ export const ActionColumn: FC<Props> = ({
               if (item === EntityOperation.AutoUpdateJobs) {
                 const channelId = pathname.split('/')[2];
                 router.push(
-                  `/channels/${channelId}/datasets/${data.id}/auto-update-jobs`,
+                  `/channels/${channelId}/datasets/${data.dataset_id}/auto-update-jobs`,
                 );
               }
 
@@ -201,7 +204,7 @@ export const ActionColumn: FC<Props> = ({
             close={() => setIsOpenDeleteModal(false)}
             confirm={() => confirmDelete()}
             title={getDeleteTitle(listView)}
-            description={getDeleteDescription(listView)}
+            description={getDeleteDescription(listView, data)}
           />,
           document.body,
         )}

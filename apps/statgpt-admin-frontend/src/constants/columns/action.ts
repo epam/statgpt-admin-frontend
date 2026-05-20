@@ -3,6 +3,7 @@ import { Menu } from '@/src/constants/menu';
 
 export enum EntityOperation {
   Configure = 'Configure',
+  EditDataset = 'Edit dataset',
   Delete = 'Delete',
   RecalculateIndex = 'Recalculate indexes',
   Export = 'Export',

@@ -147,11 +147,6 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       filter: 'agTextColumnFilter',
     },
     {
-      field: 'preprocessing_status',
-      headerName: 'Status',
-      filter: 'agTextColumnFilter',
-    },
-    {
       field: 'dataset.status.status',
       headerName: 'Dataset Status',
       filter: 'agTextColumnFilter',
@@ -188,7 +183,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     ACTION_COLUMN({
       listView: Menu.CHANNEL_DATASETS,
       items: [
-        EntityOperation.Configure,
+        EntityOperation.EditDataset,
         EntityOperation.AutoUpdateJobs,
         EntityOperation.Versions,
         EntityOperation.RecalculateIndex,
