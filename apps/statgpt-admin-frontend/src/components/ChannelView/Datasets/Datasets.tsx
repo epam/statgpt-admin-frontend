@@ -31,8 +31,7 @@ import {
 import { AddDatasets } from '../AddDataSets/AddDataSets';
 import { ConfirmDialog } from '@/src/components/BaseComponents/ConfirmDialog/ConfirmDialog';
 import { PopUpState } from '@/src/types/modal';
-import { IconCopy, IconDownload } from '@tabler/icons-react';
-import { DeduplicationStats } from './DeduplicationStats';
+import { IconDownload } from '@tabler/icons-react';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
 import {
@@ -40,6 +39,8 @@ import {
   MenuItem as DropdownMenuItem,
 } from '@/src/components/BaseComponents/Dropdown/DropdownMenu';
 import ArrowUpIcon from '@/public/icons/arrow-up.svg';
+import { DeduplicationAlert } from './DeduplicationAlert';
+import { DeduplicationStatsModal } from './DeduplicationStatsModal';
 
 interface Props {
   selectedChannelId?: string;
@@ -50,7 +51,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
   const withNotification = useApiNotification();
   const { setForbidden } = useAccessControl();
 
-  const [showModal, setShowModal] = useState(false);
+  const [showAddDatasetsModal, setShowAddDatasetsModal] = useState(false);
   const [pendingRecalculateMode, setPendingRecalculateMode] = useState<
     'sequential' | 'parallel' | null
   >(null);
@@ -293,7 +294,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
             description: firstFailed.error.message,
           });
         }
-        setShowModal(false);
+        setShowAddDatasetsModal(false);
         updateDataSet();
       });
     },
@@ -301,42 +302,21 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
   );
 
   const deduplication = indexStatus?.vector_store.deduplication;
-  const deduplicationRequired = deduplication?.deduplication_required ?? true;
+  const deduplicationRequired = deduplication?.deduplication_required === true;
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-row items-center justify-between w-full mb-4">
         <h3>Accessible Datasets: {selectedChannelDataSets.length}</h3>
         <div className="flex flex-row items-center">
+          <DeduplicationStatsModal deduplication={deduplication} />
+
           <Button
             title="Export"
             cssClass="secondary mr-3"
             icon={<IconDownload width={18} height={18} />}
             onClick={() => exportEntity()}
           />
-
-          <div className="flex items-center mr-3">
-            <div className="relative group">
-              <Button
-                title="Deduplicate"
-                cssClass="secondary"
-                icon={<IconCopy width={18} height={18} />}
-                onClick={() => deduplicate()}
-                disable={!deduplicationRequired}
-              />
-              {!deduplicationRequired && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden group-hover:block w-72 rounded border border-primary bg-layer-2 px-3 py-2 text-xs text-primary shadow-lg z-10 whitespace-normal">
-                  Deduplication is not required: duplicates were found only
-                  among indicator dimensions, which are not eligible for
-                  deduplication.
-                </div>
-              )}
-            </div>
-
-            {deduplication != null && (
-              <DeduplicationStats deduplication={deduplication} />
-            )}
-          </div>
 
           <DropdownMenu
             type="contextMenu"
@@ -370,10 +350,13 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           <Button
             title="Add"
             cssClass="primary"
-            onClick={() => setShowModal(true)}
+            onClick={() => setShowAddDatasetsModal(true)}
           />
         </div>
       </div>
+      {deduplicationRequired && (
+        <DeduplicationAlert onDeduplicate={deduplicate} />
+      )}
       <div className="flex-1 min-h-0">
         <GridView
           data={selectedChannelDataSets}
@@ -383,10 +366,10 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
         />
       </div>
 
-      {showModal &&
+      {showAddDatasetsModal &&
         createPortal(
           <AddDatasets
-            close={() => setShowModal(false)}
+            close={() => setShowAddDatasetsModal(false)}
             add={(ids) => addDataSetsIds(ids)}
           />,
           document.body,
