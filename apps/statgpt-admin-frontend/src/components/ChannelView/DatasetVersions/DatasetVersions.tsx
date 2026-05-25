@@ -52,6 +52,32 @@ const GRID_COLUMNS = [
     valueFormatter: ({ value }: { value: string | null }) =>
       value ? new Date(value).toLocaleString() : '',
   },
+  {
+    field: 'indexing_stats.harmonization',
+    headerName: 'Harmonization Errors',
+    filter: 'agTextColumnFilter',
+    valueFormatter: ({
+      value,
+    }: {
+      value: NonNullable<
+        ChannelDatasetVersion['indexing_stats']
+      >['harmonization'];
+    }) =>
+      value != null ? `Total: ${value.total}. Errors: ${value.errors}` : '',
+  },
+  {
+    field: 'indexing_stats.normalization',
+    headerName: 'Normalization Errors',
+    filter: 'agTextColumnFilter',
+    valueFormatter: ({
+      value,
+    }: {
+      value: NonNullable<
+        ChannelDatasetVersion['indexing_stats']
+      >['normalization'];
+    }) =>
+      value != null ? `Total: ${value.total}. Errors: ${value.errors}` : '',
+  },
 ];
 
 export const DatasetVersions: FC<Props> = ({ channelId, datasetId }) => {

@@ -47,6 +47,25 @@
     }
   }
 
+  .secondary-light {
+    @apply base-button bg-transparent border-primary-light;
+    @apply px-2 py-1 min-h-6;
+    @apply text-primary font-semibold text-xs;
+
+    &:hover,
+    &:focus {
+      @apply bg-layer-4;
+    }
+
+    &:focus {
+      @apply border-hover;
+    }
+
+    &:disabled {
+      @apply base-button-disable;
+    }
+  }
+
   .tertiary {
     @apply base-button text-accent-primary bg-transparent;
 

@@ -139,3 +139,12 @@ export async function getChannelDatasetAutoUpdateJobs(
     token,
   );
 }
+
+export async function getChannelIndexStatus(id: string) {
+  const token = await getUserToken(
+    getIsEnableAuthToggle(),
+    headers(),
+    cookies(),
+  );
+  return channelsApi.getChannelIndexStatus(id, token);
+}

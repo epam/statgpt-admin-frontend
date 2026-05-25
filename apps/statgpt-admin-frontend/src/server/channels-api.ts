@@ -11,7 +11,9 @@ import {
 } from 'rxjs';
 
 import { Channel, ChannelTerm } from '@/src/models/channel';
+import { ChannelDataset } from '@/src/models/channel-dataset';
 import { ChannelDatasetVersion } from '@/src/models/channel-dataset-version';
+import { ChannelIndexStatus } from '@/src/models/channel-index-status';
 import { DataSet } from '@/src/models/data-sets';
 import { RequestData } from '@/src/models/request-data';
 import { AutoUpdateJob } from '@/src/models/auto-update-job';
@@ -69,6 +71,9 @@ export const CHANNEL_DATASET_VERSIONS_URL = (
   channelId: string | number,
   datasetId: string | number,
 ): string => `${DATASET_CHANNEL_URL(channelId, datasetId)}/versions`;
+
+export const CHANNEL_INDEX_STATUS_URL = (id: string | number): string =>
+  `${CHANNEL_ID_URL(id)}/index-status`;
 
 export class ChannelsApi extends BaseApi {
   getChannels(token: JWT | null): Promise<ApiResult<RequestData<Channel>>> {
@@ -262,7 +267,7 @@ export class ChannelsApi extends BaseApi {
   getChannelDataset(
     id: string,
     token: JWT | null,
-  ): Promise<ApiResult<RequestData<DataSet>>> {
+  ): Promise<ApiResult<RequestData<ChannelDataset>>> {
     return this.get(`${CHANNEL_DATA_SETS_URL(id)}?limit=500`, token);
   }
 
@@ -355,5 +360,12 @@ export class ChannelsApi extends BaseApi {
 
   removeChannel(id: string, token: JWT | null): Promise<ApiResult<string>> {
     return this.delete(`${CHANNELS_URL}/${id}`, token);
+  }
+
+  getChannelIndexStatus(
+    id: string,
+    token: JWT | null,
+  ): Promise<ApiResult<ChannelIndexStatus>> {
+    return this.get(`${CHANNEL_INDEX_STATUS_URL(id)}?scope=full`, token);
   }
 }

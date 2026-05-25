@@ -15,5 +15,16 @@ export interface ChannelDatasetVersion {
   non_indicator_dimensions_hash: string;
   special_dimensions_hash: string;
   resolved_config: Record<string, unknown>;
-  indexing_stats: Record<string, unknown>;
+  indexing_stats: {
+    harmonization?: {
+      error_types: Record<string, unknown>;
+      errors: number;
+      total: number;
+    };
+    normalization?: {
+      error_types: Record<string, unknown>;
+      errors: number;
+      total: number;
+    };
+  } | null;
 }
