@@ -17,6 +17,7 @@ import { Step } from '@/src/models/step';
 import { ModalsButtons } from './Buttons/ModalsButtons';
 import { DataSetStep } from './DataSetStep/DataSetStep';
 import { DataSourceStep } from './DataSourceStep/DataSourceStep';
+import { ProviderStep } from './ProviderStep/ProviderStep';
 
 interface Props {
   close: () => void;
@@ -32,6 +33,10 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
       isCompleted: () => !!newDataSet?.data_source_id,
     },
     {
+      key: DatasetStep.Provider,
+      isCompleted: () => !!selectedProviderId,
+    },
+    {
       key: DatasetStep.DataSet,
       isCompleted: () => !!newDataSet?.title,
     },
@@ -41,6 +46,9 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   const [newDataSet, setDataSet] = useState<DataSet>({
     details: void 0,
   });
+  const [selectedProviderId, setSelectedProviderId] = useState<
+    string | undefined
+  >(undefined);
   const [rawConfig, setRawConfig] = useState('');
   const [nameConfigTouched, setNameConfigTouched] = useState(false);
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
@@ -49,16 +57,14 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
   const [activeStep, setActiveStep] = useState(dataSetSteps[0].key);
 
   useEffect(() => {
-    if (dataSources.length === 0 && !isLoadingData) {
-      setIsLoadingDs(true);
-      withNotification(getDataSources(), 'Failed to Load Data Sources').then(
-        (result) => {
-          setIsLoadingDs(false);
-          if (result.ok) setDataSources(result.data.data);
-        },
-      );
-    }
-  }, [dataSources, isLoadingData]);
+    setIsLoadingDs(true);
+    withNotification(getDataSources(), 'Failed to Load Data Sources').then(
+      (result) => {
+        setIsLoadingDs(false);
+        if (result.ok) setDataSources(result.data.data);
+      },
+    );
+  }, []);
 
   const createDataset = () => {
     if (!newDataSet?.title?.trim()) {
@@ -101,7 +107,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
       return (
         <DataSourceStep
           data={dataSources}
-          selectDs={(id) =>
+          selectDataset={(id) =>
             setDataSet({
               ...(newDataSet || {}),
               data_source_id: id,
@@ -111,10 +117,20 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
       );
     }
 
+    if (activeStep === DatasetStep.Provider) {
+      return (
+        <ProviderStep
+          selectedDataSourceId={newDataSet?.data_source_id}
+          selectProvider={(id) => setSelectedProviderId(id)}
+        />
+      );
+    }
+
     if (activeStep === DatasetStep.DataSet) {
       return (
         <DataSetStep
           selectedDataSourceId={newDataSet?.data_source_id}
+          selectedProviderId={selectedProviderId}
           changeDataSet={({ title, details }) => {
             setDataSet({ ...(newDataSet || {}), title, details } as DataSet);
             setRawConfig(details ? stringify(details) : '');
@@ -160,6 +176,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
         activeStep={activeStep}
         setActiveStep={setActiveStep}
         isValidDataSourceStep={!newDataSet?.data_source_id}
+        isValidProviderStep={!selectedProviderId}
         isValidDataSetStep={!newDataSet?.details || !newDataSet?.title}
       />
     </Modal>

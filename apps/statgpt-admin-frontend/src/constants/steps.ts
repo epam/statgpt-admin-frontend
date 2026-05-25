@@ -5,5 +5,6 @@ export enum BaseStep {
 
 export enum DatasetStep {
   DataSource = 'Data Source',
+  Provider = 'Provider',
   DataSet = 'Dataset',
 }

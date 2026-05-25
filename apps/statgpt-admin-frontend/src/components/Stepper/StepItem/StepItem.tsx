@@ -33,11 +33,11 @@ export const StepItem: FC<Props> = ({ step, index, isActive, onClick }) => {
 };
 
 const getCssStepClass = (step: Step, isActive: boolean): string => {
-  if (step.isCompleted != null && step.isCompleted?.()) {
-    return styles.step_completed;
-  }
   if (isActive) {
     return styles.step_active;
+  }
+  if (step.isCompleted != null && step.isCompleted?.()) {
+    return styles.step_completed;
   }
 
   return '';

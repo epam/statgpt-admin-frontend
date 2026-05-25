@@ -7,13 +7,22 @@ import { DataSource } from '@/src/models/data-source';
 import { getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 
-export async function loadAvailableDataSets(id: number) {
+export async function loadProviders(id: number) {
   const token = await getUserToken(
     getIsEnableAuthToggle(),
     headers(),
     cookies(),
   );
-  return dataSourcesApi.loadAvailableDataSets(id.toString(), token);
+  return dataSourcesApi.getProviders(id.toString(), token);
+}
+
+export async function loadAvailableDataSets(id: number, providerId: string) {
+  const token = await getUserToken(
+    getIsEnableAuthToggle(),
+    headers(),
+    cookies(),
+  );
+  return dataSourcesApi.loadAvailableDataSets(id.toString(), providerId, token);
 }
 
 export async function getDataSources() {
