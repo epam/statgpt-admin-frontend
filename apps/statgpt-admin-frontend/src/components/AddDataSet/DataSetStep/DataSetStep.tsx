@@ -15,7 +15,7 @@ interface Props {
 }
 
 const DATASET_URN_COLUMN: ColDef = {
-  headerName: 'Dataset URN',
+  headerName: 'URN',
   filter: 'agTextColumnFilter',
   valueGetter: ({ data }: { data: DataSet }) => {
     const { urn } = data?.details ?? {};
@@ -65,7 +65,7 @@ export const DataSetStep: FC<Props> = ({
 
       <div className="h-[568px]">
         <GridView
-          colDefs={[...BASE_COLUMNS, DATASET_URN_COLUMN]}
+          colDefs={[DATASET_URN_COLUMN, ...BASE_COLUMNS]}
           data={dataSets}
           additionalOptions={gridOptions}
           emptyDataTitle="No Datasets"

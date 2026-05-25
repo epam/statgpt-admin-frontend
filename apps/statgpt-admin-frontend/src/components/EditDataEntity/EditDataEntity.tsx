@@ -87,9 +87,9 @@ export const EditDataEntity: FC<Props> = ({
 
   if (resultsContent) {
     return (
-      <Modal title="Configuration Updated" close={closeResults} height="80vh">
+      <Modal title="Channel dataset updates" close={closeResults} height="80vh">
         <></>
-        <div className="h-full common-paddings overflow-y-auto">
+        <div className="h-full common-paddings flex flex-col overflow-hidden">
           {resultsContent}
         </div>
         <div className="flex flex-row justify-end w-full">
