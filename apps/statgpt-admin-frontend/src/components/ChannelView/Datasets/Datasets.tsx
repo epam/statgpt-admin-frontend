@@ -14,6 +14,7 @@ import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { Menu } from '@/src/constants/menu';
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { useNotification } from '@/src/context/NotificationContext';
+import { ChannelDataset } from '@/src/models/channel-dataset';
 import { ChannelIndexStatus } from '@/src/models/channel-index-status';
 import { DataSet } from '@/src/models/data-sets';
 import { NotificationType } from '@/src/models/notification';
@@ -180,6 +181,24 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       field: 'latest_version.preprocessing_status',
       headerName: 'Latest Status',
       filter: 'agTextColumnFilter',
+    },
+    {
+      headerName: 'Last check',
+      valueGetter: ({ data }: { data: ChannelDataset }) => {
+        const job = data.last_auto_update_job;
+        if (!job) return '';
+        const label = job.status !== 'COMPLETED' ? job.status : job.result;
+        const date = job.updated_at
+          ? new Date(job.updated_at).toLocaleString()
+          : '';
+        return [label, date].filter(Boolean).join(' | ');
+      },
+      tooltipValueGetter: ({ data }: { data: ChannelDataset }) => {
+        const job = data.last_auto_update_job;
+        if (!job) return null;
+        return job.details || job.reason_for_failure || null;
+      },
+      tooltipComponent: DETAILS_TOOLTIP_KEY,
     },
     ACTION_COLUMN({
       listView: Menu.CHANNEL_DATASETS,
