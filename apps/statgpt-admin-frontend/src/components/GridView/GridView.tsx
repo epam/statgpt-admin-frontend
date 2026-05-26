@@ -195,6 +195,8 @@ function GridViewInner<T = BaseEntity>({
     }
   }, [api, datasource, isInfinite]);
 
+  if (isLoading) return <LoaderSmall />;
+
   return shouldShowEmpty ? (
     <EmptyState title={emptyDataTitle} />
   ) : shouldShowLoader ? (

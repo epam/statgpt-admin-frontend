@@ -7,6 +7,7 @@ const backgroundsColors = {
   'layer-4': 'var(--bg-layer-4, #333942)',
   blackout: 'var(--bg-blackout, #090D13B3)',
   error: 'var(--bg-error, #402027)',
+  'icon-error': 'var(--icon-error, #F76464)',
   warning: 'var(--bg-warning, #3F3D25)',
   'accent-primary': 'var(--bg-accent-primary, #5C8DEA)',
   'accent-secondary': 'var(--bg-accent-secondary, #37BABC)',

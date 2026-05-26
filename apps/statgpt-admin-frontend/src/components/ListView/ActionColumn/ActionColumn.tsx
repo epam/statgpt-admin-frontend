@@ -11,11 +11,14 @@ import {
   MenuItem as DropdownMenuItem,
 } from '@/src/components/BaseComponents/Dropdown/DropdownMenu';
 import { DeleteConfirmationModal } from '@/src/components/DeleteConfirmationModal/DeleteConfirmationModal';
+import { DataSetChannelResults } from '@/src/components/EditDataEntity/DataSetChannelResults';
 import { EditDataEntity } from '@/src/components/EditDataEntity/EditDataEntity';
 import { ActionItem } from '@/src/components/GridView/ActionColumn/ActionItem';
 import { EntityOperation } from '@/src/constants/columns/action';
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { Menu } from '@/src/constants/menu';
+import { BaseEntityWithDetails } from '@/src/models/base-entity';
+import { ChannelResult, DataSetUpdateResponse } from '@/src/models/data-sets';
 import { sendDeleteRequest, sendPostRequest } from '@/src/server/api';
 import { RELOAD_DATASET_CHANNEL_URL } from '@/src/server/channels-api';
 import {
@@ -30,11 +33,18 @@ import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { ConfirmDialog } from '@/src/components/BaseComponents/ConfirmDialog/ConfirmDialog';
 import { PopUpState } from '@/src/types/modal';
 
+const renderDataSetResults = (data: unknown) => {
+  const results = (data as DataSetUpdateResponse)?.channel_results;
+  if (!results?.length) return null;
+  return <DataSetChannelResults channelResults={results as ChannelResult[]} />;
+};
+
 interface Props extends CustomCellRendererProps {
   items: EntityOperation[];
   listView: Menu;
   deleteEntity?: (id?: number) => void;
   onConfigureSaved?: () => void;
+  onConfigureOpen?: (entity: BaseEntityWithDetails, url: string) => void;
 }
 
 export const ActionColumn: FC<Props> = ({
@@ -43,6 +53,7 @@ export const ActionColumn: FC<Props> = ({
   data,
   deleteEntity,
   onConfigureSaved,
+  onConfigureOpen,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -156,7 +167,12 @@ export const ActionColumn: FC<Props> = ({
                 item === EntityOperation.Configure ||
                 item === EntityOperation.EditDataset
               ) {
-                setIsOpenEditModal(true);
+                if (onConfigureOpen) {
+                  const props = getConfigureProps(listView, data);
+                  onConfigureOpen(props.entity, props.url);
+                } else {
+                  setIsOpenEditModal(true);
+                }
               }
 
               if (item === EntityOperation.RecalculateIndex) {
@@ -194,6 +210,9 @@ export const ActionColumn: FC<Props> = ({
             close={() => setIsOpenEditModal(false)}
             {...getConfigureProps(listView, data)}
             onSuccess={onConfigureSaved}
+            renderResults={
+              listView === Menu.DATA_SETS ? renderDataSetResults : undefined
+            }
           />,
           document.body,
         )}

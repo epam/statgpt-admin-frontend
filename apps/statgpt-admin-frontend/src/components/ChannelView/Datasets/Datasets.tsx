@@ -9,13 +9,20 @@ import {
   getChannelIndexStatus,
 } from '@/src/app/channels/actions';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
+import { DataSetChannelResults } from '@/src/components/EditDataEntity/DataSetChannelResults';
+import { EditDataEntity } from '@/src/components/EditDataEntity/EditDataEntity';
 import { GridView } from '@/src/components/GridView/GridView';
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { Menu } from '@/src/constants/menu';
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { useNotification } from '@/src/context/NotificationContext';
+import { BaseEntityWithDetails } from '@/src/models/base-entity';
+import {
+  ChannelResult,
+  DataSet,
+  DataSetUpdateResponse,
+} from '@/src/models/data-sets';
 import { ChannelIndexStatus } from '@/src/models/channel-index-status';
-import { DataSet } from '@/src/models/data-sets';
 import { NotificationType } from '@/src/models/notification';
 import { RequestData } from '@/src/models/request-data';
 import {
@@ -67,6 +74,26 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
   const [indexStatus, setIndexStatus] = useState<ChannelIndexStatus | null>(
     null,
   );
+
+  const [configureProps, setConfigureProps] = useState<{
+    entity: BaseEntityWithDetails;
+    url: string;
+  } | null>(null);
+
+  const onConfigureOpen = useCallback(
+    (entity: BaseEntityWithDetails, url: string) => {
+      setConfigureProps({ entity, url });
+    },
+    [],
+  );
+
+  const renderDataSetResults = useCallback((responseData: unknown) => {
+    const results = (responseData as DataSetUpdateResponse)?.channel_results;
+    if (!results?.length) return null;
+    return (
+      <DataSetChannelResults channelResults={results as ChannelResult[]} />
+    );
+  }, []);
 
   const updateDataSet = useCallback(() => {
     if (selectedChannelId != null && !isFetchingRef.current) {
@@ -192,6 +219,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       ],
       deleteEntity: deleteDataSet.bind(this),
       onConfigureSaved: updateDataSet,
+      onConfigureOpen,
     }),
   ];
 
@@ -371,6 +399,18 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           <AddDatasets
             close={() => setShowAddDatasetsModal(false)}
             add={(ids) => addDataSetsIds(ids)}
+          />,
+          document.body,
+        )}
+
+      {configureProps &&
+        createPortal(
+          <EditDataEntity
+            close={() => setConfigureProps(null)}
+            entity={configureProps.entity}
+            url={configureProps.url}
+            onSuccess={updateDataSet}
+            renderResults={renderDataSetResults}
           />,
           document.body,
         )}
