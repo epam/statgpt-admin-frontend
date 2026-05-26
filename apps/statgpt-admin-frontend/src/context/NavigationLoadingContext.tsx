@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, ReactNode, useContext, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 import { useIsomorphicLayoutEffect } from '@/src/utils/useIsomorphicLayoutEffect';
@@ -32,10 +26,12 @@ export function NavigationLoadingProvider({
 }) {
   const [isLoading, setLoading] = useState(true);
   const pathname = usePathname();
+  const prevPathnameRef = useRef(pathname);
 
-  useEffect(() => {
+  if (prevPathnameRef.current !== pathname) {
+    prevPathnameRef.current = pathname;
     setLoading(true);
-  }, [pathname]);
+  }
 
   return (
     <NavigationLoadingContext.Provider value={{ isLoading, setLoading }}>
