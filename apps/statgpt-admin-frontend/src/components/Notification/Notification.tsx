@@ -45,7 +45,7 @@ const Notification: FC<NotificationConfig> = ({
           icon={<IconX height={18} width={18} />}
         />
       </div>
-      <p className="tiny text-secondary">{description}</p>
+      <p className="tiny text-secondary whitespace-pre-line">{description}</p>
     </div>
   );
 };
