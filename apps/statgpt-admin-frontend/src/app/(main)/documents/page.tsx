@@ -29,7 +29,7 @@ export default async function Page() {
   const result = await documentsApi.getList(null);
   if (result.ok) {
     data = result.data;
-  } else if (result.error.status === 403) {
+  } else if (result.error.status === 401 || result.error.status === 403) {
     return <ForbiddenTrigger />;
   } else {
     logger.error(`Getting documents error ${result.error.message}`);
