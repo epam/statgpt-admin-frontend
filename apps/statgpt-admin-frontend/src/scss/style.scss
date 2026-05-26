@@ -1,20 +1,46 @@
-@import './font.scss';
-@import './common.scss';
-@import './buttons.scss';
-@import './input.scss';
-@import './grid.scss';
-@import './date-picker.scss';
-@import './scroll.scss';
-@import 'header.scss';
+@use 'font' as *;
+@use 'common';
+@use 'buttons';
+@use 'input';
+@use 'grid';
+@use 'date-picker';
+@use 'scroll';
+@use 'header';
 
-h1 {
-  @include heading-1;
+@layer base {
+  h1 {
+    @include heading-1;
+  }
+
+  h2 {
+    @include heading-2;
+  }
+
+  h3 {
+    @include heading-3;
+  }
 }
 
-h2 {
-  @include heading-2;
-}
+@layer components {
+  .small {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 16px;
+  }
 
-h3 {
-  @include heading-3;
+  .tiny {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 14px;
+  }
+
+  .small-medium {
+    @apply font-normal;
+    font-size: 14px;
+    line-height: 16px;
+  }
+
+  .common-paddings {
+    padding: 16px 24px;
+  }
 }
