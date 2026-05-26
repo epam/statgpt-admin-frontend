@@ -7,14 +7,14 @@ import { DataSource } from '@/src/models/data-source';
 
 interface Props {
   data: DataSource[];
-  selectDs: (id: number) => void;
+  selectDataset: (id: number) => void;
 }
 
-export const DataSourceStep: FC<Props> = ({ data, selectDs }) => {
+export const DataSourceStep: FC<Props> = ({ data, selectDataset }) => {
   const gridOptions: GridOptions = {
     rowSelection: 'single',
     onRowClicked: (event) => {
-      selectDs(event.data.id);
+      selectDataset(event.data.id);
     },
   };
 
