@@ -25,6 +25,11 @@ export interface DataSourceType {
   description: string;
 }
 
+export interface Provider {
+  id: string;
+  name: string;
+}
+
 export interface DataSourceUpdate {
   /** Title */
   title?: string;

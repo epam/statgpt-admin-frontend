@@ -7,6 +7,7 @@ import { BASE_ICON_PROPS } from '@/src/constants/layout';
 
 interface Props {
   isValidDataSourceStep: boolean;
+  isValidProviderStep: boolean;
   isValidDataSetStep: boolean;
   activeStep: string;
   create: () => void;
@@ -17,8 +18,9 @@ interface Props {
 export const ModalsButtons: FC<Props> = ({
   setActiveStep,
   activeStep,
-  isValidDataSetStep,
   isValidDataSourceStep,
+  isValidProviderStep,
+  isValidDataSetStep,
   create,
   close,
 }) => {
@@ -40,11 +42,12 @@ export const ModalsButtons: FC<Props> = ({
           <Button
             cssClass="primary ml-3"
             title="Next"
-            disable={
-              activeStep === DatasetStep.DataSource
-                ? isValidDataSourceStep
-                : isValidDataSetStep
-            }
+            disable={getIsNextDisabled(
+              activeStep,
+              isValidDataSourceStep,
+              isValidProviderStep,
+              isValidDataSetStep,
+            )}
             onClick={() => setActiveStep(getNextStep(activeStep))}
           />
         )}
@@ -62,17 +65,24 @@ export const ModalsButtons: FC<Props> = ({
 };
 
 const getPreviousStep = (activeStep: string) => {
-  if (activeStep === DatasetStep.DataSource) {
-    return DatasetStep.DataSet;
-  }
-
-  return DatasetStep.DataSource;
+  if (activeStep === DatasetStep.Provider) return DatasetStep.DataSource;
+  if (activeStep === DatasetStep.DataSet) return DatasetStep.Provider;
+  return DatasetStep.DataSet;
 };
 
 const getNextStep = (activeStep: string) => {
-  if (activeStep === DatasetStep.DataSource) {
-    return DatasetStep.DataSet;
-  }
-
+  if (activeStep === DatasetStep.DataSource) return DatasetStep.Provider;
+  if (activeStep === DatasetStep.Provider) return DatasetStep.DataSet;
   return BaseStep.Configuration;
+};
+
+const getIsNextDisabled = (
+  activeStep: string,
+  isValidDataSourceStep: boolean,
+  isValidProviderStep: boolean,
+  isValidDataSetStep: boolean,
+) => {
+  if (activeStep === DatasetStep.DataSource) return isValidDataSourceStep;
+  if (activeStep === DatasetStep.Provider) return isValidProviderStep;
+  return isValidDataSetStep;
 };
