@@ -11,6 +11,7 @@ import { generateShortUrn } from '@/src/utils/urn';
 
 interface Props {
   selectedDataSourceId?: number;
+  selectedProviderId?: string;
   changeDataSet: (dataset: Pick<DataSet, 'title' | 'details'>) => void;
 }
 
@@ -25,6 +26,7 @@ const DATASET_URN_COLUMN: ColDef = {
 
 export const DataSetStep: FC<Props> = ({
   selectedDataSourceId,
+  selectedProviderId,
   changeDataSet,
 }) => {
   const withNotification = useApiNotification();
@@ -42,18 +44,18 @@ export const DataSetStep: FC<Props> = ({
   };
 
   useEffect(() => {
-    if (dataSets.length === 0 && !isLoadingDs && selectedDataSourceId != null) {
-      setIsLoadingDs(true);
+    if (selectedDataSourceId == null || selectedProviderId == null) return;
 
-      withNotification(
-        loadAvailableDataSets(selectedDataSourceId),
-        'Failed to Load Datasets',
-      ).then((result) => {
-        setIsLoadingDs(false);
-        if (result.ok) setDataSets(result.data.data);
-      });
-    }
-  }, [dataSets, selectedDataSourceId, isLoadingDs]);
+    setDataSets([]);
+    setIsLoadingDs(true);
+    withNotification(
+      loadAvailableDataSets(selectedDataSourceId, selectedProviderId),
+      'Failed to Load Datasets',
+    ).then((result) => {
+      setIsLoadingDs(false);
+      if (result.ok) setDataSets(result.data.data);
+    });
+  }, [selectedDataSourceId, selectedProviderId]);
 
   return isLoadingDs ? (
     <div className="flex items-center w-full justify-center h-[633px]">

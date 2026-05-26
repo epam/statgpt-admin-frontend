@@ -7,7 +7,7 @@ export const config = {
   ],
 };
 
-async function middlewareFn(request: NextRequest) {
+async function proxyFn(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const cspHeader = `
     default-src 'self';
@@ -50,6 +50,6 @@ async function middlewareFn(request: NextRequest) {
   return response;
 }
 
-const middleware = withAuth(middlewareFn);
+const proxy = withAuth(proxyFn);
 
-export default middleware;
+export default proxy;

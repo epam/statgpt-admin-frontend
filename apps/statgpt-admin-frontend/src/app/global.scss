@@ -1,8 +1,9 @@
+@use '../scss/font' as *;
+@use '../scss/style';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import '../scss/style.scss';
 
 html,
 body {
