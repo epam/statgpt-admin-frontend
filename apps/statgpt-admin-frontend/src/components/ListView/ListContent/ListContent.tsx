@@ -2,7 +2,7 @@
 
 import { ColDef, GridOptions } from 'ag-grid-community';
 import { useRouter } from 'next/navigation';
-import { useMemo, useCallback, useEffect } from 'react';
+import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 
 import { Menu, MenuUrl } from '@/src/constants/menu';
 import { BaseEntity } from '@/src/models/base-entity';
@@ -11,6 +11,7 @@ import {
   FetchRowsArgs,
   FetchRowsResult,
 } from '@/src/components/GridView/GridView';
+import { ACTION_COLUMN_CELL_RENDERER_KEY } from '@/src/constants/columns/action';
 import { ListHeader } from '../ListHeader/ListHeader';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '@/src/models/notification';
@@ -47,6 +48,21 @@ export function ListContent<T = BaseEntity>({
   const router = useRouter();
   const { showNotification } = useNotification();
   const { setLoading } = useNavigationLoading();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const pendingRefreshRef = useRef(false);
+
+  const handleConfigureSaved = useCallback(() => {
+    pendingRefreshRef.current = true;
+    setIsRefreshing(true);
+    router.refresh();
+  }, [router]);
+
+  useEffect(() => {
+    if (pendingRefreshRef.current) {
+      pendingRefreshRef.current = false;
+      setIsRefreshing(false);
+    }
+  }, [data]);
 
   useIsomorphicLayoutEffect(() => {
     setLoading(false);
@@ -85,6 +101,16 @@ export function ListContent<T = BaseEntity>({
 
   const columns: ColDef[] = useMemo(() => {
     return colDefs.map((col) => {
+      if (col.cellRenderer === ACTION_COLUMN_CELL_RENDERER_KEY) {
+        return {
+          ...col,
+          cellRendererParams: {
+            ...col.cellRendererParams,
+            onConfigureSaved: handleConfigureSaved,
+          },
+        };
+      }
+
       if (col.field === 'metadata.publication_date') {
         return {
           ...col,
@@ -113,7 +139,7 @@ export function ListContent<T = BaseEntity>({
 
       return col;
     });
-  }, [colDefs]);
+  }, [colDefs, handleConfigureSaved]);
 
   const headerCount =
     typeof totalCount === 'number' ? totalCount : data?.length;
@@ -131,6 +157,7 @@ export function ListContent<T = BaseEntity>({
           additionalOptions={gridOptions}
           queryKey={queryKey}
           refreshToken={refreshToken}
+          isLoading={isRefreshing}
         />
       </div>
     </>
