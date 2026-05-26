@@ -42,6 +42,7 @@ import {
 import ArrowUpIcon from '@/public/icons/arrow-up.svg';
 import { DeduplicationAlert } from './DeduplicationAlert';
 import { DeduplicationStatsModal } from './DeduplicationStatsModal';
+import { ColDef, ITooltipParams, ValueGetterParams } from 'ag-grid-community';
 
 interface Props {
   selectedChannelId?: string;
@@ -132,7 +133,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     });
   };
 
-  const gridColumns = [
+  const gridColumns: ColDef[] = [
     {
       field: 'dataset.title',
       headerName: 'Name',
@@ -184,8 +185,8 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     },
     {
       headerName: 'Last check',
-      valueGetter: ({ data }: { data: ChannelDataset }) => {
-        const job = data.last_auto_update_job;
+      valueGetter: (params: ValueGetterParams) => {
+        const job = (params.data as ChannelDataset)?.last_auto_update_job;
         if (!job) return '';
         const label = job.status !== 'COMPLETED' ? job.status : job.result;
         const date = job.updated_at
@@ -193,8 +194,8 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           : '';
         return [label, date].filter(Boolean).join(' | ');
       },
-      tooltipValueGetter: ({ data }: { data: ChannelDataset }) => {
-        const job = data.last_auto_update_job;
+      tooltipValueGetter: (params: ITooltipParams) => {
+        const job = (params.data as ChannelDataset)?.last_auto_update_job;
         if (!job) return null;
         return job.details || job.reason_for_failure || null;
       },
