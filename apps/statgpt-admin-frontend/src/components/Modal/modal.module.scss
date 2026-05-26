@@ -1,4 +1,4 @@
-@import '../../scss/common.scss';
+@use '../../scss/common' as *;
 
 .modal {
   &__wrapper {
@@ -10,7 +10,7 @@
 
   @apply flex flex-col items-center bg-layer-3;
   border-radius: 3px;
-  box-shadow: 0px 0px 5px 0px transparentize(#090d13, 0.7);
+  box-shadow: 0px 0px 5px 0px rgba(9, 13, 19, 0.3);
 
   width: calc(100vw - 0.5rem);
   max-width: 80%;

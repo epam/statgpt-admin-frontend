@@ -22,22 +22,24 @@
   }
 }
 
-input,
-textarea {
-  @include input;
-  height: 38px;
-}
-
-input {
-  padding: 0px 12px !important;
-  &.input__error {
-    @apply text-primary border-error;
+@layer base {
+  input,
+  textarea {
+    @include input;
+    height: 38px;
   }
-}
 
-textarea {
-  min-height: 72px;
-  padding: 8px 12px !important;
+  input {
+    padding: 0px 12px !important;
+    &.input__error {
+      @apply text-primary border-error;
+    }
+  }
+
+  textarea {
+    min-height: 72px;
+    padding: 8px 12px !important;
+  }
 }
 
 @layer components {
@@ -77,13 +79,15 @@ textarea {
   }
 }
 
-input {
-  @apply input;
-  -moz-appearance: textfield; /* Firefox */
+@layer base {
+  input {
+    @apply input;
+    -moz-appearance: textfield; /* Firefox */
 
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
   }
 }

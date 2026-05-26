@@ -1,9 +1,9 @@
-@import '../../scss/font.scss';
-@import '../../scss/common.scss';
+@use '../../scss/font' as *;
 
 .step {
   @apply flex flex-col mr-2 cursor-pointer flex-1;
-  @apply tiny text-secondary;
+  @apply text-secondary;
+  @include tiny;
 
   svg {
     width: 16px;
