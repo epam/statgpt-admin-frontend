@@ -23,7 +23,12 @@ interface ActionColumnOptions {
   deleteEntity?: (id?: number) => void;
   key?: string;
   onConfigureSaved?: () => void;
-  onConfigureOpen?: (entity: BaseEntityWithDetails, url: string) => void;
+  onConfigureOpen?: (props: {
+    entity: BaseEntityWithDetails;
+    url: string;
+    showNameInput?: boolean;
+    title?: string;
+  }) => void;
 }
 
 export const ACTION_COLUMN = ({

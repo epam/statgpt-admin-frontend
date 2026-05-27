@@ -80,11 +80,18 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
   const [configureProps, setConfigureProps] = useState<{
     entity: BaseEntityWithDetails;
     url: string;
+    showNameInput?: boolean;
+    title?: string;
   } | null>(null);
 
   const onConfigureOpen = useCallback(
-    (entity: BaseEntityWithDetails, url: string) => {
-      setConfigureProps({ entity, url });
+    (props: {
+      entity: BaseEntityWithDetails;
+      url: string;
+      showNameInput?: boolean;
+      title?: string;
+    }) => {
+      setConfigureProps(props);
     },
     [],
   );
@@ -429,6 +436,8 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
             close={() => setConfigureProps(null)}
             entity={configureProps.entity}
             url={configureProps.url}
+            showNameInput={configureProps.showNameInput}
+            title={configureProps.title}
             onSuccess={updateDataSet}
             renderResults={renderDataSetResults}
           />,
