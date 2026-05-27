@@ -22,6 +22,7 @@ import {
   DataSet,
   DataSetUpdateResponse,
 } from '@/src/models/data-sets';
+import { ChannelDataset } from '@/src/models/channel-dataset';
 import { ChannelIndexStatus } from '@/src/models/channel-index-status';
 import { NotificationType } from '@/src/models/notification';
 import { RequestData } from '@/src/models/request-data';
@@ -48,6 +49,7 @@ import {
 import ArrowUpIcon from '@/public/icons/arrow-up.svg';
 import { DeduplicationAlert } from './DeduplicationAlert';
 import { DeduplicationStatsModal } from './DeduplicationStatsModal';
+import { ColDef, ITooltipParams, ValueGetterParams } from 'ag-grid-community';
 
 interface Props {
   selectedChannelId?: string;
@@ -158,7 +160,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     });
   };
 
-  const gridColumns = [
+  const gridColumns: ColDef[] = [
     {
       field: 'dataset.title',
       headerName: 'Name',
@@ -207,6 +209,24 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       field: 'latest_version.preprocessing_status',
       headerName: 'Latest Status',
       filter: 'agTextColumnFilter',
+    },
+    {
+      headerName: 'Last check',
+      valueGetter: (params: ValueGetterParams) => {
+        const job = (params.data as ChannelDataset)?.last_auto_update_job;
+        if (!job) return '';
+        const label = job.status !== 'COMPLETED' ? job.status : job.result;
+        const date = job.updated_at
+          ? new Date(job.updated_at).toLocaleString()
+          : '';
+        return [label, date].filter(Boolean).join(' | ');
+      },
+      tooltipValueGetter: (params: ITooltipParams) => {
+        const job = (params.data as ChannelDataset)?.last_auto_update_job;
+        if (!job) return null;
+        return job.details || job.reason_for_failure || null;
+      },
+      tooltipComponent: DETAILS_TOOLTIP_KEY,
     },
     ACTION_COLUMN({
       listView: Menu.CHANNEL_DATASETS,
