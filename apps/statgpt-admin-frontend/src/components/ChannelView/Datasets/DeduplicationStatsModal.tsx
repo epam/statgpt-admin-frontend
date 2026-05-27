@@ -28,7 +28,7 @@ export const DeduplicationStatsModal: FC<Props> = ({ deduplication }) => {
       <Modal
         portalId="theme-main"
         state={open ? PopUpState.Opened : PopUpState.Closed}
-        header="Duplicate statistics"
+        header="Deduplicate statistics"
         containerClassName="w-full min-w-[90%] md:min-w-[300px] md:max-w-[420px] px-6 py-6"
         onClose={() => setOpen(false)}
       >
