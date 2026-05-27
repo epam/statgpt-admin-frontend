@@ -213,6 +213,7 @@ function GridViewInner<T = BaseEntity>({
         loadingOverlayComponent="loadingOverlay"
         onGridReady={onGridReady}
         tooltipShowDelay={500}
+        popupParent={document.body}
         defaultColDef={defaultColDef}
         onGridSizeChanged={(e) => e.api.sizeColumnsToFit()}
         rowModelType={isInfinite ? 'infinite' : undefined}
