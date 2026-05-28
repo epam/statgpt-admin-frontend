@@ -11,7 +11,7 @@ import { DocumentMetadata } from '@/src/models/document';
 import { Step } from '@/src/models/step';
 import { Parameters } from './Parameters/Parameters';
 import { BaseStep } from '@/src/constants/steps';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { IconArrowLeft, IconPlus } from '@tabler/icons-react';
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { sendPostRequest } from '../../server/api';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
@@ -144,6 +144,7 @@ export const AddDocumentModal: FC<Props> = ({ close }) => {
               <Button
                 cssClass="primary ml-3"
                 title="Add"
+                icon={<IconPlus {...BASE_ICON_PROPS} />}
                 disable={!isValid}
                 onClick={() => addDocument()}
               />

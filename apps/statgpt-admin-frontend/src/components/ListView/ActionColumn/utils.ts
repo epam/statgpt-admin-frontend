@@ -11,14 +11,14 @@ export const getConfigureProps = (
   entity: BaseEntityWithDetails;
   url: string;
   showNameInput?: boolean;
-  modalTitle?: string;
+  title?: string;
 } => {
   if (listView === Menu.CHANNEL_DATASETS) {
     return {
       entity: data.dataset as BaseEntityWithDetails,
       url: DATA_SETS_URL,
       showNameInput: true,
-      modalTitle: 'Edit Dataset',
+      title: 'Edit Dataset',
     };
   }
   if (listView === Menu.DATA_SETS) {
@@ -26,7 +26,7 @@ export const getConfigureProps = (
       entity: data as unknown as BaseEntityWithDetails,
       url: DATA_SETS_URL,
       showNameInput: true,
-      modalTitle: 'Edit Dataset',
+      title: 'Edit Dataset',
     };
   }
   return {

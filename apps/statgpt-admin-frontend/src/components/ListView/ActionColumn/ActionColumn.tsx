@@ -44,7 +44,12 @@ interface Props extends CustomCellRendererProps {
   listView: Menu;
   deleteEntity?: (id?: number) => void;
   onConfigureSaved?: () => void;
-  onConfigureOpen?: (entity: BaseEntityWithDetails, url: string) => void;
+  onConfigureOpen?: (props: {
+    entity: BaseEntityWithDetails;
+    url: string;
+    showNameInput?: boolean;
+    title?: string;
+  }) => void;
 }
 
 export const ActionColumn: FC<Props> = ({
@@ -168,8 +173,7 @@ export const ActionColumn: FC<Props> = ({
                 item === EntityOperation.EditDataset
               ) {
                 if (onConfigureOpen) {
-                  const props = getConfigureProps(listView, data);
-                  onConfigureOpen(props.entity, props.url);
+                  onConfigureOpen(getConfigureProps(listView, data));
                 } else {
                   setIsOpenEditModal(true);
                 }

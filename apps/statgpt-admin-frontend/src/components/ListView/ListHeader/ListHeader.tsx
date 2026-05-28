@@ -4,8 +4,11 @@ import { useRouter } from 'next/navigation';
 import { FC, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { IconFileArrowLeft, IconPlus } from '@tabler/icons-react';
+
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { Menu } from '@/src/constants/menu';
+import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { AddEntityModal } from '../AddEntityModal';
 import { ImportChannelModal } from './ImportChannelModal';
 import { sendPostRequest } from '../../../server/api';
@@ -56,8 +59,9 @@ export const ListHeader: FC<Props> = ({ title, count }) => {
         {title === Menu.CHANNELS && (
           <>
             <Button
-              cssClass="primary"
+              cssClass="secondary"
               title="Import"
+              icon={<IconFileArrowLeft {...BASE_ICON_PROPS} />}
               onClick={() => setShowImportModal(true)}
             />
           </>
@@ -65,6 +69,7 @@ export const ListHeader: FC<Props> = ({ title, count }) => {
         <Button
           cssClass="primary"
           title="Add"
+          icon={<IconPlus {...BASE_ICON_PROPS} />}
           onClick={() => setShowModal(true)}
         />
       </div>
