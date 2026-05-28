@@ -1,7 +1,12 @@
-import { ColDef, GridOptions } from 'ag-grid-community';
+import { ColDef } from 'ag-grid-community';
 import { FC, useEffect, useState } from 'react';
 
 import { loadProviders } from '@/src/app/data-sources/actions';
+import {
+  RADIO_SELECT_COLUMN,
+  SINGLE_SELECT_GRID_CLASS,
+  singleSelectGridOptions,
+} from '@/src/components/AddDataSet/singleSelectGridOptions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
@@ -14,7 +19,7 @@ interface Props {
 }
 
 const PROVIDER_COLUMNS: ColDef[] = [
-  { field: 'id', headerName: 'ID', filter: 'agTextColumnFilter' },
+  { field: 'id', headerName: 'Provider ID', filter: 'agTextColumnFilter' },
   { field: 'name', headerName: 'Name', filter: 'agTextColumnFilter' },
 ];
 
@@ -27,24 +32,11 @@ export const ProviderStep: FC<Props> = ({
   const [providers, setProviders] = useState<Provider[]>([]);
   const [isLoadingProviders, setIsLoadingProviders] = useState(false);
 
-  const gridOptions: GridOptions = {
-    rowSelection: {
-      mode: 'singleRow',
-      checkboxes: true,
-      enableClickSelection: true,
-    },
-    getRowId: (params) => String(params.data.id),
-    onSelectionChanged: (event) => {
-      const selected = event.api.getSelectedRows()[0];
-      if (selected) selectProvider(selected.id);
-    },
-    onFirstDataRendered: (event) => {
-      if (selectedProviderId == null) return;
-      event.api.forEachNode((node) => {
-        if (node.data?.id === selectedProviderId) node.setSelected(true);
-      });
-    },
-  };
+  const gridOptions = singleSelectGridOptions<Provider>({
+    getId: (row) => row.id,
+    selectedId: selectedProviderId,
+    onSelect: (row) => selectProvider(row.id),
+  });
 
   useEffect(() => {
     if (selectedDataSourceId == null) return;
@@ -68,9 +60,9 @@ export const ProviderStep: FC<Props> = ({
     <div className="flex flex-col common-paddings border-b border-solid border-b-tertiary">
       <span className="mb-4 small">Select Provider</span>
 
-      <div className="h-[568px]">
+      <div className={`${SINGLE_SELECT_GRID_CLASS} h-[568px]`}>
         <GridView
-          colDefs={PROVIDER_COLUMNS}
+          colDefs={[RADIO_SELECT_COLUMN, ...PROVIDER_COLUMNS]}
           data={providers}
           additionalOptions={gridOptions}
           emptyDataTitle="No Providers"

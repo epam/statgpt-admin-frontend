@@ -1,7 +1,12 @@
-import { ColDef, GridOptions } from 'ag-grid-community';
+import { ColDef } from 'ag-grid-community';
 import { FC, useEffect, useState } from 'react';
 
 import { loadAvailableDataSets } from '@/src/app/data-sources/actions';
+import {
+  RADIO_SELECT_COLUMN,
+  SINGLE_SELECT_GRID_CLASS,
+  singleSelectGridOptions,
+} from '@/src/components/AddDataSet/singleSelectGridOptions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';
 import { BASE_COLUMNS } from '@/src/constants/columns/common-columns';
@@ -35,29 +40,12 @@ export const DataSetStep: FC<Props> = ({
   const [dataSets, setDataSets] = useState<DataSet[]>([]);
   const [isLoadingDs, setIsLoadingDs] = useState(false);
 
-  const gridOptions: GridOptions = {
-    rowSelection: {
-      mode: 'singleRow',
-      checkboxes: true,
-      enableClickSelection: true,
-    },
-    getRowId: (params) => String(params.data.title),
-    onSelectionChanged: (event) => {
-      const selected = event.api.getSelectedRows()[0];
-      if (selected) {
-        changeDataSet({
-          title: selected.title,
-          details: selected.details,
-        });
-      }
-    },
-    onFirstDataRendered: (event) => {
-      if (!selectedTitle) return;
-      event.api.forEachNode((node) => {
-        if (node.data?.title === selectedTitle) node.setSelected(true);
-      });
-    },
-  };
+  const gridOptions = singleSelectGridOptions<DataSet>({
+    getId: (row) => row.title ?? '',
+    selectedId: selectedTitle,
+    onSelect: (row) =>
+      changeDataSet({ title: row.title, details: row.details }),
+  });
 
   useEffect(() => {
     if (selectedDataSourceId == null || selectedProviderId == null) return;
@@ -81,9 +69,9 @@ export const DataSetStep: FC<Props> = ({
     <div className="flex flex-col common-paddings border-b border-solid border-b-tertiary">
       <span className="mb-4 small">Select Dataset</span>
 
-      <div className="h-[568px]">
+      <div className={`${SINGLE_SELECT_GRID_CLASS} h-[568px]`}>
         <GridView
-          colDefs={[DATASET_URN_COLUMN, ...BASE_COLUMNS]}
+          colDefs={[RADIO_SELECT_COLUMN, DATASET_URN_COLUMN, ...BASE_COLUMNS]}
           data={dataSets}
           additionalOptions={gridOptions}
           emptyDataTitle="No Datasets"
