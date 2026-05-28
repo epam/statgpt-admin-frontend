@@ -7,6 +7,7 @@ import {
 } from '@/src/constants/columns/common-columns';
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
+import { StatusCell } from '@/src/components/GridView/StatusCell/StatusCell';
 
 export const DATA_SOURCE_COLUMNS: ColDef[] = [
   ...BASE_COLUMNS,
@@ -50,6 +51,7 @@ export const DATA_SETS_COLUMNS: ColDef[] = [
     field: 'preprocessing_status',
     headerName: 'Status',
     filter: 'agTextColumnFilter',
+    cellRenderer: StatusCell,
     tooltipField: 'status.details',
     tooltipComponent: DETAILS_TOOLTIP_KEY,
   },

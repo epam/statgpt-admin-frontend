@@ -47,6 +47,7 @@ import {
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
+import { StatusCell } from '@/src/components/GridView/StatusCell/StatusCell';
 import {
   Menu as DropdownMenu,
   MenuItem as DropdownMenuItem,
@@ -192,6 +193,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       field: 'dataset.status.status',
       headerName: 'Dataset Status',
       filter: 'agTextColumnFilter',
+      cellRenderer: StatusCell,
       tooltipField: 'dataset.status.details',
       tooltipComponent: DETAILS_TOOLTIP_KEY,
     },

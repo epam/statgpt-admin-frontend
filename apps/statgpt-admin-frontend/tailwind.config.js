@@ -17,6 +17,7 @@ const backgroundsColors = {
   'accent-tertiary-alpha': 'var(--bg-accent-tertiary-alpha, #A972FF2B)',
   'control-enable-primary': 'var(--control-enable-primary, #FCFCFC)',
   'control-enable-secondary': 'var(--control-enable-secondary, #FCFCFC)',
+  'yellow-800': 'var(--bg-yellow-800, #daae14)',
 };
 
 const buttonsBgColors = {
