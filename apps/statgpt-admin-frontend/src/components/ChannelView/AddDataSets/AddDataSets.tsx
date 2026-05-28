@@ -1,7 +1,9 @@
 import { GridOptions } from 'ag-grid-community';
 import { FC, useEffect, useState } from 'react';
+import { IconPlus } from '@tabler/icons-react';
 
 import { Button } from '@/src/components/BaseComponents/Button/Button';
+import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { GridView } from '@/src/components/GridView/GridView';
 import { Modal } from '@/src/components/Modal/Modal';
 import { BASE_COLUMNS } from '@/src/constants/columns/common-columns';
@@ -77,6 +79,7 @@ export const AddDatasets: FC<Props> = ({ close, add }) => {
         <Button
           cssClass="primary ml-3"
           title="Add"
+          icon={<IconPlus {...BASE_ICON_PROPS} />}
           onClick={() => add(selectedDataSetIds)}
         />
       </div>

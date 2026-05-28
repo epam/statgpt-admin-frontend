@@ -17,8 +17,10 @@ import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { ChannelTerm } from '@/src/models/channel';
 import { GridOptions } from 'ag-grid-community';
+import { IconPlus } from '@tabler/icons-react';
 import { TermsActionColumn } from './ActionColumn/ActionColumn';
 import { AddTerm } from './AddTerm';
+import { BASE_ICON_PROPS } from '@/src/constants/layout';
 
 interface Props {
   selectedChannelId: string;
@@ -180,6 +182,7 @@ export const TermsView: FC<Props> = ({ selectedChannelId }) => {
           <Button
             cssClass="primary ml-3"
             title="Add Term"
+            icon={<IconPlus {...BASE_ICON_PROPS} />}
             onClick={() => add()}
           />
         )}
