@@ -12,6 +12,7 @@ import { generateShortUrn } from '@/src/utils/urn';
 interface Props {
   selectedDataSourceId?: number;
   selectedProviderId?: string;
+  selectedTitle?: string;
   changeDataSet: (dataset: Pick<DataSet, 'title' | 'details'>) => void;
 }
 
@@ -27,6 +28,7 @@ const DATASET_URN_COLUMN: ColDef = {
 export const DataSetStep: FC<Props> = ({
   selectedDataSourceId,
   selectedProviderId,
+  selectedTitle,
   changeDataSet,
 }) => {
   const withNotification = useApiNotification();
@@ -34,11 +36,25 @@ export const DataSetStep: FC<Props> = ({
   const [isLoadingDs, setIsLoadingDs] = useState(false);
 
   const gridOptions: GridOptions = {
-    rowSelection: 'single',
-    onRowSelected: (event) => {
-      changeDataSet({
-        title: event.data.title,
-        details: event.data.details,
+    rowSelection: {
+      mode: 'singleRow',
+      checkboxes: true,
+      enableClickSelection: true,
+    },
+    getRowId: (params) => String(params.data.title),
+    onSelectionChanged: (event) => {
+      const selected = event.api.getSelectedRows()[0];
+      if (selected) {
+        changeDataSet({
+          title: selected.title,
+          details: selected.details,
+        });
+      }
+    },
+    onFirstDataRendered: (event) => {
+      if (!selectedTitle) return;
+      event.api.forEachNode((node) => {
+        if (node.data?.title === selectedTitle) node.setSelected(true);
       });
     },
   };

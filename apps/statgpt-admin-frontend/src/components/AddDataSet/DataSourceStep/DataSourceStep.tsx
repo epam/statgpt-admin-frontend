@@ -7,14 +7,31 @@ import { DataSource } from '@/src/models/data-source';
 
 interface Props {
   data: DataSource[];
+  selectedId?: number;
   selectDataset: (id: number) => void;
 }
 
-export const DataSourceStep: FC<Props> = ({ data, selectDataset }) => {
+export const DataSourceStep: FC<Props> = ({
+  data,
+  selectedId,
+  selectDataset,
+}) => {
   const gridOptions: GridOptions = {
-    rowSelection: 'single',
-    onRowClicked: (event) => {
-      selectDataset(event.data.id);
+    rowSelection: {
+      mode: 'singleRow',
+      checkboxes: true,
+      enableClickSelection: true,
+    },
+    getRowId: (params) => String(params.data.id),
+    onSelectionChanged: (event) => {
+      const selected = event.api.getSelectedRows()[0];
+      if (selected) selectDataset(selected.id);
+    },
+    onFirstDataRendered: (event) => {
+      if (selectedId == null) return;
+      event.api.forEachNode((node) => {
+        if (node.data?.id === selectedId) node.setSelected(true);
+      });
     },
   };
 

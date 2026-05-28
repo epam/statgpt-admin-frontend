@@ -107,6 +107,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
       return (
         <DataSourceStep
           data={dataSources}
+          selectedId={newDataSet?.data_source_id}
           selectDataset={(id) =>
             setDataSet({
               ...(newDataSet || {}),
@@ -121,6 +122,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
       return (
         <ProviderStep
           selectedDataSourceId={newDataSet?.data_source_id}
+          selectedProviderId={selectedProviderId}
           selectProvider={(id) => setSelectedProviderId(id)}
         />
       );
@@ -131,6 +133,7 @@ export const AddDataSetModal: FC<Props> = ({ close }) => {
         <DataSetStep
           selectedDataSourceId={newDataSet?.data_source_id}
           selectedProviderId={selectedProviderId}
+          selectedTitle={newDataSet?.title}
           changeDataSet={({ title, details }) => {
             setDataSet({ ...(newDataSet || {}), title, details } as DataSet);
             setRawConfig(details ? stringify(details) : '');

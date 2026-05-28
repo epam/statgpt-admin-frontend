@@ -9,6 +9,7 @@ import { Provider } from '@/src/models/data-source';
 
 interface Props {
   selectedDataSourceId?: number;
+  selectedProviderId?: string;
   selectProvider: (id: string) => void;
 }
 
@@ -19,6 +20,7 @@ const PROVIDER_COLUMNS: ColDef[] = [
 
 export const ProviderStep: FC<Props> = ({
   selectedDataSourceId,
+  selectedProviderId,
   selectProvider,
 }) => {
   const withNotification = useApiNotification();
@@ -26,9 +28,21 @@ export const ProviderStep: FC<Props> = ({
   const [isLoadingProviders, setIsLoadingProviders] = useState(false);
 
   const gridOptions: GridOptions = {
-    rowSelection: 'single',
-    onRowClicked: (event) => {
-      selectProvider(event.data.id);
+    rowSelection: {
+      mode: 'singleRow',
+      checkboxes: true,
+      enableClickSelection: true,
+    },
+    getRowId: (params) => String(params.data.id),
+    onSelectionChanged: (event) => {
+      const selected = event.api.getSelectedRows()[0];
+      if (selected) selectProvider(selected.id);
+    },
+    onFirstDataRendered: (event) => {
+      if (selectedProviderId == null) return;
+      event.api.forEachNode((node) => {
+        if (node.data?.id === selectedProviderId) node.setSelected(true);
+      });
     },
   };
 
