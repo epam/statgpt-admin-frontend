@@ -1,9 +1,11 @@
 'use client';
 
 import { useCallback } from 'react';
+import { IconFileArrowRight, IconRefresh } from '@tabler/icons-react';
 import { Button } from '../BaseComponents/Button/Button';
 import { TimePeriodDropdown } from './TimePeriodDropdown';
 import { useAuditLogFiltersInUrl } from '@/src/hooks/use-audit-logs-filters-in-url';
+import { BASE_ICON_PROPS } from '@/src/constants/layout';
 
 export const AuditLogsHeader = ({
   count,
@@ -35,8 +37,18 @@ export const AuditLogsHeader = ({
           onChange={(range) => setFilters(range)}
         />
         <div className="h-6 border-l border-l-primary" />
-        <Button cssClass="secondary" title="Refresh" onClick={onRefresh} />
-        <Button cssClass="primary" title="Export" onClick={exportHandler} />
+        <Button
+          cssClass="secondary"
+          title="Refresh"
+          icon={<IconRefresh {...BASE_ICON_PROPS} />}
+          onClick={onRefresh}
+        />
+        <Button
+          cssClass="primary"
+          title="Export"
+          icon={<IconFileArrowRight {...BASE_ICON_PROPS} />}
+          onClick={exportHandler}
+        />
       </div>
     </div>
   );

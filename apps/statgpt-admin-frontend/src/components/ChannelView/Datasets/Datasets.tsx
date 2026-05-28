@@ -39,7 +39,12 @@ import {
 import { AddDatasets } from '../AddDataSets/AddDataSets';
 import { ConfirmDialog } from '@/src/components/BaseComponents/ConfirmDialog/ConfirmDialog';
 import { PopUpState } from '@/src/types/modal';
-import { IconDownload } from '@tabler/icons-react';
+import {
+  IconFileArrowRight,
+  IconPlus,
+  IconRefreshDot,
+} from '@tabler/icons-react';
+import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
 import {
@@ -369,7 +374,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           <Button
             title="Export"
             cssClass="secondary mr-3"
-            icon={<IconDownload width={18} height={18} />}
+            icon={<IconFileArrowRight {...BASE_ICON_PROPS} />}
             onClick={() => exportEntity()}
           />
 
@@ -382,6 +387,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
                 type="button"
                 className="secondary mr-3 flex items-center gap-2"
               >
+                <IconRefreshDot {...BASE_ICON_PROPS} />
                 Recalculate all indexes
                 <ArrowUpIcon
                   width={18}
@@ -405,6 +411,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           <Button
             title="Add"
             cssClass="primary"
+            icon={<IconPlus {...BASE_ICON_PROPS} />}
             onClick={() => setShowAddDatasetsModal(true)}
           />
         </div>
