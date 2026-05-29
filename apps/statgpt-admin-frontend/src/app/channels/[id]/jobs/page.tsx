@@ -1,9 +1,21 @@
 'use client';
-import { JobsView } from '@/src/components/JobsView/JobsView';
+
 import { useParams } from 'next/navigation';
+
+import { JobsView } from '@/src/components/JobsView/JobsView';
+import { useSetBreadcrumbs } from '@/src/context/BreadcrumbContext';
+import { useChannelData } from '@/src/context/ChannelDataContext';
 
 export default function Page() {
   const params = useParams();
+  const id = params.id as string;
+  const { channel } = useChannelData();
 
-  return <JobsView selectedChannelId={params.id as string} />;
+  useSetBreadcrumbs([
+    { name: 'Channels', href: '/channels' },
+    { name: channel?.title ?? id, href: `/channels/${id}` },
+    { name: 'Jobs' },
+  ]);
+
+  return <JobsView selectedChannelId={id} />;
 }

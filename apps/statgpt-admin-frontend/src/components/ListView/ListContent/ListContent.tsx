@@ -16,6 +16,7 @@ import { ListHeader } from '../ListHeader/ListHeader';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '@/src/models/notification';
 import { useNavigationLoading } from '@/src/context/NavigationLoadingContext';
+import { useSetBreadcrumbs } from '@/src/context/BreadcrumbContext';
 import { useIsomorphicLayoutEffect } from '@/src/utils/useIsomorphicLayoutEffect';
 
 interface Props<T = BaseEntity> {
@@ -50,6 +51,8 @@ export function ListContent<T = BaseEntity>({
   const { setLoading } = useNavigationLoading();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pendingRefreshRef = useRef(false);
+
+  useSetBreadcrumbs([{ name: menuItem }]);
 
   const handleConfigureSaved = useCallback(() => {
     pendingRefreshRef.current = true;
