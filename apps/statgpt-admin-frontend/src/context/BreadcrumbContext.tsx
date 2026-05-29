@@ -21,18 +21,15 @@ interface BreadcrumbContextValue {
   setBreadcrumbs: (crumbs: BreadcrumbEntry[]) => void;
 }
 
-const BreadcrumbContext = createContext<BreadcrumbContextValue | null>(null);
-
 const EMPTY: BreadcrumbEntry[] = [];
 
+const BreadcrumbContext = createContext<BreadcrumbContextValue>({
+  breadcrumbs: EMPTY,
+  setBreadcrumbs: () => {},
+});
+
 function useBreadcrumbContext(): BreadcrumbContextValue {
-  const ctx = useContext(BreadcrumbContext);
-  if (!ctx) {
-    throw new Error(
-      'useBreadcrumbs/useSetBreadcrumbs must be used within a BreadcrumbProvider',
-    );
-  }
-  return ctx;
+  return useContext(BreadcrumbContext);
 }
 
 export function useBreadcrumbs(): BreadcrumbEntry[] {
