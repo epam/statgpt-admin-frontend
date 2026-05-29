@@ -17,6 +17,7 @@ import { ActionItem } from '@/src/components/GridView/ActionColumn/ActionItem';
 import { EntityOperation } from '@/src/constants/columns/action';
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { Menu } from '@/src/constants/menu';
+import { ROUTES } from '@/src/constants/routes';
 import { BaseEntityWithDetails } from '@/src/models/base-entity';
 import { ChannelResult, DataSetUpdateResponse } from '@/src/models/data-sets';
 import { sendDeleteRequest, sendPostRequest } from '@/src/server/api';
@@ -184,25 +185,23 @@ export const ActionColumn: FC<Props> = ({
               }
 
               if (item === EntityOperation.Terms) {
-                router.push(`/channels/${data.id}/glossary`);
+                router.push(ROUTES.channelGlossary(data.id));
               }
 
               if (item === EntityOperation.Jobs) {
-                router.push(`/channels/${data.id}/jobs`);
+                router.push(ROUTES.channelJobs(data.id));
               }
 
               if (item === EntityOperation.AutoUpdateJobs) {
                 const channelId = pathname.split('/')[2];
                 router.push(
-                  `/channels/${channelId}/datasets/${data.dataset_id}/auto-update-jobs`,
+                  ROUTES.datasetAutoUpdateJobs(channelId, data.dataset_id),
                 );
               }
 
               if (item === EntityOperation.Versions) {
                 const channelId = pathname.split('/')[2];
-                router.push(
-                  `/channels/${channelId}/datasets/${data.dataset_id}/versions`,
-                );
+                router.push(ROUTES.datasetVersions(channelId, data.dataset_id));
               }
             }}
           />

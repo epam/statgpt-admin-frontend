@@ -4,7 +4,8 @@ import { ColDef, GridOptions } from 'ag-grid-community';
 import { useRouter } from 'next/navigation';
 import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 
-import { Menu, MenuUrl } from '@/src/constants/menu';
+import { Menu } from '@/src/constants/menu';
+import { ROUTES } from '@/src/constants/routes';
 import { BaseEntity } from '@/src/models/base-entity';
 import {
   GridView,
@@ -89,7 +90,7 @@ export function ListContent<T = BaseEntity>({
       }
 
       if (event.data?.id && menuItem === Menu.CHANNELS) {
-        router.push(`${MenuUrl.CHANNELS}/${event.data.id}`);
+        router.push(ROUTES.channel(event.data.id));
       }
     },
     [menuItem, router],

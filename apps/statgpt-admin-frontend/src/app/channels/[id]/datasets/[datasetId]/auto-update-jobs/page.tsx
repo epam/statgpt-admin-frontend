@@ -6,6 +6,8 @@ import { AutoUpdateJobsView } from '@/src/components/ChannelView/Datasets/AutoUp
 import { useSetBreadcrumbs } from '@/src/context/BreadcrumbContext';
 import { useChannelData } from '@/src/context/ChannelDataContext';
 import { useDatasetData } from '@/src/context/DatasetDataContext';
+import { Menu } from '@/src/constants/menu';
+import { ROUTES } from '@/src/constants/routes';
 
 export default function Page() {
   const params = useParams();
@@ -15,8 +17,8 @@ export default function Page() {
   const { dataset } = useDatasetData();
 
   useSetBreadcrumbs([
-    { name: 'Channels', href: '/channels' },
-    { name: channel?.title ?? channelId, href: `/channels/${channelId}` },
+    { name: Menu.CHANNELS, href: ROUTES.channels },
+    { name: channel?.title ?? channelId, href: ROUTES.channel(channelId) },
     { name: dataset?.dataset.title ?? datasetId },
     { name: 'Auto Update Jobs' },
   ]);

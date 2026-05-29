@@ -5,6 +5,7 @@ import { ColDef, ICellRendererParams, ITooltipParams } from 'ag-grid-community';
 import { IconExternalLink } from '@tabler/icons-react';
 
 import { ChannelResult, ChannelResultStatus } from '@/src/models/data-sets';
+import { ROUTES } from '@/src/constants/routes';
 import { AlertBanner } from '@/src/components/BaseComponents/AlertBanner/AlertBanner';
 import { GridView } from '@/src/components/GridView/GridView';
 import { mergeClasses } from '@/src/utils/mergeClasses';
@@ -25,7 +26,7 @@ const ChannelNameCell = ({ data }: ICellRendererParams<ChannelResult>) => {
     <div className="flex items-center gap-2">
       <span>{data.channel.title}</span>
       <a
-        href={`/channels/${data.channel.id}`}
+        href={ROUTES.channel(data.channel.id)}
         target="_blank"
         rel="noopener noreferrer"
         className="text-accent-primary flex items-center"
