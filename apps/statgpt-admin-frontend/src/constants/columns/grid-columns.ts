@@ -8,6 +8,8 @@ import {
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
 import { StatusCell } from '@/src/components/GridView/StatusCell/StatusCell';
+import { CheckboxFilter } from '@/src/components/GridView/CustomFilters/CheckboxFilter/CheckboxFilter';
+import { CheckboxEmptyFilter } from '@/src/components/GridView/CustomFilters/CheckboxFilter/CheckboxEmptyFilter';
 
 export const DATA_SOURCE_COLUMNS: ColDef[] = [
   ...BASE_COLUMNS,
@@ -40,12 +42,14 @@ export const CHANNELS_COLUMNS: ColDef[] = [
   }),
 ];
 
-export const DATA_SETS_COLUMNS: ColDef[] = [
+export const getDataSetsColumns = (dataSources: string[]): ColDef[] => [
   ...BASE_COLUMNS,
   {
     field: 'data_source.title',
     headerName: 'Data Source',
-    filter: 'agTextColumnFilter',
+    filter: CheckboxFilter,
+    filterParams: { values: dataSources },
+    floatingFilterComponent: CheckboxEmptyFilter,
   },
   {
     field: 'preprocessing_status',
@@ -57,8 +61,10 @@ export const DATA_SETS_COLUMNS: ColDef[] = [
   },
 ];
 
-export const DATA_SETS_COLUMNS_WITH_ACTIONS: ColDef[] = [
-  ...DATA_SETS_COLUMNS,
+export const getDataSetsColumnsWithActions = (
+  dataSources: string[],
+): ColDef[] => [
+  ...getDataSetsColumns(dataSources),
   ACTION_COLUMN({
     listView: Menu.DATA_SETS,
     items: [EntityOperation.EditDataset, EntityOperation.Delete],

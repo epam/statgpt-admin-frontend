@@ -5,7 +5,7 @@ import { dataSetsApi } from '@/src/app/api/api';
 import { ListView } from '@/src/components/ListView/ListView';
 import { ForbiddenTrigger } from '@/src/components/NoAccess/ForbiddenTrigger';
 import { SIGN_IN_LINK } from '@/src/constants/auth';
-import { DATA_SETS_COLUMNS_WITH_ACTIONS } from '@/src/constants/columns/grid-columns';
+import { getDataSetsColumnsWithActions } from '@/src/constants/columns/grid-columns';
 import { Menu } from '@/src/constants/menu';
 import { DataSet } from '@/src/models/data-sets';
 import { RequestData } from '@/src/models/request-data';
@@ -35,11 +35,20 @@ export default async function Page() {
     logger.error(`Getting data sets error ${result.error.message}`);
   }
 
+  const rows = data?.data ?? [];
+  const uniqueDataSources = [
+    ...new Set(
+      rows
+        .map((ds) => (ds as Record<string, any>).data_source?.title)
+        .filter((t): t is string => typeof t === 'string'),
+    ),
+  ];
+
   return (
     <ListView
       menuItem={Menu.DATA_SETS}
-      colDefs={DATA_SETS_COLUMNS_WITH_ACTIONS}
-      data={data?.data || []}
+      colDefs={getDataSetsColumnsWithActions(uniqueDataSources)}
+      data={rows}
       emptyDataTitle="No Datasets"
       initialError={result.ok ? null : result.error.message}
     />
