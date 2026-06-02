@@ -60,10 +60,10 @@ export function CheckboxFilter({ model, onModelChange, values }: Props) {
 
       {visible.length > 0 && (
         <div className="flex max-h-[240px] flex-col gap-3 overflow-y-auto">
-          {visible.map((v) => (
+          {visible.map((v, index) => (
             <div key={v} className="w-full pl-6">
               <Checkbox
-                id={`checkbox-filter-${v}`}
+                id={`checkbox-filter-${index}`}
                 label={v}
                 checked={selected.includes(v)}
                 onChange={(checked) => toggleValue(v, checked ?? false)}

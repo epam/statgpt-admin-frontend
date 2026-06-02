@@ -34,18 +34,14 @@ export default async function Page() {
   }
 
   const rows = data?.data ?? [];
-  const uniqueDataSources = [
-    ...new Set(
-      rows
-        .map((ds) => (ds as Record<string, any>).data_source?.title)
-        .filter((t): t is string => typeof t === 'string'),
-    ),
-  ];
+  const dataSources = rows
+    .map((ds) => (ds as Record<string, any>).data_source?.title)
+    .filter((t): t is string => typeof t === 'string');
 
   return (
     <DataSetsView
       data={rows}
-      dataSources={uniqueDataSources}
+      dataSources={dataSources}
       initialError={result.ok ? null : result.error.message}
     />
   );
