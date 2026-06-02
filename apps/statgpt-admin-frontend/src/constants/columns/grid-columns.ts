@@ -1,4 +1,4 @@
-import { ColDef } from 'ag-grid-community';
+import { ColDef, IDoesFilterPassParams } from 'ag-grid-community';
 
 import { Menu } from '@/src/constants/menu';
 import {
@@ -10,6 +10,18 @@ import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/De
 import { StatusCell } from '@/src/components/GridView/StatusCell/StatusCell';
 import { CheckboxFilter } from '@/src/components/GridView/CustomFilters/CheckboxFilter/CheckboxFilter';
 import { CheckboxEmptyFilter } from '@/src/components/GridView/CustomFilters/CheckboxFilter/CheckboxEmptyFilter';
+import { GridCheckboxFilterModel } from '@/src/models/grid';
+import { getNestedValue } from '@/src/utils/client/grid';
+
+const DATA_SOURCE_FIELD = 'data_source.title';
+
+const dataSourceDoesFilterPass = (
+  params: IDoesFilterPassParams & { model?: GridCheckboxFilterModel },
+): boolean => {
+  const model = params.model;
+  if (!model || !model.values.length) return true;
+  return model.values.includes(getNestedValue(params.data, DATA_SOURCE_FIELD));
+};
 
 export const DATA_SOURCE_COLUMNS: ColDef[] = [
   ...BASE_COLUMNS,
@@ -45,9 +57,12 @@ export const CHANNELS_COLUMNS: ColDef[] = [
 export const getDataSetsColumns = (dataSources: string[]): ColDef[] => [
   ...BASE_COLUMNS,
   {
-    field: 'data_source.title',
+    field: DATA_SOURCE_FIELD,
     headerName: 'Data Source',
-    filter: CheckboxFilter,
+    filter: {
+      component: CheckboxFilter,
+      doesFilterPass: dataSourceDoesFilterPass,
+    },
     filterParams: { values: dataSources },
     floatingFilterComponent: CheckboxEmptyFilter,
   },

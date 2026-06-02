@@ -24,18 +24,20 @@ const Checkbox: FC<Props> = ({ label, id, checked, onChange }) => {
   const checkboxClassNames = classNames(
     'flex flex-row items-center cursor-pointer text-accent-primary',
     'small-medium',
-    `${checked ? '' : 'before:content-[""] before:inline-block before:w-[18px] before:h-[18px] before:border before:border-hover before:rounded before:mr-2'}`,
+    `${checked ? '' : 'before:content-[""] before:inline-block before:shrink-0 before:w-[18px] before:h-[18px] before:border before:border-hover before:rounded before:mr-2'}`,
   );
 
   const checkboxFilledClassNames = classNames(
-    'mr-2',
+    'shrink-0 mr-2',
     `${checked ? '' : 'hidden'}`,
   );
 
   return (
     <label className={checkboxClassNames} htmlFor={id}>
       <CheckboxFilled className={checkboxFilledClassNames} />
-      <p className="text-primary"> {label}</p>
+      <p className="text-primary min-w-0 truncate" title={label}>
+        {label}
+      </p>
       <input
         type="checkbox"
         onChange={onClick}

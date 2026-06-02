@@ -2,12 +2,10 @@ import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { dataSetsApi } from '@/src/app/api/api';
-import { ListView } from '@/src/components/ListView/ListView';
 import { ForbiddenTrigger } from '@/src/components/NoAccess/ForbiddenTrigger';
 import { SIGN_IN_LINK } from '@/src/constants/auth';
-import { getDataSetsColumnsWithActions } from '@/src/constants/columns/grid-columns';
-import { Menu } from '@/src/constants/menu';
 import { DataSet } from '@/src/models/data-sets';
+import { DataSetsView } from './DataSetsView';
 import { RequestData } from '@/src/models/request-data';
 import { logger } from '@/src/server/logger';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
@@ -45,11 +43,9 @@ export default async function Page() {
   ];
 
   return (
-    <ListView
-      menuItem={Menu.DATA_SETS}
-      colDefs={getDataSetsColumnsWithActions(uniqueDataSources)}
+    <DataSetsView
       data={rows}
-      emptyDataTitle="No Datasets"
+      dataSources={uniqueDataSources}
       initialError={result.ok ? null : result.error.message}
     />
   );
