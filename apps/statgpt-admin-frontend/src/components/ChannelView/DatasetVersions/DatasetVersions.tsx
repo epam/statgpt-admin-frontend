@@ -5,17 +5,14 @@ import { FC, useEffect, useState } from 'react';
 import { GridView } from '@/src/components/GridView/GridView';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { useAccessControl } from '@/src/context/AccessControlContext';
+import { useDatasetData } from '@/src/context/DatasetDataContext';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { ChannelDatasetVersion } from '@/src/models/channel-dataset-version';
 import { PreprocessingStatusCell } from '@/src/components/GridView/PreprocessingStatusCell/PreprocessingStatusCell';
 import { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
-import {
-  CHANNEL_DATA_SETS_URL,
-  CHANNEL_DATASET_VERSIONS_URL,
-} from '@/src/server/channels-api';
+import { CHANNEL_DATASET_VERSIONS_URL } from '@/src/server/channels-api';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
-import { ChannelDataset } from '@/src/models/channel-dataset';
 
 interface Props {
   channelId: string;
@@ -82,26 +79,11 @@ const GRID_COLUMNS = [
 export const DatasetVersions: FC<Props> = ({ channelId, datasetId }) => {
   const withNotification = useApiNotification();
   const { setForbidden } = useAccessControl();
+  const { dataset } = useDatasetData();
 
   const [versions, setVersions] = useState<ChannelDatasetVersion[]>([]);
-  const [datasetTitle, setDatasetTitle] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   usePageInitialLoadingSync(isLoading);
-
-  useEffect(() => {
-    if (!channelId || !datasetId) return;
-
-    sendGetRequest<RequestData<ChannelDataset>>(
-      CHANNEL_DATA_SETS_URL(channelId),
-    ).then((result) => {
-      if (result.ok) {
-        const match = result.data.data.find(
-          (ds) => String(ds.dataset_id) === datasetId,
-        );
-        if (match) setDatasetTitle(match.dataset.title);
-      }
-    });
-  }, [channelId, datasetId]);
 
   useEffect(() => {
     if (!channelId || !datasetId) return;
@@ -123,7 +105,9 @@ export const DatasetVersions: FC<Props> = ({ channelId, datasetId }) => {
         setVersions(result.data.data);
       }
     });
-  }, [channelId, datasetId]);
+  }, [channelId, datasetId, setForbidden, withNotification]);
+
+  const datasetTitle = dataset?.dataset.title;
 
   return isLoading ? (
     <div className="flex items-center w-full justify-center h-full">
