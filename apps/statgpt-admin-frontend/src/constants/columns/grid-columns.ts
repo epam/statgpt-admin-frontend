@@ -1,4 +1,4 @@
-import { ColDef } from 'ag-grid-community';
+import { ColDef, DoesFilterPassParams } from 'ag-grid-community';
 
 import { Menu } from '@/src/constants/menu';
 import {
@@ -8,6 +8,22 @@ import {
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
 import { StatusCell } from '@/src/components/GridView/StatusCell/StatusCell';
+import { CheckboxFilter } from '@/src/components/GridView/CustomFilters/CheckboxFilter/CheckboxFilter';
+import { GridCheckboxFilterModel } from '@/src/models/grid';
+import { getNestedValue } from '@/src/utils/client/grid';
+
+const DATA_SOURCE_FIELD = 'data_source.title';
+
+const createCheckboxFilter = (field: string) => ({
+  component: CheckboxFilter,
+  doesFilterPass: (
+    params: DoesFilterPassParams<unknown, unknown, GridCheckboxFilterModel>,
+  ): boolean => {
+    const model = params.model;
+    if (!model || !model.values.length) return true;
+    return model.values.includes(getNestedValue(params.data, field));
+  },
+});
 
 export const DATA_SOURCE_COLUMNS: ColDef[] = [
   ...BASE_COLUMNS,
@@ -40,12 +56,14 @@ export const CHANNELS_COLUMNS: ColDef[] = [
   }),
 ];
 
-export const DATA_SETS_COLUMNS: ColDef[] = [
+export const getDataSetsColumns = (dataSources: string[]): ColDef[] => [
   ...BASE_COLUMNS,
   {
-    field: 'data_source.title',
+    field: DATA_SOURCE_FIELD,
     headerName: 'Data Source',
-    filter: 'agTextColumnFilter',
+    filter: createCheckboxFilter(DATA_SOURCE_FIELD),
+    filterParams: { values: dataSources },
+    floatingFilter: false,
   },
   {
     field: 'preprocessing_status',
@@ -57,8 +75,10 @@ export const DATA_SETS_COLUMNS: ColDef[] = [
   },
 ];
 
-export const DATA_SETS_COLUMNS_WITH_ACTIONS: ColDef[] = [
-  ...DATA_SETS_COLUMNS,
+export const getDataSetsColumnsWithActions = (
+  dataSources: string[],
+): ColDef[] => [
+  ...getDataSetsColumns(dataSources),
   ACTION_COLUMN({
     listView: Menu.DATA_SETS,
     items: [EntityOperation.EditDataset, EntityOperation.Delete],

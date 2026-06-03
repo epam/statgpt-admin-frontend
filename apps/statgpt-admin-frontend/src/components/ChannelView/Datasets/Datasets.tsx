@@ -22,7 +22,6 @@ import {
   DataSet,
   DataSetUpdateResponse,
 } from '@/src/models/data-sets';
-import { ChannelDataset } from '@/src/models/channel-dataset';
 import { ChannelIndexStatus } from '@/src/models/channel-index-status';
 import { NotificationType } from '@/src/models/notification';
 import { RequestData } from '@/src/models/request-data';
@@ -55,7 +54,9 @@ import {
 import ArrowUpIcon from '@/public/icons/arrow-up.svg';
 import { DeduplicationAlert } from './DeduplicationAlert';
 import { DeduplicationStatsModal } from './DeduplicationStatsModal';
-import { ColDef, ITooltipParams, ValueGetterParams } from 'ag-grid-community';
+import { LastVersionCheckCell } from './LastVersionCheckCell';
+import { VersionCell } from '@/src/components/GridView/VersionCell/VersionCell';
+import { ColDef } from 'ag-grid-community';
 
 interface Props {
   selectedChannelId?: string;
@@ -198,9 +199,11 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       tooltipComponent: DETAILS_TOOLTIP_KEY,
     },
     {
-      field: 'last_completed_version.version',
       headerName: 'Completed Version',
-      filter: 'agTextColumnFilter',
+      cellRenderer: VersionCell,
+      cellRendererParams: { versionField: 'last_completed_version' },
+      cellStyle: { overflow: 'visible' },
+      tooltipValueGetter: () => undefined,
     },
     {
       field: 'last_completed_version.updated_at',
@@ -208,9 +211,11 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
       filter: 'agTextColumnFilter',
     },
     {
-      field: 'latest_version.version',
       headerName: 'Latest Version',
-      filter: 'agTextColumnFilter',
+      cellRenderer: VersionCell,
+      cellRendererParams: { versionField: 'latest_version' },
+      cellStyle: { overflow: 'visible' },
+      tooltipValueGetter: () => undefined,
     },
     {
       field: 'latest_version.updated_at',
@@ -220,27 +225,10 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
         value ? new Date(value).toLocaleString() : '',
     },
     {
-      field: 'latest_version.preprocessing_status',
-      headerName: 'Latest Status',
-      filter: 'agTextColumnFilter',
-    },
-    {
-      headerName: 'Last check',
-      valueGetter: (params: ValueGetterParams) => {
-        const job = (params.data as ChannelDataset)?.last_auto_update_job;
-        if (!job) return '';
-        const label = job.status !== 'COMPLETED' ? job.status : job.result;
-        const date = job.updated_at
-          ? new Date(job.updated_at).toLocaleString()
-          : '';
-        return [label, date].filter(Boolean).join(' | ');
-      },
-      tooltipValueGetter: (params: ITooltipParams) => {
-        const job = (params.data as ChannelDataset)?.last_auto_update_job;
-        if (!job) return null;
-        return job.details || job.reason_for_failure || null;
-      },
-      tooltipComponent: DETAILS_TOOLTIP_KEY,
+      headerName: 'Last Version Check',
+      cellRenderer: LastVersionCheckCell,
+      cellStyle: { overflow: 'visible' },
+      tooltipValueGetter: () => undefined,
     },
     ACTION_COLUMN({
       listView: Menu.CHANNEL_DATASETS,

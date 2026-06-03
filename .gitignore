@@ -4,6 +4,7 @@
 dist
 tmp
 /out-tsc
+tsconfig.tsbuildinfo
 
 # dependencies
 node_modules
@@ -42,6 +43,7 @@ Thumbs.db
 out
 
 # local env files
+.env
 .env*.local
 
 

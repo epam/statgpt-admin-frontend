@@ -4,7 +4,8 @@ import { ColDef, GridOptions } from 'ag-grid-community';
 import { useRouter } from 'next/navigation';
 import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 
-import { Menu, MenuUrl } from '@/src/constants/menu';
+import { Menu } from '@/src/constants/menu';
+import { ROUTES } from '@/src/constants/routes';
 import { BaseEntity } from '@/src/models/base-entity';
 import {
   GridView,
@@ -16,6 +17,7 @@ import { ListHeader } from '../ListHeader/ListHeader';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '@/src/models/notification';
 import { useNavigationLoading } from '@/src/context/NavigationLoadingContext';
+import { useSetBreadcrumbs } from '@/src/context/BreadcrumbContext';
 import { useIsomorphicLayoutEffect } from '@/src/utils/useIsomorphicLayoutEffect';
 
 interface Props<T = BaseEntity> {
@@ -50,6 +52,8 @@ export function ListContent<T = BaseEntity>({
   const { setLoading } = useNavigationLoading();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pendingRefreshRef = useRef(false);
+
+  useSetBreadcrumbs([{ name: menuItem }]);
 
   const handleConfigureSaved = useCallback(() => {
     pendingRefreshRef.current = true;
@@ -86,7 +90,7 @@ export function ListContent<T = BaseEntity>({
       }
 
       if (event.data?.id && menuItem === Menu.CHANNELS) {
-        router.push(`${MenuUrl.CHANNELS}/${event.data.id}`);
+        router.push(ROUTES.channel(event.data.id));
       }
     },
     [menuItem, router],

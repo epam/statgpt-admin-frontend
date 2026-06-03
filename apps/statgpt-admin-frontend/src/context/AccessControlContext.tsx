@@ -3,8 +3,10 @@
 import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { usePathname } from 'next/navigation';
@@ -31,10 +33,11 @@ export function AccessControlProvider({ children }: { children: ReactNode }) {
     setIsForbidden(false);
   }, [pathname]);
 
+  const setForbidden = useCallback(() => setIsForbidden(true), []);
+  const value = useMemo(() => ({ setForbidden }), [setForbidden]);
+
   return (
-    <AccessControlContext.Provider
-      value={{ setForbidden: () => setIsForbidden(true) }}
-    >
+    <AccessControlContext.Provider value={value}>
       {isForbidden ? <NoAccessView /> : children}
     </AccessControlContext.Provider>
   );
