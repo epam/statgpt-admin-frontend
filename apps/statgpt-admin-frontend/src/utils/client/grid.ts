@@ -52,6 +52,16 @@ export function getEnumFilterValue(
   return value || undefined;
 }
 
+export function getNestedValue(data: unknown, field: string): string {
+  const parts = field.split('.');
+  let cur: unknown = data;
+  for (const part of parts) {
+    if (cur == null || typeof cur !== 'object') return '';
+    cur = (cur as Record<string, unknown>)[part];
+  }
+  return String(cur ?? '');
+}
+
 export function normalizeEnumValues(values: readonly string[]) {
   const seen = new Set<string>();
   const out: string[] = [];
