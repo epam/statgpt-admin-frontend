@@ -1,14 +1,12 @@
 'use client';
 
 import { ICellRendererParams } from 'ag-grid-community';
-import { IconExclamationCircle } from '@tabler/icons-react';
 
-import Check from '@/public/icons/check.svg';
 import {
   PREPROCESSING_STATUS_LABEL,
   PreprocessingStatus,
 } from '@/src/models/preprocessing-status';
-import { Tooltip } from '@/src/components/BaseComponents/Tooltip/Tooltip';
+import { PreprocessingStatusIcon } from './PreprocessingStatusIcon';
 import { mergeClasses } from '@/src/utils/mergeClasses';
 
 interface WithFailureReason {
@@ -21,11 +19,9 @@ export const PreprocessingStatusCell = ({
 }: ICellRendererParams<WithFailureReason>) => {
   if (value == null || value === '') return null;
 
-  const label =
-    PREPROCESSING_STATUS_LABEL[value as PreprocessingStatus] ?? String(value);
-  const isCompleted = value === PreprocessingStatus.COMPLETED;
-  const isFailed = value === PreprocessingStatus.FAILED;
-  const failureReason = data?.reason_for_failure;
+  const status = value as PreprocessingStatus;
+  const label = PREPROCESSING_STATUS_LABEL[status] ?? String(value);
+  const isFailed = status === PreprocessingStatus.FAILED;
 
   return (
     <div
@@ -35,17 +31,10 @@ export const PreprocessingStatusCell = ({
       )}
     >
       <span>{label}</span>
-      {isCompleted && (
-        <Check className="[&_path]:fill-[var(--icon-accent-secondary,#37BABC)] size-4 flex-shrink-0 ml-auto" />
-      )}
-      {isFailed && failureReason && (
-        <Tooltip content={failureReason} className="ml-auto flex-shrink-0">
-          <IconExclamationCircle
-            size={16}
-            className="text-icon-error cursor-help"
-          />
-        </Tooltip>
-      )}
+      <PreprocessingStatusIcon
+        status={status}
+        failureReason={data?.reason_for_failure}
+      />
     </div>
   );
 };
