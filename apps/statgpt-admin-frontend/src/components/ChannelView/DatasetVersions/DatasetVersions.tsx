@@ -8,6 +8,7 @@ import { useAccessControl } from '@/src/context/AccessControlContext';
 import { useDatasetData } from '@/src/context/DatasetDataContext';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { ChannelDatasetVersion } from '@/src/models/channel-dataset-version';
+import { PreprocessingStatusCell } from '@/src/components/GridView/PreprocessingStatusCell/PreprocessingStatusCell';
 import { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
 import { CHANNEL_DATASET_VERSIONS_URL } from '@/src/server/channels-api';
@@ -24,15 +25,13 @@ const GRID_COLUMNS = [
     field: 'preprocessing_status',
     headerName: 'Status',
     filter: 'agTextColumnFilter',
+    cellRenderer: PreprocessingStatusCell,
+    cellStyle: { overflow: 'visible' },
+    tooltipValueGetter: () => undefined,
   },
   {
     field: 'creation_reason',
     headerName: 'Creation Reason',
-    filter: 'agTextColumnFilter',
-  },
-  {
-    field: 'reason_for_failure',
-    headerName: 'Failure Reason',
     filter: 'agTextColumnFilter',
   },
   {
@@ -116,8 +115,8 @@ export const DatasetVersions: FC<Props> = ({ channelId, datasetId }) => {
     </div>
   ) : (
     <div className="bg-layer-2 flex flex-col h-full common-paddings">
-      <h1 className="mb-4">
-        {datasetTitle ? `${datasetTitle} — Versions` : 'Dataset Versions'}
+      <h1 className="mb-6">
+        {datasetTitle ? `${datasetTitle}: Versions` : 'Dataset Versions'}
       </h1>
       <div className="flex-1 min-h-0">
         <GridView

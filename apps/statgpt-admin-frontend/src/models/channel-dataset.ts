@@ -1,15 +1,5 @@
-export interface AutoUpdateJob {
-  id: number;
-  created_at: string;
-  updated_at: string;
-  channel_dataset_id: number;
-  base_version_id: number;
-  created_version_id: number;
-  status: string;
-  result: string;
-  details: string;
-  reason_for_failure: string;
-}
+import { AutoUpdateJob } from '@/src/models/auto-update-job';
+import { ChannelDatasetVersion } from '@/src/models/channel-dataset-version';
 
 export interface ChannelDataset {
   dataset_id: number;
@@ -19,5 +9,7 @@ export interface ChannelDataset {
     description: string;
     data_source: { title: string };
   };
+  last_completed_version?: ChannelDatasetVersion | null;
+  latest_version?: ChannelDatasetVersion | null;
   last_auto_update_job?: AutoUpdateJob | null;
 }

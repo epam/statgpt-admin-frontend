@@ -1,10 +1,12 @@
+import { PreprocessingStatus } from '@/src/models/preprocessing-status';
+
 export interface ChannelDatasetVersion {
   id: number;
   created_at: string;
   updated_at: string;
   channel_dataset_id: number;
   version: number;
-  preprocessing_status: string;
+  preprocessing_status: PreprocessingStatus;
   creation_reason: string;
   reason_for_failure: string;
   pointer_to: number;
