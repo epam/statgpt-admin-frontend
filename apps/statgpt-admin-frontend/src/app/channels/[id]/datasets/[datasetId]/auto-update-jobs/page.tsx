@@ -20,7 +20,7 @@ export default function Page() {
     { name: Menu.CHANNELS, href: ROUTES.channels },
     { name: channel?.title ?? channelId, href: ROUTES.channel(channelId) },
     { name: dataset?.dataset.title ?? datasetId },
-    { name: 'Auto Update Jobs' },
+    { name: 'Version checks' },
   ]);
 
   return (
