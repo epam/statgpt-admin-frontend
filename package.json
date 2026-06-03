@@ -14,7 +14,7 @@
   "dependencies": {
     "@floating-ui/react": "^0.27.16",
     "@monaco-editor/react": "^4.7.0",
-    "@tabler/icons-react": "^3.34.1",
+    "@tabler/icons-react": "^3.44.0",
     "ag-grid-community": "^34.1.0",
     "ag-grid-react": "^34.1.0",
     "classnames": "^2.5.1",
