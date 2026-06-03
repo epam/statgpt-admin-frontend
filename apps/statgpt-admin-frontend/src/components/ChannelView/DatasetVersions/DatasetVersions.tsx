@@ -7,7 +7,7 @@ import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { ChannelDatasetVersion } from '@/src/models/channel-dataset-version';
-import { VersionStatusCell } from '@/src/components/ChannelView/DatasetVersions/VersionStatusCell';
+import { PreprocessingStatusCell } from '@/src/components/GridView/PreprocessingStatusCell/PreprocessingStatusCell';
 import { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
 import {
@@ -28,8 +28,9 @@ const GRID_COLUMNS = [
     field: 'preprocessing_status',
     headerName: 'Status',
     filter: 'agTextColumnFilter',
-    cellRenderer: VersionStatusCell,
+    cellRenderer: PreprocessingStatusCell,
     cellStyle: { overflow: 'visible' },
+    tooltipValueGetter: () => undefined,
   },
   {
     field: 'creation_reason',
@@ -130,8 +131,8 @@ export const DatasetVersions: FC<Props> = ({ channelId, datasetId }) => {
     </div>
   ) : (
     <div className="bg-layer-2 flex flex-col h-full common-paddings">
-      <h1 className="mb-4">
-        {datasetTitle ? `${datasetTitle} — Versions` : 'Dataset Versions'}
+      <h1 className="mb-6">
+        {datasetTitle ? `${datasetTitle}: Versions` : 'Dataset Versions'}
       </h1>
       <div className="flex-1 min-h-0">
         <GridView

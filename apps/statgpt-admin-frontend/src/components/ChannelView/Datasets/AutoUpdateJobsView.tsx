@@ -11,8 +11,13 @@ import { GridView } from '@/src/components/GridView/GridView';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
-import { AutoUpdateJob } from '@/src/models/auto-update-job';
+import {
+  AUTO_UPDATE_RESULT_LABEL,
+  AutoUpdateJob,
+  AutoUpdateResult,
+} from '@/src/models/auto-update-job';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
+import { PreprocessingStatusCell } from '@/src/components/GridView/PreprocessingStatusCell/PreprocessingStatusCell';
 import { ColDef } from 'ag-grid-community';
 
 interface Props {
@@ -46,11 +51,16 @@ export const AutoUpdateJobsView: FC<Props> = ({
       field: 'status',
       headerName: 'Status',
       filter: 'agTextColumnFilter',
+      cellRenderer: PreprocessingStatusCell,
+      cellStyle: { overflow: 'visible' },
+      tooltipValueGetter: () => undefined,
     },
     {
       field: 'result',
       headerName: 'Result',
       filter: 'agTextColumnFilter',
+      valueFormatter: ({ value }: { value: AutoUpdateResult | null }) =>
+        value != null ? (AUTO_UPDATE_RESULT_LABEL[value] ?? value) : '',
     },
     {
       field: 'details',
@@ -58,11 +68,6 @@ export const AutoUpdateJobsView: FC<Props> = ({
       filter: 'agTextColumnFilter',
       tooltipField: 'details',
       tooltipComponent: DETAILS_TOOLTIP_KEY,
-    },
-    {
-      field: 'reason_for_failure',
-      headerName: 'Reason for Failure',
-      filter: 'agTextColumnFilter',
     },
     {
       field: 'updated_at',
@@ -110,8 +115,8 @@ export const AutoUpdateJobsView: FC<Props> = ({
   ) : (
     <div className="bg-layer-2 flex flex-col h-full common-paddings">
       <div className="flex flex-row items-center justify-between mb-3">
-        <h1 className="mb-4">
-          Auto Update Jobs{datasetName ? `: ${datasetName}` : ''}
+        <h1 className="mb-6">
+          {datasetName ? `${datasetName}: Version Checks` : 'Version Checks'}
         </h1>
       </div>
       <div className="flex-1 min-h-0">

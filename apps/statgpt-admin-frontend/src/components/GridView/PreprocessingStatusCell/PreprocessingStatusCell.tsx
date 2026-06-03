@@ -5,27 +5,24 @@ import { IconExclamationCircle } from '@tabler/icons-react';
 
 import Check from '@/public/icons/check.svg';
 import {
-  ChannelDatasetVersion,
+  PREPROCESSING_STATUS_LABEL,
   PreprocessingStatus,
-} from '@/src/models/channel-dataset-version';
-import { mergeClasses } from '@/src/utils/mergeClasses';
+} from '@/src/models/preprocessing-status';
 import { Tooltip } from '@/src/components/BaseComponents/Tooltip/Tooltip';
+import { mergeClasses } from '@/src/utils/mergeClasses';
 
-const STATUS_LABEL: Record<PreprocessingStatus, string> = {
-  [PreprocessingStatus.NOT_STARTED]: 'Not started',
-  [PreprocessingStatus.QUEUED]: 'Queued',
-  [PreprocessingStatus.IN_PROGRESS]: 'In progress',
-  [PreprocessingStatus.COMPLETED]: 'Completed',
-  [PreprocessingStatus.FAILED]: 'Failed',
-};
+interface WithFailureReason {
+  reason_for_failure: string;
+}
 
-export const VersionStatusCell = ({
+export const PreprocessingStatusCell = ({
   value,
   data,
-}: ICellRendererParams<ChannelDatasetVersion>) => {
+}: ICellRendererParams<WithFailureReason>) => {
   if (value == null || value === '') return null;
 
-  const label = STATUS_LABEL[value as PreprocessingStatus] ?? String(value);
+  const label =
+    PREPROCESSING_STATUS_LABEL[value as PreprocessingStatus] ?? String(value);
   const isCompleted = value === PreprocessingStatus.COMPLETED;
   const isFailed = value === PreprocessingStatus.FAILED;
   const failureReason = data?.reason_for_failure;

@@ -14,6 +14,7 @@ import { mergeClasses } from '@/src/utils/mergeClasses';
 
 const VIEWPORT_MARGIN = 8;
 const GAP = 4;
+const MAX_TOOLTIP_HEIGHT = 200;
 
 interface Props {
   content: ReactNode;
@@ -25,14 +26,18 @@ export const Tooltip: FC<Props> = ({ content, children, className }) => {
   const triggerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
-  const [tooltipStyle, setTooltipStyle] = useState<CSSProperties>({
+  const [positionStyle, setPositionStyle] = useState<CSSProperties>({
     visibility: 'hidden',
   });
+  const [contentMaxHeight, setContentMaxHeight] = useState<number | undefined>(
+    undefined,
+  );
 
   if (!content) return <>{children}</>;
 
   const handleMouseEnter = () => {
-    setTooltipStyle({ visibility: 'hidden' });
+    setPositionStyle({ visibility: 'hidden' });
+    setContentMaxHeight(undefined);
     setVisible(true);
   };
 
@@ -43,14 +48,16 @@ export const Tooltip: FC<Props> = ({ content, children, className }) => {
 
     const tooltipWidth = tooltipRef.current.offsetWidth;
     const rect = triggerRef.current.getBoundingClientRect();
-
     let left = rect.left + rect.width / 2 - tooltipWidth / 2;
     left = Math.max(
       VIEWPORT_MARGIN,
       Math.min(left, window.innerWidth - tooltipWidth - VIEWPORT_MARGIN),
     );
 
-    setTooltipStyle({
+    const availableHeight = rect.top - GAP - VIEWPORT_MARGIN;
+    setContentMaxHeight(Math.min(MAX_TOOLTIP_HEIGHT, availableHeight));
+
+    setPositionStyle({
       left: `${left}px`,
       top: `${rect.top - GAP}px`,
       transform: 'translateY(-100%)',
@@ -69,10 +76,17 @@ export const Tooltip: FC<Props> = ({ content, children, className }) => {
         createPortal(
           <div
             ref={tooltipRef}
-            style={tooltipStyle}
+            style={positionStyle}
             className="pointer-events-none fixed z-[9999] max-w-64"
           >
-            <div className="rounded border border-primary bg-layer-2 px-3 py-2 text-xs text-primary shadow-lg break-words whitespace-normal">
+            <div
+              style={
+                contentMaxHeight != null
+                  ? { maxHeight: contentMaxHeight, overflow: 'hidden' }
+                  : undefined
+              }
+              className="rounded border border-primary bg-layer-2 px-3 py-2 text-xs text-primary shadow-lg break-words whitespace-normal"
+            >
               {content}
             </div>
           </div>,

@@ -11,7 +11,7 @@ export enum EntityOperation {
   Terms = 'Glossary',
   Jobs = 'Jobs',
   Edit = 'Edit',
-  AutoUpdateJobs = 'Auto update jobs',
+  AutoUpdateJobs = 'Version checks',
   Versions = 'Versions',
 }
 
