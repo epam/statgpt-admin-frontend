@@ -7,6 +7,7 @@ import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { ChannelDatasetVersion } from '@/src/models/channel-dataset-version';
+import { VersionStatusCell } from '@/src/components/ChannelView/DatasetVersions/VersionStatusCell';
 import { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
 import {
@@ -27,15 +28,12 @@ const GRID_COLUMNS = [
     field: 'preprocessing_status',
     headerName: 'Status',
     filter: 'agTextColumnFilter',
+    cellRenderer: VersionStatusCell,
+    cellStyle: { overflow: 'visible' },
   },
   {
     field: 'creation_reason',
     headerName: 'Creation Reason',
-    filter: 'agTextColumnFilter',
-  },
-  {
-    field: 'reason_for_failure',
-    headerName: 'Failure Reason',
     filter: 'agTextColumnFilter',
   },
   {
