@@ -2,14 +2,12 @@
 
 import { FC, useEffect, useState } from 'react';
 
-import {
-  getChannelDatasetAutoUpdateJobs,
-  getChannelDatasets,
-} from '@/src/app/channels/actions';
+import { getChannelDatasetAutoUpdateJobs } from '@/src/app/channels/actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { useAccessControl } from '@/src/context/AccessControlContext';
+import { useDatasetData } from '@/src/context/DatasetDataContext';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { AutoUpdateJob } from '@/src/models/auto-update-job';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
@@ -25,11 +23,13 @@ export const AutoUpdateJobsView: FC<Props> = ({
   selectedDatasetId,
 }) => {
   const { setForbidden } = useAccessControl();
+  const { dataset } = useDatasetData();
   const withNotification = useApiNotification();
   const [isLoading, setIsLoading] = useState(true);
   usePageInitialLoadingSync(isLoading);
   const [jobs, setJobs] = useState<AutoUpdateJob[]>([]);
-  const [datasetName, setDatasetName] = useState<string>('');
+
+  const datasetName = dataset?.dataset.title ?? '';
 
   const columns: ColDef[] = [
     {
@@ -76,32 +76,19 @@ export const AutoUpdateJobsView: FC<Props> = ({
   useEffect(() => {
     setIsLoading(true);
 
-    Promise.all([
-      withNotification(
-        getChannelDatasetAutoUpdateJobs(selectedChannelId, selectedDatasetId),
-        'Failed to Load Auto Update Jobs',
-        [403],
-      ),
-      getChannelDatasets(selectedChannelId),
-    ]).then(([jobsResult, datasetsResult]) => {
-      if (!jobsResult.ok && jobsResult.error.status === 403) {
-        setForbidden();
+    withNotification(
+      getChannelDatasetAutoUpdateJobs(selectedChannelId, selectedDatasetId),
+      'Failed to Load Auto Update Jobs',
+      [403],
+    ).then((jobsResult) => {
+      setIsLoading(false);
+      if (!jobsResult.ok) {
+        if (jobsResult.error.status === 403) setForbidden();
         return;
       }
-      setJobs(jobsResult.ok ? jobsResult.data : []);
-
-      if (datasetsResult.ok) {
-        const match = datasetsResult.data.data.find(
-          (ds) => String(ds.dataset_id) === selectedDatasetId,
-        );
-        if (match?.dataset?.title) {
-          setDatasetName(match.dataset.title);
-        }
-      }
-
-      setIsLoading(false);
+      setJobs(jobsResult.data);
     });
-  }, [selectedChannelId, selectedDatasetId]);
+  }, [selectedChannelId, selectedDatasetId, setForbidden, withNotification]);
 
   return isLoading ? (
     <div className="flex items-center w-full justify-center h-full">

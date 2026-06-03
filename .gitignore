@@ -42,6 +42,7 @@ Thumbs.db
 out
 
 # local env files
+.env
 .env*.local
 
 
