@@ -9,7 +9,6 @@ import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
 import { StatusCell } from '@/src/components/GridView/StatusCell/StatusCell';
 import { CheckboxFilter } from '@/src/components/GridView/CustomFilters/CheckboxFilter/CheckboxFilter';
-import { CheckboxEmptyFilter } from '@/src/components/GridView/CustomFilters/CheckboxFilter/CheckboxEmptyFilter';
 import { GridCheckboxFilterModel } from '@/src/models/grid';
 import { getNestedValue } from '@/src/utils/client/grid';
 
@@ -64,7 +63,7 @@ export const getDataSetsColumns = (dataSources: string[]): ColDef[] => [
     headerName: 'Data Source',
     filter: createCheckboxFilter(DATA_SOURCE_FIELD),
     filterParams: { values: dataSources },
-    floatingFilterComponent: CheckboxEmptyFilter,
+    floatingFilter: false,
   },
   {
     field: 'preprocessing_status',
