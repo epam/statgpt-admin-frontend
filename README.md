@@ -60,7 +60,7 @@ Edit `apps/statgpt-admin-frontend/.env` before using the application. For a func
 ```bash
 API_URL="ADD_VALUE_HERE"
 DIAL_API_URL="ADD_VALUE_HERE"
-NEXTAUTH_SECRET="ADD_VALUE_HERE"
+AUTH_SECRET="ADD_VALUE_HERE"
 ```
 
 After the server starts, open `http://localhost:4100`.
@@ -145,12 +145,13 @@ Environment variables are loaded from `apps/statgpt-admin-frontend/.env` for loc
 
 ### Authentication Variables
 
-Authentication is optional. If `NEXTAUTH_URL` is not set, application pages skip session checks. If `NEXTAUTH_URL` is set, configure `NEXTAUTH_SECRET` and at least one supported auth provider.
+Authentication is optional. If `AUTH_URL` is not set, application pages skip session checks. If `AUTH_URL` is set, configure `AUTH_SECRET` and at least one supported auth provider.
 
-| Variable          |                       Required                       | Description                                                                                                   | Example / Values         | Default |
-| ----------------- | :--------------------------------------------------: | ------------------------------------------------------------------------------------------------------------- | ------------------------ | ------- |
-| `NEXTAUTH_URL`    |       Required when authentication is enabled        | Public application URL used by NextAuth.js. Required for production auth deployments.                         | `http://localhost:4100`  |         |
-| `NEXTAUTH_SECRET` | Recommended locally; required for authenticated runs | Secret used by NextAuth.js to sign and encrypt JWT/session data. Generate one with `openssl rand -base64 32`. | Any strong random string |         |
+| Variable          |                       Required                       | Description                                                                                               | Example / Values         | Default |
+| ----------------- | :--------------------------------------------------: | --------------------------------------------------------------------------------------------------------- | ------------------------ | ------- |
+| `AUTH_URL`        |       Required when authentication is enabled        | Public application URL used by Auth.js. Required for production auth deployments.                         | `http://localhost:4100`  |         |
+| `AUTH_SECRET`     | Recommended locally; required for authenticated runs | Secret used by Auth.js to sign and encrypt JWT/session data. Generate one with `openssl rand -base64 32`. | Any strong random string |         |
+| `AUTH_TRUST_HOST` |       Required behind a trusted reverse proxy        | Allows Auth.js to trust `Host` / `X-Forwarded-*` headers in ingress or reverse proxy deployments.         | `true` / `false`         | `false` |
 
 ### Auth Provider Variables
 

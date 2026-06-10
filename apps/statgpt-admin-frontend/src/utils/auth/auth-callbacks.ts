@@ -1,34 +1,10 @@
-import { Account, CallbacksOptions, Profile, Session } from 'next-auth';
-import { TokenEndpointHandler } from 'next-auth/providers';
-import { TokenSet } from 'openid-client';
+import { NextAuthConfig, Profile, Session } from 'next-auth';
 
 import { Token } from '@/src/models/token';
 import { NextClient, RefreshToken } from './nextauth-client';
+import { refreshOAuthToken } from './oauth-refresh';
 
 const waitRefreshTokenTimeout = 5;
-
-// Need to be set for all providers
-export const tokenConfig: TokenEndpointHandler = {
-  request: async (context) => {
-    let tokens;
-    NextClient.setClient(context.client, context.provider);
-
-    if (context.provider.idToken) {
-      tokens = await context.client.callback(
-        context.provider.callbackUrl,
-        context.params,
-        context.checks,
-      );
-    } else {
-      tokens = await context.client.oauthCallback(
-        context.provider.callbackUrl,
-        context.params,
-        context.checks,
-      );
-    }
-    return { tokens };
-  },
-};
 
 /**
  * Takes a token, and returns a new token with updated
@@ -42,13 +18,8 @@ async function refreshAccessToken(token: Token) {
     if (!token.providerId) {
       throw new Error(`No provider information exists in token`);
     }
-    const client = NextClient.getClient(token.providerId);
-    if (!client) {
-      throw new Error(`No client for appropriate provider set`);
-    }
 
     let msWaiting = 0;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const refresh = NextClient.getRefreshToken(token.userId);
 
@@ -78,8 +49,18 @@ async function refreshAccessToken(token: Token) {
       }
     }
 
-    const refreshedTokens = await client.refresh(
-      token.refreshToken as string | TokenSet,
+    const refreshToken =
+      typeof token.refreshToken === 'string'
+        ? token.refreshToken
+        : token.refreshToken?.refresh_token;
+
+    if (!refreshToken) {
+      throw new Error('No refresh token exists');
+    }
+
+    const refreshedTokens = await refreshOAuthToken(
+      token.providerId,
+      refreshToken,
     );
 
     if (
@@ -128,14 +109,16 @@ async function refreshAccessToken(token: Token) {
   }
 }
 
-export const callbacks: Partial<
-  CallbacksOptions<Profile & { job_title?: string }, Account>
-> = {
+export const callbacks = {
   jwt: async (options) => {
     if (options.account) {
+      const profile = options.profile as
+        | (Profile & { job_title?: string })
+        | undefined;
+
       return {
         ...options.token,
-        jobTitle: options.profile?.job_title,
+        jobTitle: profile?.job_title,
         access_token: options.account.access_token,
         accessTokenExpires:
           typeof options.account.expires_in === 'number'
@@ -143,7 +126,7 @@ export const callbacks: Partial<
             : (options.account.expires_at as number) * 1000,
         refreshToken: options.account.refresh_token,
         providerId: options.account.provider,
-        userId: options.user.id,
+        userId: options.user.id ?? options.token.sub ?? '',
       };
     }
 
@@ -173,4 +156,4 @@ export const callbacks: Partial<
     }
     return options.session;
   },
-};
+} satisfies NextAuthConfig['callbacks'];

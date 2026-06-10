@@ -1,5 +1,9 @@
-import NextAuth from 'next-auth/next';
-import { authOptions } from '@/src/utils/auth/auth-options';
+import { handlers } from '@/src/auth';
 
-const handler = NextAuth({ ...authOptions });
-export { handler as GET, handler as POST };
+const { GET: authGet, POST: authPost } = handlers;
+
+export const GET = (request: Request) =>
+  authGet(request as Parameters<typeof authGet>[0]);
+
+export const POST = (request: Request) =>
+  authPost(request as Parameters<typeof authPost>[0]);
