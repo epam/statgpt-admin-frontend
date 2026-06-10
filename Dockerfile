@@ -12,6 +12,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NX_DAEMON=false
+ENV NX_SKIP_NX_CACHE=true
 RUN npm run build
 
 FROM base AS runner
