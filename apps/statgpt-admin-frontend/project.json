@@ -10,8 +10,7 @@
       "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/statgpt-admin-frontend",
-        "assets": [],
-        "webpack": true
+        "assets": []
       },
       "configurations": {
         "development": {
@@ -27,8 +26,7 @@
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "statgpt-admin-frontend:build",
-        "dev": true,
-        "webpack": true
+        "dev": true
       },
       "configurations": {
         "development": {
