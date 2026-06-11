@@ -4,6 +4,8 @@ import { cookies, headers } from 'next/headers';
 
 import { channelsApi } from '@/src/app/api/api';
 import { Channel, ChannelTerm } from '@/src/models/channel';
+import type { DeduplicationJob } from '@/src/models/deduplication-job';
+import type { ApiResult } from '@/src/server/api';
 import { getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 
@@ -25,13 +27,26 @@ export async function getChannel(id: string) {
   return channelsApi.getChannel(id, token);
 }
 
-export async function deduplicateDataset(id: string) {
+export async function deduplicateDataset(
+  id: string,
+): Promise<ApiResult<DeduplicationJob>> {
   const token = await getUserToken(
     getIsEnableAuthToggle(),
     headers(),
     cookies(),
   );
   return channelsApi.deduplicateDataset(id, token);
+}
+
+export async function getDeduplicationJob(
+  jobId: string | number,
+): Promise<ApiResult<DeduplicationJob>> {
+  const token = await getUserToken(
+    getIsEnableAuthToggle(),
+    headers(),
+    cookies(),
+  );
+  return channelsApi.getDeduplicationJob(jobId, token);
 }
 
 export async function removeChannel(id: string) {
