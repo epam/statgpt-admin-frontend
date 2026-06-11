@@ -5,3 +5,6 @@ test-results
 e2e
 helm
 .next
+dist
+.nx
+apps/**/.next
