@@ -20,6 +20,14 @@ const DEDUPLICATION_JOB_POLL_INTERVAL_MS = 2000;
 const getDeduplicationStatusLabel = (status: DeduplicationJobStatus) =>
   DEDUPLICATION_JOB_STATUS_LABEL[status] ?? status;
 
+const DEDUPLICATION_JOB_STATUS_TITLE: Partial<
+  Record<DeduplicationJobStatus, string>
+> = {
+  [DeduplicationJobStatus.NOT_STARTED]: 'Duplicates removal not started',
+  [DeduplicationJobStatus.QUEUED]: 'Duplicates removal queued',
+  [DeduplicationJobStatus.IN_PROGRESS]: 'Removing duplicates',
+};
+
 const getDeduplicationSuccessDescription = (job: DeduplicationJob) =>
   [
     `Non-indicator remapped: ${job.non_indicator_remapped}`,
@@ -47,6 +55,13 @@ export const useDeduplicationJobPolling = ({
   const notificationIdRef = useRef<string | null>(null);
   const lastStatusRef = useRef<DeduplicationJobStatus | null>(null);
   const operationIdRef = useRef(0);
+  const showNotificationRef = useRef(showNotification);
+  const removeNotificationRef = useRef(removeNotification);
+  const onFinishedRef = useRef(onFinished);
+
+  showNotificationRef.current = showNotification;
+  removeNotificationRef.current = removeNotification;
+  onFinishedRef.current = onFinished;
 
   const clearPolling = useCallback(() => {
     if (pollingTimeoutRef.current != null) {
@@ -57,17 +72,17 @@ export const useDeduplicationJobPolling = ({
 
   const clearNotification = useCallback(() => {
     if (notificationIdRef.current != null) {
-      removeNotification(notificationIdRef.current);
+      removeNotificationRef.current(notificationIdRef.current);
       notificationIdRef.current = null;
     }
-  }, [removeNotification]);
+  }, []);
 
   const replaceNotification = useCallback(
     (notification: Parameters<typeof showNotification>[0]) => {
       clearNotification();
-      notificationIdRef.current = showNotification(notification);
+      notificationIdRef.current = showNotificationRef.current(notification);
     },
-    [clearNotification, showNotification],
+    [clearNotification],
   );
 
   const showStatusNotification = useCallback(
@@ -82,7 +97,8 @@ export const useDeduplicationJobPolling = ({
       lastStatusRef.current = job.status;
       replaceNotification({
         type: NotificationType.loading,
-        title: 'Removing duplicates',
+        title:
+          DEDUPLICATION_JOB_STATUS_TITLE[job.status] || 'Removing duplicates',
         description: `Job #${job.id}: ${getDeduplicationStatusLabel(job.status)}`,
         duration: null,
       });
@@ -97,10 +113,10 @@ export const useDeduplicationJobPolling = ({
       lastStatusRef.current = null;
       operationIdRef.current += 1;
       setIsDeduplicationInProgress(false);
-      onFinished();
+      onFinishedRef.current();
 
       if (job.status === DeduplicationJobStatus.FAILED) {
-        showNotification({
+        showNotificationRef.current({
           type: NotificationType.error,
           title: 'Duplicates removal failed',
           description:
@@ -110,13 +126,13 @@ export const useDeduplicationJobPolling = ({
         return;
       }
 
-      showNotification({
+      showNotificationRef.current({
         type: NotificationType.success,
         title: 'Duplicate removal succeeded',
         description: getDeduplicationSuccessDescription(job),
       });
     },
-    [clearNotification, clearPolling, onFinished, showNotification],
+    [clearNotification, clearPolling],
   );
 
   const handleJob = useCallback(
@@ -151,7 +167,7 @@ export const useDeduplicationJobPolling = ({
           lastStatusRef.current = null;
           operationIdRef.current += 1;
           setIsDeduplicationInProgress(false);
-          showNotification({
+          showNotificationRef.current({
             type: NotificationType.error,
             title: 'Deduplication status check failed',
             description:
@@ -174,7 +190,7 @@ export const useDeduplicationJobPolling = ({
         DEDUPLICATION_JOB_POLL_INTERVAL_MS,
       );
     },
-    [clearNotification, clearPolling, handleJob, showNotification],
+    [clearNotification, clearPolling, handleJob],
   );
 
   const deduplicate = useCallback(() => {
