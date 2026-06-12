@@ -20,6 +20,7 @@ import { AutoUpdateJob } from '@/src/models/auto-update-job';
 import { ApiResult, MAIN_API } from './api';
 import { BaseApi } from './base-api';
 import { Job, JobStatus } from '@/src/models/job';
+import { DeduplicationJob } from '@/src/models/deduplication-job';
 
 export const CHANNELS_URL = `${MAIN_API}/channels`;
 export const CHANNELS_IMPORT_URL = `${CHANNELS_URL}/import`;
@@ -47,6 +48,10 @@ export const CHANNEL_DATA_SETS_URL = (id: string | number): string =>
 
 export const CHANNEL_DEDUPLICATE_URL = (id: string | number): string =>
   `${CHANNEL_DATA_SETS_URL(id)}/deduplicate`;
+
+export const CHANNELS_DEDUPLICATION_JOB_ID_URL = (
+  jobId: string | number,
+): string => `${CHANNELS_URL}/deduplication-jobs/${jobId}`;
 
 export const RELOAD_ALL_DATASETS_CHANNEL_URL = (id: string | number): string =>
   `${CHANNEL_DATA_SETS_URL(id)}/reload-indicators`;
@@ -274,8 +279,15 @@ export class ChannelsApi extends BaseApi {
   deduplicateDataset(
     id: string,
     token: JWT | null,
-  ): Promise<ApiResult<RequestData<DataSet>>> {
-    return this.post(CHANNEL_DEDUPLICATE_URL(id), {}, void 0, {}, token);
+  ): Promise<ApiResult<DeduplicationJob>> {
+    return this.post(CHANNEL_DEDUPLICATE_URL(id), {}, void 0, void 0, token);
+  }
+
+  getDeduplicationJob(
+    jobId: string | number,
+    token: JWT | null,
+  ): Promise<ApiResult<DeduplicationJob>> {
+    return this.get(CHANNELS_DEDUPLICATION_JOB_ID_URL(jobId), token);
   }
 
   removeChannelDataset(

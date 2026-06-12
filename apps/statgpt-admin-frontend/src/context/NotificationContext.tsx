@@ -35,6 +35,7 @@ export const NotificationProvider: FC<{ children: ReactNode }> = ({
         ...notification,
         id,
         onClose: () => {
+          notification.onClose?.();
           return removeNotification(id);
         },
       },
