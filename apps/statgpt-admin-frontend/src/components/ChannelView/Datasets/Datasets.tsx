@@ -4,7 +4,6 @@ import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import {
-  deduplicateDataset,
   exportChannel,
   getChannelIndexStatus,
 } from '@/src/app/channels/actions';
@@ -57,6 +56,7 @@ import { DeduplicationStatsModal } from './DeduplicationStatsModal';
 import { LastVersionCheckCell } from './LastVersionCheckCell';
 import { VersionCell } from '@/src/components/GridView/VersionCell/VersionCell';
 import { ColDef } from 'ag-grid-community';
+import { useDeduplicationJobPolling } from './useDeduplicationJobPolling';
 
 interface Props {
   selectedChannelId?: string;
@@ -245,21 +245,6 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     }),
   ];
 
-  const deduplicate = useCallback(() => {
-    withNotification(
-      deduplicateDataset(selectedChannelId as string),
-      'Deduplication Failed',
-    ).then((result) => {
-      if (result.ok) {
-        showNotification({
-          type: NotificationType.success,
-          title: 'Deduplication in progress',
-          description: 'The deduplication runs in the background',
-        });
-      }
-    });
-  }, [selectedChannelId]);
-
   const fetchIndexStatus = useCallback(() => {
     if (selectedChannelId != null) {
       getChannelIndexStatus(selectedChannelId).then((result) => {
@@ -270,6 +255,13 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     }
   }, [selectedChannelId]);
 
+  const { deduplicate, isDeduplicationInProgress } = useDeduplicationJobPolling(
+    {
+      channelId: selectedChannelId,
+      onFinished: fetchIndexStatus,
+    },
+  );
+
   useEffect(() => {
     if (selectedChannelId != null && selectedChannelDataSets.length === 0) {
       updateDataSet();
@@ -278,7 +270,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
 
   useEffect(() => {
     fetchIndexStatus();
-  }, [selectedChannelId]);
+  }, [fetchIndexStatus]);
 
   const recalculateIndexes = (mode: 'sequential' | 'parallel') => {
     setPendingRecalculateMode(null);
@@ -406,7 +398,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
           />
         </div>
       </div>
-      {deduplicationRequired && (
+      {deduplicationRequired && !isDeduplicationInProgress && (
         <DeduplicationAlert onDeduplicate={deduplicate} />
       )}
       <div className="flex-1 min-h-0">
