@@ -9,16 +9,13 @@ import {
 import { useNotification } from '@/src/context/NotificationContext';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import {
-  DEDUPLICATION_JOB_STATUS_LABEL,
   DeduplicationJobStatus,
   type DeduplicationJob,
 } from '@/src/models/deduplication-job';
 import { NotificationType } from '@/src/models/notification';
 
 const DEDUPLICATION_JOB_POLL_INTERVAL_MS = 5000;
-
-const getDeduplicationStatusLabel = (status: DeduplicationJobStatus) =>
-  DEDUPLICATION_JOB_STATUS_LABEL[status] ?? status;
+const DEDUPLICATION_JOB_POLL_TIMEOUT_MS = 5 * 60 * 1000;
 
 const DEDUPLICATION_JOB_STATUS_TITLE: Record<DeduplicationJobStatus, string> = {
   [DeduplicationJobStatus.NOT_STARTED]: 'Duplicate removal not started',
@@ -26,6 +23,20 @@ const DEDUPLICATION_JOB_STATUS_TITLE: Record<DeduplicationJobStatus, string> = {
   [DeduplicationJobStatus.IN_PROGRESS]: 'Removing duplicates',
   [DeduplicationJobStatus.COMPLETED]: 'Duplicate removal completed',
   [DeduplicationJobStatus.FAILED]: 'Duplicate removal failed',
+};
+
+const DEDUPLICATION_JOB_STATUS_DESCRIPTION: Record<
+  DeduplicationJobStatus,
+  string
+> = {
+  [DeduplicationJobStatus.NOT_STARTED]:
+    'Preparing to remove duplicate records…',
+  [DeduplicationJobStatus.QUEUED]:
+    'Your request is in the queue and will start shortly.',
+  [DeduplicationJobStatus.IN_PROGRESS]:
+    'This can take a few minutes — you can keep working in the meantime.',
+  [DeduplicationJobStatus.COMPLETED]: 'Duplicate removal completed.',
+  [DeduplicationJobStatus.FAILED]: 'Duplicate removal failed.',
 };
 
 const getDeduplicationSuccessDescription = (job: DeduplicationJob) =>
@@ -52,6 +63,7 @@ export const useDeduplicationJobPolling = ({
     useState(false);
 
   const pollingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollingStartedAtRef = useRef<number | null>(null);
   const notificationIdRef = useRef<string | null>(null);
   const lastStatusRef = useRef<DeduplicationJobStatus | null>(null);
   const operationIdRef = useRef(0);
@@ -85,6 +97,17 @@ export const useDeduplicationJobPolling = ({
     [clearNotification],
   );
 
+  const resetState = useCallback(
+    (inProgress: boolean) => {
+      clearPolling();
+      clearNotification();
+      lastStatusRef.current = null;
+      operationIdRef.current += 1;
+      setIsDeduplicationInProgress(inProgress);
+    },
+    [clearNotification, clearPolling],
+  );
+
   const showStatusNotification = useCallback(
     (job: DeduplicationJob) => {
       if (
@@ -98,8 +121,12 @@ export const useDeduplicationJobPolling = ({
       replaceNotification({
         type: NotificationType.loading,
         title: DEDUPLICATION_JOB_STATUS_TITLE[job.status],
-        description: `Job #${job.id}: ${getDeduplicationStatusLabel(job.status)}`,
+        description: DEDUPLICATION_JOB_STATUS_DESCRIPTION[job.status],
         duration: null,
+        onClose: () => {
+          notificationIdRef.current = null;
+          lastStatusRef.current = null;
+        },
       });
     },
     [replaceNotification],
@@ -107,11 +134,7 @@ export const useDeduplicationJobPolling = ({
 
   const showFinalNotification = useCallback(
     (job: DeduplicationJob) => {
-      clearPolling();
-      clearNotification();
-      lastStatusRef.current = null;
-      operationIdRef.current += 1;
-      setIsDeduplicationInProgress(false);
+      resetState(false);
       onFinishedRef.current();
 
       if (job.status === DeduplicationJobStatus.FAILED) {
@@ -131,7 +154,7 @@ export const useDeduplicationJobPolling = ({
         description: getDeduplicationSuccessDescription(job),
       });
     },
-    [clearNotification, clearPolling],
+    [resetState],
   );
 
   const handleJob = useCallback(
@@ -153,6 +176,7 @@ export const useDeduplicationJobPolling = ({
   const startPolling = useCallback(
     (jobId: number, operationId: number) => {
       clearPolling();
+      pollingStartedAtRef.current = Date.now();
 
       const poll = async () => {
         const result = await getDeduplicationJob(jobId);
@@ -161,11 +185,7 @@ export const useDeduplicationJobPolling = ({
         }
 
         if (!result.ok) {
-          clearPolling();
-          clearNotification();
-          lastStatusRef.current = null;
-          operationIdRef.current += 1;
-          setIsDeduplicationInProgress(false);
+          resetState(false);
           showNotificationRef.current({
             type: NotificationType.error,
             title: 'Deduplication status check failed',
@@ -176,12 +196,29 @@ export const useDeduplicationJobPolling = ({
           return;
         }
 
-        if (!handleJob(result.data)) {
-          pollingTimeoutRef.current = setTimeout(
-            poll,
-            DEDUPLICATION_JOB_POLL_INTERVAL_MS,
-          );
+        if (handleJob(result.data)) {
+          return;
         }
+
+        const elapsed =
+          pollingStartedAtRef.current != null
+            ? Date.now() - pollingStartedAtRef.current
+            : 0;
+        if (elapsed >= DEDUPLICATION_JOB_POLL_TIMEOUT_MS) {
+          resetState(false);
+          showNotificationRef.current({
+            type: NotificationType.error,
+            title: 'Deduplication is taking longer than expected',
+            description:
+              'Duplicate removal is still running in the background. Please check back later.',
+          });
+          return;
+        }
+
+        pollingTimeoutRef.current = setTimeout(
+          poll,
+          DEDUPLICATION_JOB_POLL_INTERVAL_MS,
+        );
       };
 
       pollingTimeoutRef.current = setTimeout(
@@ -189,7 +226,7 @@ export const useDeduplicationJobPolling = ({
         DEDUPLICATION_JOB_POLL_INTERVAL_MS,
       );
     },
-    [clearNotification, clearPolling, handleJob],
+    [clearPolling, handleJob, resetState],
   );
 
   const deduplicate = useCallback(() => {
@@ -197,12 +234,8 @@ export const useDeduplicationJobPolling = ({
       return;
     }
 
-    const operationId = operationIdRef.current + 1;
-    operationIdRef.current = operationId;
-    clearPolling();
-    clearNotification();
-    lastStatusRef.current = null;
-    setIsDeduplicationInProgress(true);
+    resetState(true);
+    const operationId = operationIdRef.current;
 
     withNotification(
       deduplicateDataset(channelId),
@@ -220,31 +253,17 @@ export const useDeduplicationJobPolling = ({
         setIsDeduplicationInProgress(false);
       }
     });
-  }, [
-    channelId,
-    clearNotification,
-    clearPolling,
-    handleJob,
-    startPolling,
-    withNotification,
-  ]);
+  }, [channelId, resetState, handleJob, startPolling, withNotification]);
 
   useEffect(() => {
-    operationIdRef.current += 1;
-    clearPolling();
-    clearNotification();
-    lastStatusRef.current = null;
-    setIsDeduplicationInProgress(false);
-  }, [channelId, clearNotification, clearPolling]);
-
-  useEffect(() => {
+    resetState(false);
     return () => {
-      operationIdRef.current += 1;
       clearPolling();
       clearNotification();
       lastStatusRef.current = null;
+      operationIdRef.current += 1;
     };
-  }, [clearNotification, clearPolling]);
+  }, [channelId, resetState, clearPolling, clearNotification]);
 
   return {
     deduplicate,
