@@ -1,18 +1,17 @@
-import { getToken } from 'next-auth/jwt';
-import { NextRequest } from 'next/server';
+import { getRequestToken } from '@/src/utils/auth/get-token';
 import { channelsApi } from '@/src/app/api/api';
 import { apiResultToResponse } from '@/src/server/api';
 
 export const runtime = 'nodejs';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    const search = req.nextUrl.searchParams;
+    const search = new URL(req.url).searchParams;
     const updateDatasets = search.get('updateDatasets') === 'true';
     const updateDataSources = search.get('updateDataSources') === 'true';
     const cleanUp = search.get('cleanUp') === 'true';
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
     return apiResultToResponse(
       await channelsApi.importChannel(
         formData,

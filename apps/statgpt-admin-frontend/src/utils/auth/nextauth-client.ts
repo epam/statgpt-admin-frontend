@@ -1,5 +1,4 @@
 import { Token } from '@/src/models/token';
-import { Client } from 'openid-client';
 
 export interface RefreshToken {
   isRefreshing: boolean;
@@ -10,21 +9,6 @@ export interface RefreshToken {
 const globalObj = globalThis as unknown as any;
 
 export class NextClient {
-  public static setClient(
-    clientLocal: Client | null,
-    provider: { id: string },
-  ) {
-    globalObj._client = globalObj._client || {};
-
-    globalObj._client[provider.id] = clientLocal;
-  }
-
-  public static getClient(providerId: string): Client | null {
-    globalObj._client = globalObj._client || {};
-
-    return globalObj._client[providerId] || null;
-  }
-
   public static getRefreshToken(userId: string): RefreshToken | undefined {
     globalObj._refreshTokenMap = globalObj._refreshTokenMap || {};
 

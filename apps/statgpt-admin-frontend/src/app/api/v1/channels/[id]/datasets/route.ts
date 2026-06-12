@@ -1,6 +1,5 @@
-import { NextRequest } from 'next/server';
 import { channelsApi } from '../../../../api';
-import { getToken } from 'next-auth/jwt';
+import { getRequestToken } from '@/src/utils/auth/get-token';
 import { apiResultToResponse } from '@/src/server/api';
 
 export const dynamic = 'force-dynamic';
@@ -11,12 +10,12 @@ interface ChannelDatasetPayload {
 }
 
 export async function GET(
-  req: NextRequest,
+  req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
     const params = await context.params;
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
     return apiResultToResponse(
       await channelsApi.getChannelDataset(params.id, token),
     );
@@ -26,12 +25,12 @@ export async function GET(
 }
 
 export async function DELETE(
-  req: NextRequest,
+  req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
     const params = await context.params;
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
     const [id, dsId] = params.id.split('__');
     return apiResultToResponse(
       await channelsApi.removeChannelDataset(id, dsId, token),
@@ -42,12 +41,12 @@ export async function DELETE(
 }
 
 export async function POST(
-  req: NextRequest,
+  req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
     const params = await context.params;
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
     let res: ChannelDatasetPayload;
     try {
       res = (await req.json()) as ChannelDatasetPayload;

@@ -1,17 +1,16 @@
-import { NextRequest } from 'next/server';
 import { channelsApi } from '../../../../../api';
-import { getToken } from 'next-auth/jwt';
+import { getRequestToken } from '@/src/utils/auth/get-token';
 import { apiResultToResponse } from '@/src/server/api';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(
-  req: NextRequest,
+  req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
     const params = await context.params;
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
     return apiResultToResponse(
       await channelsApi.reloadDataSets(params.id, token),
     );

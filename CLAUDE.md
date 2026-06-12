@@ -46,7 +46,7 @@ All API calls are server-side only — no direct browser-to-backend requests:
 
 1. **Server API classes** (`src/server/`): `BaseApi` wraps `fetch` with `get/post/put/delete/streamRequest`. Domain subclasses (`ChannelsApi`, `DataSetsApi`, `DataSourcesApi`, `DocumentsApi`, `AuditLogsApi`) call the upstream backend directly using a JWT forwarded as `Authorization: Bearer <token>`. Server Components and Server Actions call these directly.
 
-2. **BFF Route Handlers** (`src/app/api/v1/`): Next.js API routes that Client Components call. These handlers authenticate via `getToken({ req })` from `next-auth/jwt` and delegate to the server API classes.
+2. **BFF Route Handlers** (`src/app/api/v1/`): Next.js API routes that Client Components call. These handlers authenticate via `getRequestToken(req)` and delegate to the server API classes.
 
 Long-running operations (export/import) use **RxJS** `interval` + `race` + `timeout` to poll job status every 2 seconds with a 5-minute timeout (`src/server/channels-api.ts`).
 
@@ -94,7 +94,7 @@ No global state library. State flows via:
 
 ### Environment Variables
 
-Required: `API_URL`, `DIAL_API_URL`, `NEXTAUTH_SECRET` (for auth). Optional: `NEXTAUTH_URL` (production), `DIAL_API_KEY` (if JWT not configured), `DISABLE_MENU_ITEMS`. Auth providers are configured via `AUTH_<PROVIDER>_*` env vars (Azure AD, Google, Auth0, GitLab, Keycloak, Okta).
+Required: `API_URL`, `DIAL_API_URL`, `AUTH_SECRET` (for auth). Optional: `AUTH_URL` (production), `AUTH_TRUST_HOST` (trusted reverse proxy or ingress), `DIAL_API_KEY` (if JWT not configured), `DISABLE_MENU_ITEMS`. Auth providers are configured via `AUTH_<PROVIDER>_*` env vars (Azure AD, Google, Auth0, GitLab, Keycloak, Okta).
 
 ### Security
 
