@@ -1,5 +1,10 @@
-import withAuth from 'next-auth/middleware';
-import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { NextResponse } from 'next/server';
+import { getSignInLink } from '@/src/constants/auth';
+import {
+  getAuthSecret,
+  getSessionCookieName,
+} from '@/src/utils/auth/auth-cookie';
 
 export const config = {
   matcher: [
@@ -7,7 +12,7 @@ export const config = {
   ],
 };
 
-async function proxyFn(request: NextRequest) {
+async function proxyFn(request: Request) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const cspHeader = `
     default-src 'self';
@@ -50,6 +55,27 @@ async function proxyFn(request: NextRequest) {
   return response;
 }
 
-const proxy = withAuth(proxyFn);
+async function authProxyFn(req: Request) {
+  const token = await getToken({
+    req,
+    cookieName: getSessionCookieName(),
+    secret: getAuthSecret(),
+  });
+
+  const isInvalidSession =
+    token == null || (token as { error?: unknown }).error != null;
+
+  if (isInvalidSession) {
+    const requestUrl = new URL(req.url);
+    const callbackUrl = `${requestUrl.pathname}${requestUrl.search}`;
+    const signInUrl = new URL(getSignInLink(callbackUrl), requestUrl.origin);
+
+    return NextResponse.redirect(signInUrl);
+  }
+
+  return proxyFn(req);
+}
+
+const proxy = authProxyFn;
 
 export default proxy;

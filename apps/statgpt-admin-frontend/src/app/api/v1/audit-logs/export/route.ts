@@ -1,13 +1,12 @@
-import { NextRequest } from 'next/server';
 import { auditLogsApi } from '../../../api';
-import { getToken } from 'next-auth/jwt';
+import { getRequestToken } from '@/src/utils/auth/get-token';
 import { mapSearchParamsToAuditLogRequest } from '@/src/utils/audit-logs';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   try {
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
 
     const { searchParams } = new URL(req.url);
     const params = mapSearchParamsToAuditLogRequest(searchParams);

@@ -1,18 +1,17 @@
-import { NextRequest } from 'next/server';
 import { dataSourcesApi } from '../../../api';
-import { getToken } from 'next-auth/jwt';
+import { getRequestToken } from '@/src/utils/auth/get-token';
 import { DataSource } from '@/src/models/data-source';
 import { apiResultToResponse } from '@/src/server/api';
 
 export const dynamic = 'force-dynamic';
 
 export async function DELETE(
-  req: NextRequest,
+  req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
     const params = await context.params;
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
     return apiResultToResponse(
       await dataSourcesApi.removeDataSource(params.id, token),
     );
@@ -21,9 +20,9 @@ export async function DELETE(
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
     let res: DataSource;
     try {
       res = (await req.json()) as DataSource;

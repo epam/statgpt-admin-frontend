@@ -6,7 +6,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import KeycloakProvider from 'next-auth/providers/keycloak';
 import OktaProvider from 'next-auth/providers/okta';
 
-import { tokenConfig } from './auth-callbacks';
+import { getAzureAdIssuer } from './oauth-refresh';
 
 const DEFAULT_NAME = 'SSO';
 
@@ -18,7 +18,7 @@ const allProviders: (Provider | boolean)[] = [
     AzureProvider({
       clientId: process.env.AUTH_AZURE_AD_CLIENT_ID,
       clientSecret: process.env.AUTH_AZURE_AD_SECRET,
-      tenantId: process.env.AUTH_AZURE_AD_TENANT_ID,
+      issuer: process.env.AUTH_AZURE_AD_ISSUER ?? getAzureAdIssuer(),
       name: process.env.AUTH_AZURE_AD_NAME ?? DEFAULT_NAME,
       authorization: {
         params: {
@@ -27,7 +27,6 @@ const allProviders: (Provider | boolean)[] = [
             'openid profile user.Read email offline_access',
         },
       },
-      token: tokenConfig,
     }),
 
   !!process.env.AUTH_GOOGLE_CLIENT_ID &&
@@ -43,7 +42,6 @@ const allProviders: (Provider | boolean)[] = [
             'openid email profile offline_access',
         },
       },
-      token: tokenConfig,
     }),
 
   !!process.env.AUTH_AUTH0_CLIENT_ID &&
@@ -62,7 +60,6 @@ const allProviders: (Provider | boolean)[] = [
             'openid email profile offline_access',
         },
       },
-      token: tokenConfig,
     }),
 
   !!process.env.AUTH_KEYCLOAK_CLIENT_ID &&
@@ -73,14 +70,6 @@ const allProviders: (Provider | boolean)[] = [
       clientSecret: process.env.AUTH_KEYCLOAK_SECRET,
       name: process.env.AUTH_KEYCLOAK_NAME ?? DEFAULT_NAME,
       issuer: process.env.AUTH_KEYCLOAK_HOST,
-      userinfo: {
-        async request(context) {
-          const userinfo = await context.client.userinfo(
-            context.tokens.access_token as string,
-          );
-          return userinfo;
-        },
-      },
       authorization: {
         params: {
           scope:
@@ -88,7 +77,6 @@ const allProviders: (Provider | boolean)[] = [
             'openid email profile offline_access',
         },
       },
-      token: tokenConfig,
     }),
 
   !!process.env.AUTH_COGNITO_CLIENT_ID &&
@@ -104,7 +92,6 @@ const allProviders: (Provider | boolean)[] = [
           scope: process.env.AUTH_COGNITO_SCOPE || 'openid email profile',
         },
       },
-      token: tokenConfig,
     }),
 
   !!process.env.AUTH_OKTA_CLIENT_SECRET &&
@@ -119,7 +106,6 @@ const allProviders: (Provider | boolean)[] = [
           scope: process.env.AUTH_OKTA_SCOPE || 'openid email profile',
         },
       },
-      token: tokenConfig,
     }),
 ];
 
