@@ -15,17 +15,17 @@ import {
 } from '@/src/models/deduplication-job';
 import { NotificationType } from '@/src/models/notification';
 
-const DEDUPLICATION_JOB_POLL_INTERVAL_MS = 2000;
+const DEDUPLICATION_JOB_POLL_INTERVAL_MS = 5000;
 
 const getDeduplicationStatusLabel = (status: DeduplicationJobStatus) =>
   DEDUPLICATION_JOB_STATUS_LABEL[status] ?? status;
 
-const DEDUPLICATION_JOB_STATUS_TITLE: Partial<
-  Record<DeduplicationJobStatus, string>
-> = {
-  [DeduplicationJobStatus.NOT_STARTED]: 'Duplicates removal not started',
-  [DeduplicationJobStatus.QUEUED]: 'Duplicates removal queued',
+const DEDUPLICATION_JOB_STATUS_TITLE: Record<DeduplicationJobStatus, string> = {
+  [DeduplicationJobStatus.NOT_STARTED]: 'Duplicate removal not started',
+  [DeduplicationJobStatus.QUEUED]: 'Duplicate removal queued',
   [DeduplicationJobStatus.IN_PROGRESS]: 'Removing duplicates',
+  [DeduplicationJobStatus.COMPLETED]: 'Duplicate removal completed',
+  [DeduplicationJobStatus.FAILED]: 'Duplicate removal failed',
 };
 
 const getDeduplicationSuccessDescription = (job: DeduplicationJob) =>
@@ -97,8 +97,7 @@ export const useDeduplicationJobPolling = ({
       lastStatusRef.current = job.status;
       replaceNotification({
         type: NotificationType.loading,
-        title:
-          DEDUPLICATION_JOB_STATUS_TITLE[job.status] || 'Removing duplicates',
+        title: DEDUPLICATION_JOB_STATUS_TITLE[job.status],
         description: `Job #${job.id}: ${getDeduplicationStatusLabel(job.status)}`,
         duration: null,
       });
@@ -118,7 +117,7 @@ export const useDeduplicationJobPolling = ({
       if (job.status === DeduplicationJobStatus.FAILED) {
         showNotificationRef.current({
           type: NotificationType.error,
-          title: 'Duplicates removal failed',
+          title: DEDUPLICATION_JOB_STATUS_TITLE[job.status],
           description:
             job.reason_for_failure?.trim() ||
             'Unable to remove duplicates. Please try again.',
@@ -128,7 +127,7 @@ export const useDeduplicationJobPolling = ({
 
       showNotificationRef.current({
         type: NotificationType.success,
-        title: 'Duplicate removal succeeded',
+        title: DEDUPLICATION_JOB_STATUS_TITLE[job.status],
         description: getDeduplicationSuccessDescription(job),
       });
     },
