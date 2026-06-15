@@ -84,7 +84,10 @@
     "picomatch": "4.0.4",
     "serialize-javascript": "7.0.5",
     "dompurify": "3.4.0",
-    "postcss": "$postcss"
+    "postcss": "$postcss",
+    "sockjs": {
+      "uuid": "11.1.1"
+    }
   },
   "engines": {
     "node": ">=24.14.0",
