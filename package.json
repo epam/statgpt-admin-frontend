@@ -42,7 +42,7 @@
     "@nx/eslint-plugin": "22.7.5",
     "@nx/jest": "22.7.5",
     "@nx/js": "22.7.5",
-    "@nx/next": "22.7.5",
+    "@nx/next": "23.0.0",
     "@nx/workspace": "22.7.5",
     "@svgr/webpack": "^8.1.0",
     "@swc/helpers": "0.5.18",
