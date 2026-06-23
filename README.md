@@ -1,10 +1,11 @@
 # StatGPT Admin Frontend
 
-This project is a web application built using [Next.js](https://nextjs.org/), a React framework with server-rendering capabilities. It can be easily customized and adapted to your needs by following the steps mentioned below.
+StatGPT Admin Frontend is a Next.js application for administering StatGPT data sources, datasets, channels, documents, and audit logs. The application is built as an Nx workspace and uses the Next.js App Router.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/mit)
-[![React](https://img.shields.io/badge/React-18+-61dafb.svg)](https://reactjs.org/)
-[![Nx](https://img.shields.io/badge/Nx-18+-7F52FF.svg)](https://nx.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/license/mit)
+[![Next.js](https://img.shields.io/badge/Next.js-16.2.6-black.svg)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.1.1-61dafb.svg)](https://react.dev/)
+[![Nx](https://img.shields.io/badge/Nx-22.5.3-7F52FF.svg)](https://nx.dev/)
 
 ## Table of Contents
 
@@ -13,13 +14,15 @@ This project is a web application built using [Next.js](https://nextjs.org/), a 
   - [Prerequisites](#prerequisites)
   - [Start](#start)
 - [💻 Development](#-development)
-  - [Prerequisites](#prerequisites-1)
   - [Development Setup](#development-setup)
 - [🔨 Build](#-build)
+- [🐳 Docker](#-docker)
 - [🧪 Test](#-test)
-- [🧑‍💻 Environment Variables](#-Environment-Variables)
-  - [Environment Variables for the Application](#environment-variables-for-the-application)
-  - [Environment Variables for the Configuration of Auth Providers](#environment-variables-for-the-configuration-of-auth-providers)
+- [🧑‍💻 Environment Variables](#-environment-variables)
+  - [Application Variables](#application-variables)
+  - [Authentication Variables](#authentication-variables)
+  - [Auth Provider Variables](#auth-provider-variables)
+  - [Security and Diagnostics Variables](#security-and-diagnostics-variables)
 - [🤝 Contributing](#-contributing)
 - [🔒 Security](#-security)
 - [📄 License](#-license)
@@ -29,64 +32,71 @@ This project is a web application built using [Next.js](https://nextjs.org/), a 
 
 This project uses:
 
-- **Next.js** with App Router for the frontend framework
-- **Nx Monorepo** for project organization and tooling
-- **TypeScript** for type safety
-- **Tailwind CSS** for styling
-- **React** for building UI components
-- **NextAuth.js** for authentication (optional)
+- **Next.js 16** with App Router for the frontend framework
+- **React 19** for UI components
+- **Nx 22** for workspace organization and tooling
+- **TypeScript 5.9** for type safety
+- **Tailwind CSS 3.4** and SCSS for styling
+- **NextAuth.js 4** for optional authentication
+- **Jest 30** for tests
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js >= 22.19.0
-- npm >= 11.0.0
+- Node.js >= 24.14.0
+- npm >= 11.11.0
 
 ### Start
 
 ```bash
 npm install
+cp .env.template apps/statgpt-admin-frontend/.env
 npm run start
 ```
 
+Edit `apps/statgpt-admin-frontend/.env` before using the application. For a functional local setup, provide at least:
+
+```bash
+API_URL="ADD_VALUE_HERE"
+DIAL_API_URL="ADD_VALUE_HERE"
+AUTH_SECRET="ADD_VALUE_HERE"
+```
+
+After the server starts, open `http://localhost:4100`.
+
 ## 💻 Development
-
-### Prerequisites
-
-- Node.js >= 22.19.0
-- npm >= 11.0.0
-- DIAL API access (for backend integration)
 
 ### Development Setup
 
-1. **Clone the repository**
+1. Clone the repository.
 
    ```bash
    git clone https://github.com/epam/statgpt-admin-frontend.git
+   cd statgpt-admin-frontend
    ```
 
-2. **Install Dependencies**
+2. Install dependencies.
 
    ```bash
    npm install
    ```
 
-3. **Set up env variables**
-
-   Create `.env` file in the the `apps\statgpt-admin-frontend` project directory and add the required variables with appropriate values. These are the only required environment variables. Refer to [Environment Variables](#-environment-variables) to learn more.
+3. Create the app env file from the template.
 
    ```bash
-   API_URL="ADD_VALUE_HERE"
-   NEXTAUTH_SECRET="ADD_VALUE_HERE"
+   cp .env.template apps/statgpt-admin-frontend/.env
    ```
 
-4. **Start Development Environment**
+4. Configure environment variables in `apps/statgpt-admin-frontend/.env`.
+
+5. Start the development server.
+
    ```bash
    npm run start
    ```
 
-Once the server is up and running, open `http://localhost:4100` in your browser to view the StatGPT Admin application.
+The `start` script runs `nx serve statgpt-admin-frontend --port=4100`.
 
 ## 🔨 Build
 
@@ -94,80 +104,105 @@ Once the server is up and running, open `http://localhost:4100` in your browser 
 npm run build
 ```
 
-After running the command, you will see a `dist` folder created in your project directory with the optimized output.
+The production build is written to `dist/apps/statgpt-admin-frontend`.
+
+## 🐳 Docker
+
+The Docker image builds the application and runs the generated production Next.js app. The container exposes port `3000`.
+
+```bash
+docker build -t statgpt-admin-frontend .
+docker run --env-file apps/statgpt-admin-frontend/.env -p 3000:3000 statgpt-admin-frontend
+```
 
 ## 🧪 Test
 
-To run the unit tests suite for your application, execute the following command:
+Run the unit test suite:
 
 ```bash
 npm run test
 ```
 
+Additional quality checks:
+
+```bash
+npm run lint
+npm run format
+```
+
 ## 🧑‍💻 Environment Variables
 
-### Environment Variables for the Application
+Environment variables are loaded from `apps/statgpt-admin-frontend/.env` for local development. Use `.env.template` as the starting point.
 
-StatGPT Admin uses environment variables for configuration. All environment variables that can be used to configure settings and behavior of the application are included in the `.env` file.
+### Application Variables
 
-| Variable             | Required | Description                                                                                                                                                                                                                                                   | Available Values | Default values |
-| -------------------- | :------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | -------------- |
-| `API_URL`            |   Yes    | StatGPT Admin Backend API url.<br />Refer to [StatGPT Admin Backend]().                                                                                                                                                                                       | Any string       |                |
-| `DIAL_API_URL`       |   Yes    | AI DIAL Core API Url. <br />Refer to [AI DIAL Core](https://github.com/epam/ai-dial-core?tab=readme-ov-file#dynamic-settings).                                                                                                                                | Any string       |                |
-| `DIAL_API_KEY`       |    No    | AI DIAL Core API Key.<br />Define this variable if authorization using JWT is not configured.<br />Refer to [AI DIAL Core](https://github.com/epam/ai-dial-core?tab=readme-ov-file#dynamic-settings) to learn how to set up AI DIAL Core and define API keys. | Any string       |                |
-| `DISABLE_MENU_ITEMS` |    No    | List of menu items to hide in the application                                                                                                                                                                                                                 | Any string       |                |
+| Variable             |                Required                | Description                                                                                                                                             | Example / Values                      | Default |
+| -------------------- | :------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ------- |
+| `API_URL`            |      Yes for main admin features       | StatGPT Backend API URL. See [StatGPT Backend](https://github.com/epam/statgpt-backend).                                                                | `https://statgpt-backend.example.com` |         |
+| `DIAL_API_URL`       | Yes for document and indexing features | AI DIAL Core API URL. See [AI DIAL Core dynamic settings](https://github.com/epam/ai-dial-core?tab=readme-ov-file#dynamic-settings).                    | `https://dial-core.example.com`       |         |
+| `DIAL_API_KEY`       |                   No                   | AI DIAL Core API key. Use it when DIAL Core requests should use an API key instead of the authenticated user's JWT.                                     | Any string                            |         |
+| `DISABLE_MENU_ITEMS` |                   No                   | Comma-separated menu item IDs to hide. The current UI consumes `datasources`, `documents`, `channels`, and `audit-logs`; `datasources` hides two items. | `datasources,documents,audit-logs`    |         |
 
-### Environment Variables for the Configuration of Auth Providers
+### Authentication Variables
 
-The table below presents a list of environment variables you can use to configure a specific IDP provider.
+Authentication is optional. If `AUTH_URL` is not set, application pages skip session checks. If `AUTH_URL` is set, configure `AUTH_SECRET` and at least one supported auth provider.
 
-> **NOTE**: to test the StatGPT Admin Frontend application in an **unauthenticated** mode, do not provide any of these variables. The only required variable to launch the application is `NEXTAUTH_SECRET`.
+| Variable          |                       Required                       | Description                                                                                               | Example / Values         | Default |
+| ----------------- | :--------------------------------------------------: | --------------------------------------------------------------------------------------------------------- | ------------------------ | ------- |
+| `AUTH_URL`        |       Required when authentication is enabled        | Public application URL used by Auth.js. Required for production auth deployments.                         | `http://localhost:4100`  |         |
+| `AUTH_SECRET`     | Recommended locally; required for authenticated runs | Secret used by Auth.js to sign and encrypt JWT/session data. Generate one with `openssl rand -base64 32`. | Any strong random string |         |
+| `AUTH_TRUST_HOST` |       Required behind a trusted reverse proxy        | Allows Auth.js to trust `Host` / `X-Forwarded-*` headers in ingress or reverse proxy deployments.         | `true` / `false`         | `false` |
 
-| Variable                  |                         Required                         | Description                                                                                                                                                                                                                                        | Available Values | Default values                                  |
-| ------------------------- | :------------------------------------------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ----------------------------------------------- |
-| `NEXTAUTH_URL`            | Optional.<br /> Required for **production** deployments. | NextAuth URL                                                                                                                                                                                                                                       | Any string       |                                                 |
-| `NEXTAUTH_SECRET`         |                           Yes                            | NextAuth Secret (generate by `openssl rand -base64 32` for example)                                                                                                                                                                                | Any string       |                                                 |
-| `AUTH_AUTH0_AUDIENCE`     |                            No                            | Auth0 Audience                                                                                                                                                                                                                                     | Any string       |                                                 |
-| `AUTH_AUTH0_CLIENT_ID`    |                            No                            | Auth0 Client ID                                                                                                                                                                                                                                    | Any string       |                                                 |
-| `AUTH_AUTH0_HOST`         |                            No                            | Auth0 Host                                                                                                                                                                                                                                         | Any string       |                                                 |
-| `AUTH_AUTH0_NAME`         |                            No                            | Auth0 Name                                                                                                                                                                                                                                         | Any string       |                                                 |
-| `AUTH_AUTH0_SECRET`       |                            No                            | Auth0 Secret                                                                                                                                                                                                                                       | Any string       |                                                 |
-| `AUTH_AUTH0_SCOPE`        |                            No                            | Auth0 Scope                                                                                                                                                                                                                                        | Any string       | `openid email profile offline_access`           |
-| `AUTH_AZURE_AD_CLIENT_ID` |                            No                            | A unique identifier for the client application registered in Azure Active Directory (AD). It is used to authenticate the client application when accessing Azure AD resources.                                                                     | Any string       |                                                 |
-| `AUTH_AZURE_AD_NAME`      |                            No                            | A name of the Azure AD tenant. It is used to specify the specific Azure AD instance to authenticate against.                                                                                                                                       | Any string       |                                                 |
-| `AUTH_AZURE_AD_SECRET`    |                            No                            | Also known as the client secret or application secret, this parameter is a confidential string that authenticates and authorizes the client application to access Azure AD resources. It serves as a password for the client application.          | Any string       |                                                 |
-| `AUTH_AZURE_AD_TENANT_ID` |                            No                            | Tenant ID refers to a globally unique identifier (GUID) that represents a specific Azure AD tenant. It is used to identify and authenticate the Azure AD tenant that the client application belongs to.                                            | Any string       |                                                 |
-| `AUTH_AZURE_AD_SCOPE`     |                            No                            | This parameter specifies the level of access and permissions that the client application requests when making a request to Azure AD resources. It defines the resources and actions that the application can access on behalf of a user or itself. | Any string       | `openid profile user.Read email offline_access` |
-| `AUTH_GITLAB_CLIENT_ID`   |                            No                            | GitLab Client ID                                                                                                                                                                                                                                   | Any string       |                                                 |
-| `AUTH_GITLAB_HOST`        |                            No                            | GitLab Host                                                                                                                                                                                                                                        | Any string       |                                                 |
-| `AUTH_GITLAB_NAME`        |                            No                            | GitLab Name                                                                                                                                                                                                                                        | Any string       |                                                 |
-| `AUTH_GITLAB_SECRET`      |                            No                            | GitLab Secret                                                                                                                                                                                                                                      | Any string       |                                                 |
-| `AUTH_GITLAB_SCOPE`       |                            No                            | GitLab Scope                                                                                                                                                                                                                                       | Any string       | `read_user`                                     |
-| `AUTH_GOOGLE_CLIENT_ID`   |                            No                            | Google Client ID                                                                                                                                                                                                                                   | Any string       |                                                 |
-| `AUTH_GOOGLE_NAME`        |                            No                            | Google Name                                                                                                                                                                                                                                        | Any string       |                                                 |
-| `AUTH_GOOGLE_SECRET`      |                            No                            | Google Secret                                                                                                                                                                                                                                      | Any string       |                                                 |
-| `AUTH_GOOGLE_SCOPE`       |                            No                            | Google Scope                                                                                                                                                                                                                                       | Any string       | `openid email profile offline_access`           |
-| `AUTH_KEYCLOAK_CLIENT_ID` |                            No                            | Keycloak Client ID                                                                                                                                                                                                                                 | Any string       |                                                 |
-| `AUTH_KEYCLOAK_HOST`      |                            No                            | Keycloak Host                                                                                                                                                                                                                                      | Any string       |                                                 |
-| `AUTH_KEYCLOAK_NAME`      |                            No                            | Keycloak Name                                                                                                                                                                                                                                      | Any string       |                                                 |
-| `AUTH_KEYCLOAK_SECRET`    |                            No                            | Keycloak Secret                                                                                                                                                                                                                                    | Any string       |                                                 |
-| `AUTH_KEYCLOAK_SCOPE`     |                            No                            | Keycloak Scope                                                                                                                                                                                                                                     | Any string       | `openid email profile offline_access`           |
-| `AUTH_OKTA_CLIENT_ID`     |                            No                            | Okta Client ID                                                                                                                                                                                                                                     | Any string       |                                                 |
-| `AUTH_OKTA_CLIENT_SECRET` |                            No                            | Okta Client Secret                                                                                                                                                                                                                                 | Any string       |                                                 |
-| `AUTH_OKTA_ISSUER`        |                            No                            | Okta domain issuer                                                                                                                                                                                                                                 | Any string       |                                                 |
-| `AUTH_OKTA_SCOPE`         |                            No                            | Okta Scope                                                                                                                                                                                                                                         | Any string       | `openid email profile`                          |
+### Auth Provider Variables
+
+Current code wires Auth0, Azure AD, Google, Keycloak, Cognito, and Okta providers in `apps/statgpt-admin-frontend/src/utils/auth/auth-providers.ts`. GitLab and PingID placeholders may exist in `.env.template`, but they are not active providers unless code support is added.
+
+| Variable                  | Required to enable provider | Description            | Default value                                   |
+| ------------------------- | :-------------------------: | ---------------------- | ----------------------------------------------- |
+| `AUTH_AUTH0_CLIENT_ID`    |        Yes for Auth0        | Auth0 client ID        |                                                 |
+| `AUTH_AUTH0_SECRET`       |        Yes for Auth0        | Auth0 client secret    |                                                 |
+| `AUTH_AUTH0_HOST`         |        Yes for Auth0        | Auth0 issuer URL       |                                                 |
+| `AUTH_AUTH0_AUDIENCE`     |             No              | Auth0 audience         |                                                 |
+| `AUTH_AUTH0_NAME`         |             No              | Provider display name  | `SSO`                                           |
+| `AUTH_AUTH0_SCOPE`        |             No              | Auth0 OAuth scopes     | `openid email profile offline_access`           |
+| `AUTH_AZURE_AD_CLIENT_ID` |      Yes for Azure AD       | Azure AD client ID     |                                                 |
+| `AUTH_AZURE_AD_SECRET`    |      Yes for Azure AD       | Azure AD client secret |                                                 |
+| `AUTH_AZURE_AD_TENANT_ID` |      Yes for Azure AD       | Azure AD tenant ID     |                                                 |
+| `AUTH_AZURE_AD_NAME`      |             No              | Provider display name  | `SSO`                                           |
+| `AUTH_AZURE_AD_SCOPE`     |             No              | Azure AD OAuth scopes  | `openid profile user.Read email offline_access` |
+| `AUTH_GOOGLE_CLIENT_ID`   |       Yes for Google        | Google client ID       |                                                 |
+| `AUTH_GOOGLE_SECRET`      |       Yes for Google        | Google client secret   |                                                 |
+| `AUTH_GOOGLE_NAME`        |             No              | Provider display name  | `SSO`                                           |
+| `AUTH_GOOGLE_SCOPE`       |             No              | Google OAuth scopes    | `openid email profile offline_access`           |
+| `AUTH_KEYCLOAK_CLIENT_ID` |      Yes for Keycloak       | Keycloak client ID     |                                                 |
+| `AUTH_KEYCLOAK_SECRET`    |      Yes for Keycloak       | Keycloak client secret |                                                 |
+| `AUTH_KEYCLOAK_HOST`      |      Yes for Keycloak       | Keycloak issuer URL    |                                                 |
+| `AUTH_KEYCLOAK_NAME`      |             No              | Provider display name  | `SSO`                                           |
+| `AUTH_KEYCLOAK_SCOPE`     |             No              | Keycloak OAuth scopes  | `openid email profile offline_access`           |
+| `AUTH_COGNITO_CLIENT_ID`  |       Yes for Cognito       | Cognito client ID      |                                                 |
+| `AUTH_COGNITO_SECRET`     |       Yes for Cognito       | Cognito client secret  |                                                 |
+| `AUTH_COGNITO_HOST`       |       Yes for Cognito       | Cognito issuer URL     |                                                 |
+| `AUTH_COGNITO_NAME`       |             No              | Provider display name  | `SSO`                                           |
+| `AUTH_COGNITO_SCOPE`      |             No              | Cognito OAuth scopes   | `openid email profile`                          |
+| `AUTH_OKTA_CLIENT_ID`     |        Yes for Okta         | Okta client ID         |                                                 |
+| `AUTH_OKTA_CLIENT_SECRET` |        Yes for Okta         | Okta client secret     |                                                 |
+| `AUTH_OKTA_ISSUER`        |        Yes for Okta         | Okta issuer URL        |                                                 |
+| `AUTH_OKTA_SCOPE`         |             No              | Okta OAuth scopes      | `openid email profile`                          |
+
+### Security and Diagnostics Variables
+
+| Variable                  | Required | Description                                                                  | Example / Values             | Default  |
+| ------------------------- | :------: | ---------------------------------------------------------------------------- | ---------------------------- | -------- |
+| `ALLOWED_FRAME_ANCESTORS` |    No    | Value used for the CSP `frame-ancestors` directive.                          | `'self' https://example.com` | `'none'` |
+| `SHOW_TOKEN_SUB`          |    No    | Set to `true` to include token subject values in token refresh log messages. | `true`, `false`              | `false`  |
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on:
-
-- Code style guidelines
-- Testing requirements
-- Pull request process
+See the [Contributing Guide](./CONTRIBUTING.md) for details on code style, testing requirements, and the pull request process.
 
 ## 🔒 Security
 
-If you discover a security vulnerability, please refer to our [Security Policy](./SECURITY.md).
+If you discover a security vulnerability, see the [Security Policy](./SECURITY.md).
 
 ## 📄 License
 
@@ -175,7 +210,8 @@ If you discover a security vulnerability, please refer to our [Security Policy](
 
 ## 🌟 Related Projects
 
-- [StatGPT Backend](https://github.com/epam/statgpt-backend)- StatGPT backend, which implements APIs and main logic of the StatGPT application.
+- [StatGPT Backend](https://github.com/epam/statgpt-backend) - backend APIs and main StatGPT application logic.
+- [AI DIAL Core](https://github.com/epam/ai-dial-core) - AI DIAL Core service used for DIAL integrations.
 
 ---
 

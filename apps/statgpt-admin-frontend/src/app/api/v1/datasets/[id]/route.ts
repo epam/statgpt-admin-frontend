@@ -1,18 +1,17 @@
-import { NextRequest } from 'next/server';
 import { dataSetsApi } from '../../../api';
-import { getToken } from 'next-auth/jwt';
+import { getRequestToken } from '@/src/utils/auth/get-token';
 import { DataSet } from '@/src/models/data-sets';
 import { apiResultToResponse } from '@/src/server/api';
 
 export const dynamic = 'force-dynamic';
 
 export async function DELETE(
-  req: NextRequest,
+  req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
     const params = await context.params;
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
     return apiResultToResponse(
       await dataSetsApi.removeDataSet(params.id, token),
     );
@@ -21,9 +20,9 @@ export async function DELETE(
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
     let res: DataSet;
     try {
       res = (await req.json()) as DataSet;

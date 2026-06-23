@@ -1,3 +1,3 @@
 export const getIsEnableAuthToggle = (): boolean => {
-  return !!process.env.NEXTAUTH_URL;
+  return !!(process.env.AUTH_URL ?? process.env.NEXTAUTH_URL);
 };

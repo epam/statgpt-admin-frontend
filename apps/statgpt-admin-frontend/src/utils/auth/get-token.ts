@@ -1,28 +1,28 @@
-import { IncomingMessage } from 'http';
-import { DefaultSession, getServerSession } from 'next-auth';
 import { getToken, GetTokenParams, JWT } from 'next-auth/jwt';
-import { NextApiRequestCookies } from 'next/dist/server/api-utils';
-import { authOptions } from './auth-options';
+import { getAuthSecret, getSessionCookieName } from './auth-cookie';
 
 export const getTokenRequestParams = async (
   headers: Promise<Headers>,
   cookies: Promise<unknown>,
 ): Promise<GetTokenParams> => {
   const headersList = await headers;
-  const cookiesList = await cookies;
+  await cookies;
 
   return {
     req: {
       headers: headersList,
-      cookies: cookiesList as NextApiRequestCookies,
-    } as unknown as IncomingMessage & {
-      cookies: NextApiRequestCookies;
     },
-    ...(authOptions as Partial<GetTokenParams>),
-    cookieName: authOptions.cookies?.sessionToken?.name,
-    secureCookie: authOptions.cookies?.sessionToken?.options?.secure,
+    cookieName: getSessionCookieName(),
+    secret: getAuthSecret(),
   };
 };
+
+export const getRequestToken = async (req: Request): Promise<JWT | null> =>
+  getToken({
+    req,
+    cookieName: getSessionCookieName(),
+    secret: getAuthSecret(),
+  });
 
 export const getUserToken = async (
   isEnableAuth: boolean,
@@ -40,15 +40,11 @@ export const getIsInvalidSession = async (
   if (!isEnableAuth) {
     return false;
   }
-  const session = (await getServerSession(authOptions)) as DefaultSession & {
-    error?: string;
-  };
-  const isInvalidSession = session == null || session.error != null;
-
   const isTokenInvalid =
     token == null ||
+    (token as { error?: unknown }).error != null ||
     (typeof token.accessTokenExpires === 'number' &&
       Date.now() > token.accessTokenExpires);
 
-  return isInvalidSession || isTokenInvalid;
+  return isTokenInvalid;
 };

@@ -1,15 +1,14 @@
-import { getToken } from 'next-auth/jwt';
-import { NextRequest } from 'next/server';
+import { getRequestToken } from '@/src/utils/auth/get-token';
 import { auditLogsApi } from '@/src/app/api/api';
 import { apiResultToResponse } from '@/src/server/api';
 
 export async function GET(
-  req: NextRequest,
+  req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
     const params = await context.params;
-    const token = await getToken({ req });
+    const token = await getRequestToken(req);
     return apiResultToResponse(
       await auditLogsApi.getAuditLogById(params.id, token),
     );

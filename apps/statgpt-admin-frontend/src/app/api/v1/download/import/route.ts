@@ -1,13 +1,12 @@
 import { documentsApi } from '@/src/app/api/api';
 import { apiResultToResponse } from '@/src/server/api';
-import { NextRequest } from 'next/server';
 
 export const runtime = 'nodejs';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    const search = req.nextUrl.searchParams;
+    const search = new URL(req.url).searchParams;
     const targetPath = search.get('targetPath') as string;
 
     return apiResultToResponse(

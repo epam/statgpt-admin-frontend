@@ -1,4 +1,4 @@
-import { TokenSet } from 'next-auth';
+import { TokenSet } from '@auth/core/types';
 import { JWT } from 'next-auth/jwt';
 
 export interface Token extends JWT {
