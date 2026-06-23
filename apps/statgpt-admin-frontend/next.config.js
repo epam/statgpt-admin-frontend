@@ -16,10 +16,13 @@ const ContentSecurityPolicy = `
     ${process.env.NODE_ENV === 'production' ? 'upgrade-insecure-requests;' : ''}
 `;
 
+const nxOutputPath = process.env.NX_NEXT_OUTPUT_PATH;
+
 /**
  * @type {import('next').NextConfig}
  **/
 const nextConfig = {
+  ...(nxOutputPath ? { distDir: `../../${nxOutputPath}/.next` } : {}),
   turbopack: {
     rules: {
       '*.svg': {
