@@ -43,7 +43,6 @@
     "@nx/jest": "23.0.1",
     "@nx/js": "23.0.1",
     "@nx/next": "23.0.1",
-    "@nx/vite": "^23.0.1",
     "@nx/workspace": "23.0.1",
     "@svgr/webpack": "^8.1.0",
     "@swc/helpers": "0.5.18",
