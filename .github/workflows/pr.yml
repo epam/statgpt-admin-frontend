@@ -14,7 +14,10 @@ concurrency:
 
 jobs:
   run_tests:
-    uses: epam/ai-dial-ci/.github/workflows/node_pr.yml@4.5.0
+    # Temporary. This branch with the fix is based on ai-dial-ci version 4.7.0
+    uses: epam/ai-dial-ci/.github/workflows/node_pr.yml@feat/ort-allow-dynamic-versions-report-formats
     with:
+      ort-allow-dynamic-versions: "false" # feat branch only
+      ort-report-formats: "CycloneDx,SpdxDocument" # feat branch only
       node-version: "24"
     secrets: inherit
