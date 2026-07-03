@@ -16,14 +16,13 @@ const ContentSecurityPolicy = `
     ${process.env.NODE_ENV === 'production' ? 'upgrade-insecure-requests;' : ''}
 `;
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { composePlugins, withNx } = require('@nx/next');
+const nxOutputPath = process.env.NX_NEXT_OUTPUT_PATH;
 
 /**
- * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
+ * @type {import('next').NextConfig}
  **/
 const nextConfig = {
-  nx: {},
+  ...(nxOutputPath ? { distDir: `../../${nxOutputPath}/.next` } : {}),
   turbopack: {
     rules: {
       '*.svg': {
@@ -73,9 +72,4 @@ const nextConfig = {
   },
 };
 
-const plugins = [
-  // Add more Next.js plugins to this list if needed.
-  withNx,
-];
-
-module.exports = composePlugins(...plugins)(nextConfig);
+module.exports = nextConfig;
