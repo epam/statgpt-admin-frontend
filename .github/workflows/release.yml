@@ -16,13 +16,12 @@ concurrency:
 
 jobs:
   release:
-    # Temporary. This branch with the fix is based on ai-dial-ci version 4.7.0
-    uses: epam/ai-dial-ci/.github/workflows/node_release.yml@feat/ort-allow-dynamic-versions-report-formats
+    uses: epam/ai-dial-ci/.github/workflows/node_release.yml@4.5.0
     with:
-      ort-allow-dynamic-versions: "false" # feat branch only
-      ort-report-formats: "CycloneDx,SpdxDocument" # feat branch only
       promote: true
       publish-enabled: false
       draft-stable-releases: true
       node-version: "24"
+      ort-version: "90.0.0"
+      ort-config-revision: "605e909bfe81ee916f66533b7139ac5bdaf1081c"
     secrets: inherit
