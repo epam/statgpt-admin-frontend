@@ -23,7 +23,7 @@
     "next-auth": "^5.0.0-beta.32",
     "pino": "^10.1.0",
     "pino-pretty": "^13.1.2",
-    "postcss": "8.5.18",
+    "postcss": "8.5.23",
     "react": "19.2.8",
     "react-datepicker": "^9.1.0",
     "react-dnd": "^16.0.1",
@@ -86,7 +86,7 @@
     "picomatch": "4.0.4",
     "serialize-javascript": "7.0.5",
     "dompurify": "3.4.12",
-    "postcss": "8.5.18",
+    "postcss": "8.5.23",
     "sharp": "0.35.0"
   },
   "engines": {
