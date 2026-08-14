@@ -188,6 +188,10 @@ export const ActionColumn: FC<Props> = ({
                 router.push(ROUTES.channelGlossary(data.id));
               }
 
+              if (item === EntityOperation.DiscoveryDatasets) {
+                router.push(ROUTES.channelDiscoveryDatasets(data.id));
+              }
+
               if (item === EntityOperation.Jobs) {
                 router.push(ROUTES.channelJobs(data.id));
               }

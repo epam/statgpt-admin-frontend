@@ -51,7 +51,6 @@ export function AuditLogsListView({
         description: initialError,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filtersRef = useRef(filters);

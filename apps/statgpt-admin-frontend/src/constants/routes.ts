@@ -11,6 +11,8 @@ export const ROUTES = {
   channel: (channelId: Id) => `${MenuUrl.CHANNELS}/${channelId}`,
   channelGlossary: (channelId: Id) =>
     `${MenuUrl.CHANNELS}/${channelId}/glossary`,
+  channelDiscoveryDatasets: (channelId: Id) =>
+    `${MenuUrl.CHANNELS}/${channelId}/discovery-datasets`,
   channelJobs: (channelId: Id) => `${MenuUrl.CHANNELS}/${channelId}/jobs`,
   datasetVersions: (channelId: Id, datasetId: Id) =>
     `${MenuUrl.CHANNELS}/${channelId}/datasets/${datasetId}/versions`,

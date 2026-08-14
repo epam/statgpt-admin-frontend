@@ -1,6 +1,8 @@
 import { FC, useCallback } from 'react';
 import {
+  IconDatabase,
   IconDownload,
+  IconFileDescription,
   IconHistory,
   IconList,
   IconPencilMinus,
@@ -38,6 +40,14 @@ export const ActionItem: FC<Props> = ({ item }) => {
 
     if (item === EntityOperation.Terms) {
       return <Terms />;
+    }
+
+    if (item === EntityOperation.DiscoveryDatasets) {
+      return <IconDatabase width={18} height={18} />;
+    }
+
+    if (item === EntityOperation.Details) {
+      return <IconFileDescription width={18} height={18} />;
     }
 
     if (item === EntityOperation.AutoUpdateJobs) {
