@@ -146,7 +146,6 @@ const DropdownAutocomplete = forwardRef<
               })}
             >
               {filteredItems.map((item, index) => (
-                /* eslint-disable react/jsx-key */
                 <DropdownAutocompleteItem
                   {...getItemProps({
                     key: item,

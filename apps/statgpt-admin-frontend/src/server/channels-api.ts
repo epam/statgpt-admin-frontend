@@ -17,6 +17,10 @@ import { ChannelIndexStatus } from '@/src/models/channel-index-status';
 import { DataSet } from '@/src/models/data-sets';
 import { RequestData } from '@/src/models/request-data';
 import { AutoUpdateJob } from '@/src/models/auto-update-job';
+import {
+  DiscoveryDataset,
+  DiscoveryUploadSummary,
+} from '@/src/models/discovery-dataset';
 import { ApiResult, MAIN_API } from './api';
 import { BaseApi } from './base-api';
 import { Job, JobStatus } from '@/src/models/job';
@@ -36,6 +40,13 @@ export const CHANNEL_ID_URL = (id?: string | number): string =>
 
 export const CHANNEL_TERMS_URL = (id?: string | number): string =>
   `${CHANNEL_ID_URL(id)}/terms`;
+
+export const CHANNEL_DISCOVERY_DATASETS_URL = (id?: string | number): string =>
+  `${CHANNEL_ID_URL(id)}/discovery-datasets`;
+
+export const CHANNEL_DISCOVERY_DATASETS_UPLOAD_URL = (
+  id?: string | number,
+): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/upload`;
 
 export const CHANNEL_JOBS_URL = (id?: string | number): string =>
   `${CHANNEL_ID_URL(id)}/jobs`;
@@ -379,5 +390,31 @@ export class ChannelsApi extends BaseApi {
     token: JWT | null,
   ): Promise<ApiResult<ChannelIndexStatus>> {
     return this.get(`${CHANNEL_INDEX_STATUS_URL(id)}?scope=full`, token);
+  }
+
+  getChannelDiscoveryDatasets(
+    id: string,
+    limit: number,
+    offset: number,
+    token: JWT | null,
+  ): Promise<ApiResult<RequestData<DiscoveryDataset>>> {
+    return this.get(
+      `${CHANNEL_DISCOVERY_DATASETS_URL(id)}?limit=${limit}&offset=${offset}`,
+      token,
+    );
+  }
+
+  uploadChannelDiscoveryDatasets(
+    id: string,
+    formData: FormData,
+    token: JWT | null,
+  ): Promise<ApiResult<DiscoveryUploadSummary>> {
+    return this.post(
+      `${CHANNEL_DISCOVERY_DATASETS_UPLOAD_URL(id)}?mode=upsert`,
+      formData,
+      void 0,
+      void 0,
+      token,
+    );
   }
 }

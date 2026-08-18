@@ -184,7 +184,6 @@ export const TimePeriodDropdown = ({
       if (Math.abs(ms - selectedMs) <= 60_000) return p.id;
     }
     return undefined;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected.created_at_from, selected.created_at_to]); // nowFn intentionally not in deps
 
   const activePreset = activePresetId
