@@ -9,7 +9,7 @@ import { DOCUMENTS_COLUMNS_WITH_ACTIONS } from '@/src/constants/columns/grid-col
 import { Menu } from '@/src/constants/menu';
 import { Document } from '@/src/models/document';
 import { RequestData } from '@/src/models/request-data';
-import { logger } from '@/src/server/logger';
+import { logApiFailure } from '@/src/server/logger';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 
@@ -32,7 +32,7 @@ export default async function Page() {
   } else if (result.error.status === 401 || result.error.status === 403) {
     return <ForbiddenTrigger />;
   } else {
-    logger.error(`Getting documents error ${result.error.message}`);
+    logApiFailure('documents', result.error);
   }
 
   return (

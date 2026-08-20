@@ -2,12 +2,41 @@ import { JWT } from 'next-auth/jwt';
 
 import { getApiHeaders } from '@/src/utils/auth/api-headers';
 import { parseApiError } from './api-error-parser';
+import {
+  asLogDetails,
+  logFetchFailure,
+  logRequestEnd,
+  logRequestStart,
+  logResponseError,
+  safeUrl,
+} from './request-diagnostics';
 
 export const ADMIN = '';
 export const API = 'api/v1';
 export const MAIN_API = `${ADMIN}/${API}`;
 
 const PREVIEW_BODY_LENGTH = 1000;
+
+/**
+ * Maps a thrown `fetch` error to an `ApiError`, logging the full network
+ * diagnostics on the way out (see `./request-diagnostics`).
+ */
+const handleFetchFailure = (
+  method: string,
+  url: string,
+  error: unknown,
+  startedAt: number,
+  baseUrlSource?: string,
+): ApiError => {
+  const details = logFetchFailure(method, url, error, startedAt, baseUrlSource);
+
+  return {
+    status: 0,
+    message: details.message,
+    details: details.hint,
+    raw: details,
+  };
+};
 
 export interface ApiError {
   status: number;
@@ -59,7 +88,11 @@ export const streamRequest = async (
   url: string,
   type: string,
   token?: JWT | null,
+  baseUrlSource?: string,
 ) => {
+  const startedAt = Date.now();
+  logRequestStart(type, url, Boolean(token?.access_token));
+
   try {
     const res = await fetch(url, {
       method: type,
@@ -73,14 +106,24 @@ export const streamRequest = async (
     if (!res.ok && contentType?.toLowerCase().includes('text/html')) {
       const bodyPreview = (await res.text()).slice(0, PREVIEW_BODY_LENGTH);
       console.error(
-        'Proxy error: Unexpected HTML response from upstream',
-        res.status,
-        bodyPreview,
+        `[api] Proxy error: unexpected HTML response from ${safeUrl(url)}` +
+          asLogDetails({
+            status: res.status,
+            responseUrl: safeUrl(res.url),
+            redirected: res.redirected,
+            bodyPreview,
+          }),
       );
       return Response.json(
         { error: 'Unexpected HTML response from upstream service' },
         { status: 502 },
       );
+    }
+
+    if (!res.ok) {
+      logResponseError(type, url, res, startedAt, '<streamed body not read>');
+    } else {
+      logRequestEnd(type, url, res.status, startedAt);
     }
 
     const headers = new Headers(res.headers);
@@ -91,8 +134,11 @@ export const streamRequest = async (
       headers,
     });
   } catch (e) {
-    console.error('Error', e);
-    return Response.json({ error: 'Proxy error' }, { status: 500 });
+    const error = handleFetchFailure(type, url, e, startedAt, baseUrlSource);
+    return Response.json(
+      { error: error.message, details: error.details },
+      { status: 500 },
+    );
   }
 };
 
@@ -103,7 +149,11 @@ export const sendRequestSafe = async <T extends object, R>(
   qs?: Record<string, string>,
   initHeaders?: HeadersInit,
   token?: JWT | null,
+  baseUrlSource?: string,
 ): Promise<ApiResult<R>> => {
+  const startedAt = Date.now();
+  logRequestStart(type, url, Boolean(token?.access_token));
+
   try {
     const response = await fetch(url, {
       body: dto instanceof FormData ? dto : JSON.stringify(dto),
@@ -116,30 +166,27 @@ export const sendRequestSafe = async <T extends object, R>(
     });
 
     if (!(response.status >= 200 && response.status < 300)) {
-      console.error('Request error Url', response.url);
-
       const error = await parseApiError(response);
-      console.error(
-        'Request error',
-        response.status,
-        error.raw || error.message,
+      logResponseError(
+        type,
+        url,
+        response,
+        startedAt,
+        error.raw ?? error.message,
       );
       return { ok: false, error };
     }
+
+    logRequestEnd(type, url, response.status, startedAt);
 
     const data = (
       type === 'DELETE' ? await response.text() : await response.json()
     ) as R;
     return { ok: true, data };
   } catch (e) {
-    console.error('Error', e);
     return {
       ok: false,
-      error: {
-        status: 0,
-        message: 'Request failed',
-        raw: e,
-      },
+      error: handleFetchFailure(type, url, e, startedAt, baseUrlSource),
     };
   }
 };

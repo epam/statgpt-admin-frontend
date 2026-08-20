@@ -7,7 +7,7 @@ import { SIGN_IN_LINK } from '@/src/constants/auth';
 import { DataSet } from '@/src/models/data-sets';
 import { DataSetsView } from './DataSetsView';
 import { RequestData } from '@/src/models/request-data';
-import { logger } from '@/src/server/logger';
+import { logApiFailure } from '@/src/server/logger';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 
@@ -30,7 +30,7 @@ export default async function Page() {
   } else if (result.error.status === 403) {
     return <ForbiddenTrigger />;
   } else {
-    logger.error(`Getting data sets error ${result.error.message}`);
+    logApiFailure('data sets', result.error);
   }
 
   const rows = data?.data ?? [];

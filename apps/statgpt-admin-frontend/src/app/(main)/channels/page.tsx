@@ -9,7 +9,7 @@ import { CHANNELS_COLUMNS } from '@/src/constants/columns/grid-columns';
 import { Menu } from '@/src/constants/menu';
 import { Channel } from '@/src/models/channel';
 import { RequestData } from '@/src/models/request-data';
-import { logger } from '@/src/server/logger';
+import { logApiFailure } from '@/src/server/logger';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 
@@ -32,7 +32,7 @@ export default async function Page() {
   } else if (result.error.status === 403) {
     return <ForbiddenTrigger />;
   } else {
-    logger.error(`Getting channels error ${result.error.message}`);
+    logApiFailure('channels', result.error);
   }
 
   return (

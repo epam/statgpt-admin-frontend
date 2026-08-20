@@ -1,6 +1,13 @@
 import { JWT } from 'next-auth/jwt';
 import { getApiHeaders } from '@/src/utils/auth/api-headers';
 import { ApiResult, sendRequestSafe, streamRequest } from './api';
+import {
+  asLogDetails,
+  logFetchFailure,
+  logRequestEnd,
+  logRequestStart,
+  logResponseError,
+} from './request-diagnostics';
 
 export interface BaseApiConfig {
   host?: string;
@@ -9,11 +16,59 @@ export interface BaseApiConfig {
   dialTemp?: string;
 }
 
+interface ResolvedUrl {
+  fullUrl: string;
+  /** Env var the base URL came from — the first thing to check on failure. */
+  source: string;
+}
+
 export class BaseApi {
   protected config: BaseApiConfig;
 
   constructor(config: BaseApiConfig) {
     this.config = config;
+  }
+
+  /**
+   * Composes the upstream URL and records which env var supplied the base, so
+   * a failing request can be attributed to a specific piece of configuration.
+   */
+  private resolveUrl(url: string, tempUrl: boolean): ResolvedUrl {
+    const { base, source } = tempUrl
+      ? { base: this.config.dialTemp, source: 'dialTemp (DIAL_API_URL)' }
+      : this.config.host
+        ? { base: this.config.host, source: 'API_URL' }
+        : { base: this.config.dial, source: 'DIAL_API_URL' };
+
+    if (!base) {
+      console.error(
+        `[api] ${this.constructor.name}: base URL is not configured, request to "${url}" will fail - set ${source}` +
+          asLogDetails(this.describeConfig()),
+      );
+    }
+
+    return { fullUrl: `${base ?? ''}${url}`, source };
+  }
+
+  /** Presence-only view of the config — never logs keys or full URLs. */
+  private describeConfig(): Record<string, string> {
+    const describe = (value?: string) => {
+      if (!value) {
+        return '<empty>';
+      }
+      try {
+        return new URL(value).host;
+      } catch {
+        return '<invalid url>';
+      }
+    };
+
+    return {
+      host: describe(this.config.host),
+      dial: describe(this.config.dial),
+      dialTemp: describe(this.config.dialTemp),
+      dialKey: this.config.dialKey ? '<set>' : '<empty>',
+    };
   }
 
   protected delete<T extends object, R>(
@@ -51,7 +106,8 @@ export class BaseApi {
   }
 
   protected streamRequest(url: string, token?: JWT | null) {
-    return streamRequest(`${this.config.host}${url}`, 'GET', token);
+    const { fullUrl, source } = this.resolveUrl(url, false);
+    return streamRequest(fullUrl, 'GET', token, source);
   }
 
   protected get<R extends object>(
@@ -98,7 +154,9 @@ export class BaseApi {
     const apiKey = this.config.dialKey
       ? { 'Api-key': this.config.dialKey }
       : {};
-    const fullUrl = `${tempUrl ? this.config.dialTemp : this.config.host || this.config.dial}${url}`;
+    const { fullUrl, source } = this.resolveUrl(url, tempUrl);
+    const startedAt = Date.now();
+    logRequestStart(type, fullUrl, Boolean(token?.access_token));
     try {
       const r = await fetch(fullUrl, {
         body: dto instanceof FormData ? dto : JSON.stringify(dto),
@@ -114,14 +172,14 @@ export class BaseApi {
         } as HeadersInit,
       });
       if (!(r.status >= 200 && r.status < 300)) {
-        console.error('Request error Url', r.url);
         const text = await r.text();
-        console.error('Request error', r.status, text);
+        logResponseError(type, fullUrl, r, startedAt, text);
         return null;
       }
+      logRequestEnd(type, fullUrl, r.status, startedAt);
       return (type === 'DELETE' ? await r.text() : await r.json()) as R;
     } catch (e) {
-      console.error('Error', e);
+      logFetchFailure(type, fullUrl, e, startedAt, source);
       return null;
     }
   }
@@ -138,14 +196,16 @@ export class BaseApi {
     const apiKey = this.config.dialKey
       ? { 'Api-key': this.config.dialKey }
       : {};
+    const { fullUrl, source } = this.resolveUrl(url, tempUrl);
 
     return sendRequestSafe(
-      `${tempUrl ? this.config.dialTemp : this.config.host || this.config.dial}${url}`,
+      fullUrl,
       type,
       dto,
       qs,
       { ...initHeaders, ...apiKey } as HeadersInit,
       token,
+      source,
     );
   }
 }

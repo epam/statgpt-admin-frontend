@@ -1,8 +1,11 @@
 import { AuditLogsApi } from '@/src/server/audit-logs-api';
 import { ChannelsApi } from '@/src/server/channels-api';
+import { logApiConfiguration } from '@/src/server/config-diagnostics';
 import { DataSetsApi } from '@/src/server/data-sets-api';
 import { DataSourcesApi } from '@/src/server/data-sources-api';
 import { DocumentsApi } from '@/src/server/documents-api';
+
+logApiConfiguration();
 
 export const dataSourcesApi = new DataSourcesApi({
   host: process.env.API_URL || '',

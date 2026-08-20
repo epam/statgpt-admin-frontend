@@ -7,7 +7,7 @@ import { SIGN_IN_LINK } from '@/src/constants/auth';
 import { getIsInvalidSession, getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 import { auditLogsApi } from '../../api/api';
-import { logger } from '@/src/server/logger';
+import { logApiFailure } from '@/src/server/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,9 +27,7 @@ export default async function Page() {
   } else if (enumsResult.error.status === 403) {
     return <ForbiddenTrigger />;
   } else {
-    logger.error(
-      `Getting audit log enum values error ${enumsResult.error.message}`,
-    );
+    logApiFailure('audit log enum values', enumsResult.error);
   }
 
   return (
