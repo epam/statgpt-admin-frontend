@@ -80,7 +80,6 @@ export function ListContent<T = BaseEntity>({
         description: initialError,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onCellClicked = useCallback(

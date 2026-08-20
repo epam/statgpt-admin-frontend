@@ -49,6 +49,7 @@ export const CHANNELS_COLUMNS: ColDef[] = [
     items: [
       EntityOperation.Configure,
       EntityOperation.Terms,
+      EntityOperation.DiscoveryDatasets,
       EntityOperation.Jobs,
       EntityOperation.Delete,
       EntityOperation.Export,

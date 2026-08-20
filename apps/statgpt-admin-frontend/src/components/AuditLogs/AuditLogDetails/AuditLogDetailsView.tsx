@@ -5,7 +5,7 @@ import { Modal } from '../../Modal/Modal';
 import { DiffEditor } from '@monaco-editor/react';
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { sendGetRequest } from '@/src/server/api';
-import { DataField } from './DataField';
+import { DataField } from '@/src/components/BaseComponents/DataField/DataField';
 import { CopyButton } from '../../BaseComponents/CopyButton/CopyButton';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 
