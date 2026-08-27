@@ -6,6 +6,7 @@ import { IconFileArrowLeft } from '@tabler/icons-react';
 import { createPortal } from 'react-dom';
 
 import { useAccessControl } from '@/src/context/AccessControlContext';
+import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import {
   FetchRowsArgs,
@@ -49,6 +50,8 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const withNotification = useApiNotification();
   const [refreshToken, setRefreshToken] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  usePageInitialLoadingSync(isInitialLoading);
 
   const fetchRows = useCallback(
     async (args: FetchRowsArgs): Promise<FetchRowsResult<DiscoveryDataset>> => {
@@ -59,6 +62,8 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         'Failed to Load Discovery Datasets',
         [403],
       );
+
+      setIsInitialLoading(false);
 
       if (!result.ok) {
         if (result.error.status === 403) {
