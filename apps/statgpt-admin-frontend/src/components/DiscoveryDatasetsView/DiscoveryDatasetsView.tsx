@@ -6,6 +6,7 @@ import { IconFileArrowLeft } from '@tabler/icons-react';
 import { createPortal } from 'react-dom';
 
 import { useAccessControl } from '@/src/context/AccessControlContext';
+import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import {
   FetchRowsArgs,
@@ -18,6 +19,8 @@ import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DiscoveryDataset } from '@/src/models/discovery-dataset';
 import { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
+import { ValidationStatusCell } from '@/src/components/GridView/ValidationStatusCell/ValidationStatusCell';
+import { IndexingStatusCell } from '@/src/components/GridView/IndexingStatusCell/IndexingStatusCell';
 import { DiscoveryDatasetActionColumn } from './ActionColumn/ActionColumn';
 import { UploadModal } from './UploadModal/UploadModal';
 
@@ -30,12 +33,20 @@ const COLUMNS: ColDef[] = [
   { field: 'agency', headerName: 'Agency' },
   { field: 'datasetId', headerName: 'Dataset ID' },
   { field: 'name', headerName: 'Name' },
-  { field: 'description', headerName: 'Description' },
   { field: 'url', headerName: 'URL' },
   { field: 'referenceArea', headerName: 'Reference Area' },
   { field: 'timeCoverage', headerName: 'Time Coverage' },
   { field: 'frequencyCoverage', headerName: 'Frequency Coverage' },
-  { field: 'indexingStatus', headerName: 'Indexing Status' },
+  {
+    field: 'validationStatus',
+    headerName: 'Validation Status',
+    cellRenderer: ValidationStatusCell,
+  },
+  {
+    field: 'indexingStatus',
+    headerName: 'Indexing Status',
+    cellRenderer: IndexingStatusCell,
+  },
   {
     width: 32,
     maxWidth: 32,
@@ -49,6 +60,8 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const withNotification = useApiNotification();
   const [refreshToken, setRefreshToken] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  usePageInitialLoadingSync(isInitialLoading);
 
   const fetchRows = useCallback(
     async (args: FetchRowsArgs): Promise<FetchRowsResult<DiscoveryDataset>> => {
@@ -59,6 +72,8 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         'Failed to Load Discovery Datasets',
         [403],
       );
+
+      setIsInitialLoading(false);
 
       if (!result.ok) {
         if (result.error.status === 403) {

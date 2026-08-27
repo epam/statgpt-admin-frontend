@@ -66,6 +66,7 @@ const buttonsTextColors = {
 
 const iconColors = {
   'icon-error': 'var(--icon-error, #F76464)',
+  'icon-warning': 'var(--icon-warning, #EEC840)',
   'icon-accent-secondary': 'var(--icon-accent-secondary, #37BABC)',
   'icon-secondary': 'var(--icon-secondary, #7F8792)',
   'icon-primary': 'var(--icon-secondary, #F3F4F6)',

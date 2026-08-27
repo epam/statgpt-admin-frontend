@@ -5,23 +5,17 @@ import { FC } from 'react';
 import { DataField } from '@/src/components/BaseComponents/DataField/DataField';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { Modal } from '@/src/components/Modal/Modal';
-import { DiscoveryDataset } from '@/src/models/discovery-dataset';
+import {
+  DISCOVERY_INDEXING_STATUS_LABEL,
+  DISCOVERY_VALIDATION_STATUS_LABEL,
+  DiscoveryDataset,
+  formatDiscoveryValidationIssues,
+} from '@/src/models/discovery-dataset';
 
 interface Props {
   data: DiscoveryDataset;
   close: () => void;
 }
-
-const formatValidationIssues = (
-  issues?: DiscoveryDataset['validationIssues'],
-): string => {
-  if (!issues || !issues.length) return '';
-  return issues
-    .map((issue) =>
-      issue.field ? `${issue.field}: ${issue.message}` : issue.message,
-    )
-    .join('; ');
-};
 
 export const DiscoveryDatasetDetailsView: FC<Props> = ({ data, close }) => {
   return (
@@ -49,13 +43,25 @@ export const DiscoveryDatasetDetailsView: FC<Props> = ({ data, close }) => {
         />
         <DataField label="Missing Indicators" value={data.missingIndicators} />
         <DataField label="Channel ID" value={String(data.channelId ?? '')} />
-        <DataField label="Validation Status" value={data.validationStatus} />
+        <DataField
+          label="Validation Status"
+          value={
+            data.validationStatus &&
+            DISCOVERY_VALIDATION_STATUS_LABEL[data.validationStatus]
+          }
+        />
         <DataField
           label="Validation Issues"
-          value={formatValidationIssues(data.validationIssues)}
+          value={formatDiscoveryValidationIssues(data.validationIssues)}
         />
         <DataField label="Validated At" value={data.validatedAt} />
-        <DataField label="Indexing Status" value={data.indexingStatus} />
+        <DataField
+          label="Indexing Status"
+          value={
+            data.indexingStatus &&
+            DISCOVERY_INDEXING_STATUS_LABEL[data.indexingStatus]
+          }
+        />
         <DataField label="Indexed At" value={data.indexedAt} />
         <DataField label="Index Error" value={data.indexError} />
       </div>
