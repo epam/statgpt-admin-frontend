@@ -19,6 +19,8 @@ import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DiscoveryDataset } from '@/src/models/discovery-dataset';
 import { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
+import { ValidationStatusCell } from '@/src/components/GridView/ValidationStatusCell/ValidationStatusCell';
+import { IndexingStatusCell } from '@/src/components/GridView/IndexingStatusCell/IndexingStatusCell';
 import { DiscoveryDatasetActionColumn } from './ActionColumn/ActionColumn';
 import { UploadModal } from './UploadModal/UploadModal';
 
@@ -31,12 +33,20 @@ const COLUMNS: ColDef[] = [
   { field: 'agency', headerName: 'Agency' },
   { field: 'datasetId', headerName: 'Dataset ID' },
   { field: 'name', headerName: 'Name' },
-  { field: 'description', headerName: 'Description' },
   { field: 'url', headerName: 'URL' },
   { field: 'referenceArea', headerName: 'Reference Area' },
   { field: 'timeCoverage', headerName: 'Time Coverage' },
   { field: 'frequencyCoverage', headerName: 'Frequency Coverage' },
-  { field: 'indexingStatus', headerName: 'Indexing Status' },
+  {
+    field: 'validationStatus',
+    headerName: 'Validation Status',
+    cellRenderer: ValidationStatusCell,
+  },
+  {
+    field: 'indexingStatus',
+    headerName: 'Indexing Status',
+    cellRenderer: IndexingStatusCell,
+  },
   {
     width: 32,
     maxWidth: 32,

@@ -2,39 +2,19 @@
 
 import { ICellRendererParams } from 'ag-grid-community';
 
-import {
-  PREPROCESSING_STATUS_LABEL,
-  PreprocessingStatus,
-} from '@/src/models/preprocessing-status';
-import { PreprocessingStatusIcon } from './PreprocessingStatusIcon';
-import { mergeClasses } from '@/src/utils/mergeClasses';
+import { StatusIconCell } from '@/src/components/GridView/StatusIconCell/StatusIconCell';
+import { PREPROCESSING_STATUS_VISUALS } from './preprocessing-status-visuals';
 
 interface WithFailureReason {
   reason_for_failure: string;
 }
 
-export const PreprocessingStatusCell = ({
-  value,
-  data,
-}: ICellRendererParams<WithFailureReason>) => {
-  if (value == null || value === '') return null;
-
-  const status = value as PreprocessingStatus;
-  const label = PREPROCESSING_STATUS_LABEL[status] ?? String(value);
-  const isFailed = status === PreprocessingStatus.FAILED;
-
-  return (
-    <div
-      className={mergeClasses(
-        'flex items-center w-full',
-        isFailed && 'text-error',
-      )}
-    >
-      <span>{label}</span>
-      <PreprocessingStatusIcon
-        status={status}
-        failureReason={data?.reason_for_failure}
-      />
-    </div>
-  );
-};
+export const PreprocessingStatusCell = (
+  params: ICellRendererParams<WithFailureReason>,
+) => (
+  <StatusIconCell
+    {...params}
+    config={PREPROCESSING_STATUS_VISUALS}
+    tooltip={(data) => data?.reason_for_failure}
+  />
+);
