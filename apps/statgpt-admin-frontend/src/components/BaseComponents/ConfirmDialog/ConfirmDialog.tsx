@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react';
+import { ReactNode, useId, useRef } from 'react';
 
 import Modal from '@/src/components/Modal/ModalView';
 import { PopUpState } from '@/src/types/modal';
@@ -10,6 +10,8 @@ interface Props {
   confirmLabel: string;
   cancelLabel?: string | null;
   headerClassName?: string;
+  /** Extra content rendered between the description and the action buttons. */
+  children?: ReactNode;
   onClose: (result: boolean) => void;
 }
 
@@ -20,6 +22,7 @@ export const ConfirmDialog = ({
   confirmLabel,
   cancelLabel,
   modalState,
+  children,
   onClose,
 }: Props) => {
   const confirmLabelRef = useRef<HTMLButtonElement>(null);
@@ -38,18 +41,19 @@ export const ConfirmDialog = ({
       headerClassName={headerClassName}
     >
       <div className="flex flex-col justify-between gap-4">
-        <div className="flex w-full flex-col gap-2 text-start">
+        <div className="flex w-full flex-col gap-4 text-start">
           <div>
             {description && (
               <p
                 id={descriptionId}
                 data-qa="confirm-message"
-                className="whitespace-pre-wrap text-secondary"
+                className="whitespace-pre-wrap text-sm text-secondary"
               >
                 {description}
               </p>
             )}
           </div>
+          {children}
         </div>
         <div className="flex w-full items-center justify-end gap-3">
           {cancelLabel && (

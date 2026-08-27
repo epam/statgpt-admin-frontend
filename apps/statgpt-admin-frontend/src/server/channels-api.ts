@@ -19,6 +19,7 @@ import { RequestData } from '@/src/models/request-data';
 import { AutoUpdateJob } from '@/src/models/auto-update-job';
 import {
   DiscoveryDataset,
+  DiscoveryIndexingJob,
   DiscoveryUploadSummary,
 } from '@/src/models/discovery-dataset';
 import { ApiResult, MAIN_API } from './api';
@@ -47,6 +48,13 @@ export const CHANNEL_DISCOVERY_DATASETS_URL = (id?: string | number): string =>
 export const CHANNEL_DISCOVERY_DATASETS_UPLOAD_URL = (
   id?: string | number,
 ): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/upload`;
+
+export const CHANNEL_DISCOVERY_INDEXING_JOBS_URL = (
+  id?: string | number,
+): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/indexing-jobs`;
+
+export const DISCOVERY_INDEXING_JOB_ID_URL = (jobId: string | number): string =>
+  `${MAIN_API}/discovery-datasets/indexing-jobs/${jobId}`;
 
 export const CHANNEL_JOBS_URL = (id?: string | number): string =>
   `${CHANNEL_ID_URL(id)}/jobs`;
@@ -416,5 +424,38 @@ export class ChannelsApi extends BaseApi {
       void 0,
       token,
     );
+  }
+
+  triggerDiscoveryIndexingJob(
+    id: string,
+    force: boolean,
+    token: JWT | null,
+  ): Promise<ApiResult<DiscoveryIndexingJob>> {
+    return this.post(
+      `${CHANNEL_DISCOVERY_INDEXING_JOBS_URL(id)}?force=${force}`,
+      {},
+      void 0,
+      void 0,
+      token,
+    );
+  }
+
+  listDiscoveryIndexingJobs(
+    id: string,
+    limit: number,
+    offset: number,
+    token: JWT | null,
+  ): Promise<ApiResult<RequestData<DiscoveryIndexingJob>>> {
+    return this.get(
+      `${CHANNEL_DISCOVERY_INDEXING_JOBS_URL(id)}?limit=${limit}&offset=${offset}`,
+      token,
+    );
+  }
+
+  getDiscoveryIndexingJob(
+    jobId: string | number,
+    token: JWT | null,
+  ): Promise<ApiResult<DiscoveryIndexingJob>> {
+    return this.get(DISCOVERY_INDEXING_JOB_ID_URL(jobId), token);
   }
 }
