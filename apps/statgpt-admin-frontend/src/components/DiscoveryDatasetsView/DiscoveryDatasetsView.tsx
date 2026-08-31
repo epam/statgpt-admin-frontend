@@ -2,7 +2,7 @@
 
 import { FC, useCallback, useState } from 'react';
 import { ColDef } from 'ag-grid-community';
-import { IconFileArrowLeft } from '@tabler/icons-react';
+import { IconFileArrowLeft, IconRefreshDot } from '@tabler/icons-react';
 import { createPortal } from 'react-dom';
 
 import { useAccessControl } from '@/src/context/AccessControlContext';
@@ -19,10 +19,13 @@ import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DiscoveryDataset } from '@/src/models/discovery-dataset';
 import { RequestData } from '@/src/models/request-data';
 import { sendGetRequest } from '@/src/server/api';
+import { PopUpState } from '@/src/types/modal';
 import { ValidationStatusCell } from '@/src/components/GridView/ValidationStatusCell/ValidationStatusCell';
 import { IndexingStatusCell } from '@/src/components/GridView/IndexingStatusCell/IndexingStatusCell';
 import { DiscoveryDatasetActionColumn } from './ActionColumn/ActionColumn';
 import { UploadModal } from './UploadModal/UploadModal';
+import { ReindexConfirmDialog } from './ReindexConfirmDialog/ReindexConfirmDialog';
+import { useDiscoveryIndexingJobPolling } from './useDiscoveryIndexingJobPolling';
 
 interface Props {
   selectedChannelId: string;
@@ -60,8 +63,15 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const withNotification = useApiNotification();
   const [refreshToken, setRefreshToken] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showReindexConfirm, setShowReindexConfirm] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   usePageInitialLoadingSync(isInitialLoading);
+
+  const { triggerReindex, isReindexInProgress } =
+    useDiscoveryIndexingJobPolling({
+      channelId: selectedChannelId,
+      onCompleted: () => setRefreshToken((x) => x + 1),
+    });
 
   const fetchRows = useCallback(
     async (args: FetchRowsArgs): Promise<FetchRowsResult<DiscoveryDataset>> => {
@@ -91,12 +101,21 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
     <div className="bg-layer-2 flex flex-col h-full common-paddings">
       <div className="flex flex-row items-center justify-between mb-3">
         <h1 className="mb-4">Discovery Datasets</h1>
-        <Button
-          cssClass="primary ml-3"
-          title="Upload"
-          icon={<IconFileArrowLeft {...BASE_ICON_PROPS} />}
-          onClick={() => setShowUploadModal(true)}
-        />
+        <div className="flex flex-row items-center">
+          <Button
+            cssClass="secondary"
+            title="Reindex"
+            icon={<IconRefreshDot {...BASE_ICON_PROPS} />}
+            disable={isReindexInProgress}
+            onClick={() => setShowReindexConfirm(true)}
+          />
+          <Button
+            cssClass="primary ml-3"
+            title="Upload"
+            icon={<IconFileArrowLeft {...BASE_ICON_PROPS} />}
+            onClick={() => setShowUploadModal(true)}
+          />
+        </div>
       </div>
       <div className="flex-1 min-h-0">
         <GridView<DiscoveryDataset>
@@ -116,6 +135,13 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
           />,
           document.body,
         )}
+      <ReindexConfirmDialog
+        modalState={showReindexConfirm ? PopUpState.Opened : PopUpState.Closed}
+        onClose={({ confirmed, force }) => {
+          setShowReindexConfirm(false);
+          if (confirmed) triggerReindex(force);
+        }}
+      />
     </div>
   );
 };

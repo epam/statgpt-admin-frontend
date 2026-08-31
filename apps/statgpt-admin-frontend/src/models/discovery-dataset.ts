@@ -95,3 +95,26 @@ export interface DiscoveryPayloadErrorDetail {
 export interface DiscoveryPayloadErrorResponse {
   detail: DiscoveryPayloadErrorDetail;
 }
+
+export enum DiscoveryIndexingJobStatus {
+  Queued = 'QUEUED',
+  InProgress = 'IN_PROGRESS',
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+}
+
+export interface DiscoveryIndexingJob {
+  id: number;
+  channelId: number;
+  status: DiscoveryIndexingJobStatus;
+  force: boolean;
+  /** Populated once the job reaches `Completed`; `null` while queued/running/failed. */
+  recordsTotal: number | null;
+  recordsValid: number | null;
+  recordsInvalid: number | null;
+  documentsUpserted: number | null;
+  documentsDeleted: number | null;
+  reasonForFailure?: string;
+  createdAt: string;
+  updatedAt: string;
+}

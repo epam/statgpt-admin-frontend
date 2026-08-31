@@ -90,7 +90,9 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
 
         {step === 'success' && summary && (
           <div className="flex flex-col gap-y-2">
-            <p className="text-primary">Upload completed successfully.</p>
+            <p className="text-sm text-primary">
+              Upload completed successfully.
+            </p>
             <table className="w-full text-sm">
               <tbody>
                 {SUMMARY_LABELS.map(({ key, label }) => (
@@ -108,7 +110,7 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
 
         {step === 'error' && (
           <div className="flex flex-col gap-y-2">
-            <p className="text-error">{errorMessage}</p>
+            <p className="text-sm text-error">{errorMessage}</p>
             {problems.length > 0 && (
               <div className="overflow-auto max-h-[300px]">
                 <table className="w-full text-sm">
