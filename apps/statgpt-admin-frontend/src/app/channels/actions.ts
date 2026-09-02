@@ -5,7 +5,13 @@ import { cookies, headers } from 'next/headers';
 import { channelsApi } from '@/src/app/api/api';
 import { Channel, ChannelTerm } from '@/src/models/channel';
 import type { DeduplicationJob } from '@/src/models/deduplication-job';
+import {
+  DiscoveryIndexingJobStatus,
+  type DiscoveryIndexingJob,
+} from '@/src/models/discovery-dataset';
+import type { RequestData } from '@/src/models/request-data';
 import type { ApiResult } from '@/src/server/api';
+import { logger } from '@/src/server/logger';
 import { getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 
@@ -162,4 +168,54 @@ export async function getChannelIndexStatus(id: string) {
     cookies(),
   );
   return channelsApi.getChannelIndexStatus(id, token);
+}
+
+const logIfFailed = (job: DiscoveryIndexingJob) => {
+  if (job.status === DiscoveryIndexingJobStatus.Failed) {
+    logger.error(
+      `Discovery indexing job ${job.id} for channel ${job.channelId} failed: ${job.reasonForFailure}`,
+    );
+  }
+};
+
+export async function triggerDiscoveryIndexingJob(
+  id: string,
+  force: boolean,
+): Promise<ApiResult<DiscoveryIndexingJob>> {
+  const token = await getUserToken(
+    getIsEnableAuthToggle(),
+    headers(),
+    cookies(),
+  );
+  const result = await channelsApi.triggerDiscoveryIndexingJob(
+    id,
+    force,
+    token,
+  );
+  if (result.ok) logIfFailed(result.data);
+  return result;
+}
+
+export async function getLatestDiscoveryIndexingJob(
+  id: string,
+): Promise<ApiResult<RequestData<DiscoveryIndexingJob>>> {
+  const token = await getUserToken(
+    getIsEnableAuthToggle(),
+    headers(),
+    cookies(),
+  );
+  return channelsApi.listDiscoveryIndexingJobs(id, 1, 0, token);
+}
+
+export async function getDiscoveryIndexingJob(
+  jobId: string | number,
+): Promise<ApiResult<DiscoveryIndexingJob>> {
+  const token = await getUserToken(
+    getIsEnableAuthToggle(),
+    headers(),
+    cookies(),
+  );
+  const result = await channelsApi.getDiscoveryIndexingJob(jobId, token);
+  if (result.ok) logIfFailed(result.data);
+  return result;
 }
