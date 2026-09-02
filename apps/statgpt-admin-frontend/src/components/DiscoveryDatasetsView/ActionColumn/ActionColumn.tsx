@@ -15,9 +15,11 @@ import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { DiscoveryDataset } from '@/src/models/discovery-dataset';
 import { DiscoveryDatasetDetailsView } from '../DetailsView/DiscoveryDatasetDetailsView';
 
-export const DiscoveryDatasetActionColumn: FC<CustomCellRendererProps> = ({
-  data,
-}) => {
+interface Props extends CustomCellRendererProps {
+  onDelete?: (id: number) => void;
+}
+
+export const DiscoveryDatasetActionColumn: FC<Props> = ({ data, onDelete }) => {
   const [, setIsOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
@@ -34,6 +36,11 @@ export const DiscoveryDatasetActionColumn: FC<CustomCellRendererProps> = ({
           className="hover:bg-accent-primary-alpha"
           item={<ActionItem item={EntityOperation.Details} />}
           onClick={() => setIsDetailsOpen(true)}
+        />
+        <DropdownMenuItem
+          className="hover:bg-accent-primary-alpha"
+          item={<ActionItem item={EntityOperation.Delete} />}
+          onClick={() => onDelete?.((data as DiscoveryDataset).id)}
         />
       </DropdownMenu>
       {isDetailsOpen &&

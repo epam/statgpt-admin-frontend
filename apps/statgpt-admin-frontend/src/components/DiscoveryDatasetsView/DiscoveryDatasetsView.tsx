@@ -1,13 +1,18 @@
 'use client';
 
-import { FC, useCallback, useState } from 'react';
-import { ColDef } from 'ag-grid-community';
-import { IconFileArrowLeft, IconRefreshDot } from '@tabler/icons-react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { ColDef, GridOptions } from 'ag-grid-community';
+import {
+  IconFileArrowLeft,
+  IconRefreshDot,
+  IconTrash,
+} from '@tabler/icons-react';
 import { createPortal } from 'react-dom';
 
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
+import { ConfirmDialog } from '@/src/components/BaseComponents/ConfirmDialog/ConfirmDialog';
 import {
   FetchRowsArgs,
   FetchRowsResult,
@@ -18,7 +23,12 @@ import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DiscoveryDataset } from '@/src/models/discovery-dataset';
 import { RequestData } from '@/src/models/request-data';
-import { sendGetRequest } from '@/src/server/api';
+import { sendDeleteRequest, sendGetRequest } from '@/src/server/api';
+import {
+  CHANNEL_DISCOVERY_DATASETS_BULK_URL,
+  DISCOVERY_DATASET_ID_URL,
+  DISCOVERY_DATASETS_BULK_URL,
+} from '@/src/server/channels-api';
 import { PopUpState } from '@/src/types/modal';
 import { ValidationStatusCell } from '@/src/components/GridView/ValidationStatusCell/ValidationStatusCell';
 import { IndexingStatusCell } from '@/src/components/GridView/IndexingStatusCell/IndexingStatusCell';
@@ -31,7 +41,15 @@ interface Props {
   selectedChannelId: string;
 }
 
-const COLUMNS: ColDef[] = [
+const getColumns = (onDeleteRow: (id: number) => void): ColDef[] => [
+  {
+    width: 40,
+    maxWidth: 40,
+    headerCheckboxSelection: true,
+    checkboxSelection: true,
+    showDisabledCheckboxes: true,
+    pinned: 'left',
+  },
   { field: 'id', headerName: 'ID', width: 90 },
   { field: 'agency', headerName: 'Agency' },
   { field: 'datasetId', headerName: 'Dataset ID' },
@@ -54,6 +72,7 @@ const COLUMNS: ColDef[] = [
     width: 32,
     maxWidth: 32,
     cellRenderer: DiscoveryDatasetActionColumn,
+    cellRendererParams: { onDelete: onDeleteRow },
     cellClass: 'ag-grid__action-column',
   },
 ];
@@ -64,8 +83,63 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const [refreshToken, setRefreshToken] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showReindexConfirm, setShowReindexConfirm] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [showDeleteSelectedConfirm, setShowDeleteSelectedConfirm] =
+    useState(false);
+  const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   usePageInitialLoadingSync(isInitialLoading);
+
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [refreshToken]);
+
+  const gridOptions: GridOptions = useMemo(
+    () => ({
+      rowSelection: 'multiple',
+      suppressRowClickSelection: true,
+      onRowSelected: (event) => {
+        setSelectedIds(
+          event.api.getSelectedNodes().map((n) => n.data.id as number),
+        );
+      },
+    }),
+    [],
+  );
+
+  const deleteSelected = useCallback(() => {
+    withNotification(
+      sendDeleteRequest(DISCOVERY_DATASETS_BULK_URL, {
+        item_ids: selectedIds,
+      }),
+      'Failed to Delete Selected Discovery Datasets',
+    ).then((result) => {
+      if (result.ok) setRefreshToken((x) => x + 1);
+    });
+  }, [withNotification, selectedIds]);
+
+  const clearAllDatasets = useCallback(() => {
+    withNotification(
+      sendDeleteRequest(CHANNEL_DISCOVERY_DATASETS_BULK_URL(selectedChannelId)),
+      'Failed to Clear Discovery Datasets',
+    ).then((result) => {
+      if (result.ok) setRefreshToken((x) => x + 1);
+    });
+  }, [withNotification, selectedChannelId]);
+
+  const deleteRow = useCallback(
+    (id: number) => {
+      withNotification(
+        sendDeleteRequest(DISCOVERY_DATASET_ID_URL(id)),
+        'Failed to Delete Discovery Dataset',
+      ).then((result) => {
+        if (result.ok) setRefreshToken((x) => x + 1);
+      });
+    },
+    [withNotification],
+  );
+
+  const columns = useMemo(() => getColumns(deleteRow), [deleteRow]);
 
   const { triggerReindex, isReindexInProgress } =
     useDiscoveryIndexingJobPolling({
@@ -115,15 +189,29 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
             icon={<IconFileArrowLeft {...BASE_ICON_PROPS} />}
             onClick={() => setShowUploadModal(true)}
           />
+          <Button
+            cssClass="secondary ml-3"
+            title={`Delete selected (${selectedIds.length})`}
+            icon={<IconTrash {...BASE_ICON_PROPS} />}
+            disable={selectedIds.length === 0}
+            onClick={() => setShowDeleteSelectedConfirm(true)}
+          />
+          <Button
+            cssClass="secondary ml-3"
+            title="Clear all"
+            icon={<IconTrash {...BASE_ICON_PROPS} />}
+            onClick={() => setShowClearAllConfirm(true)}
+          />
         </div>
       </div>
       <div className="flex-1 min-h-0">
         <GridView<DiscoveryDataset>
-          colDefs={COLUMNS}
+          colDefs={columns}
           emptyDataTitle="No discovery datasets"
           fetchRows={fetchRows}
           pageSize={DEFAULT_GRID_PAGE_SIZE}
           refreshToken={refreshToken}
+          additionalOptions={gridOptions}
         />
       </div>
       {showUploadModal &&
@@ -140,6 +228,30 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         onClose={({ confirmed, force }) => {
           setShowReindexConfirm(false);
           if (confirmed) triggerReindex(force);
+        }}
+      />
+      <ConfirmDialog
+        modalState={
+          showDeleteSelectedConfirm ? PopUpState.Opened : PopUpState.Closed
+        }
+        header="Delete selected discovery datasets"
+        description={`This will permanently delete ${selectedIds.length} selected discovery dataset record${selectedIds.length === 1 ? '' : 's'}.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onClose={(confirmed) => {
+          setShowDeleteSelectedConfirm(false);
+          if (confirmed) deleteSelected();
+        }}
+      />
+      <ConfirmDialog
+        modalState={showClearAllConfirm ? PopUpState.Opened : PopUpState.Closed}
+        header="Clear all discovery datasets"
+        description="This will permanently delete all discovery dataset records for this channel. This action cannot be undone."
+        confirmLabel="Clear all"
+        cancelLabel="Cancel"
+        onClose={(confirmed) => {
+          setShowClearAllConfirm(false);
+          if (confirmed) clearAllDatasets();
         }}
       />
     </div>
