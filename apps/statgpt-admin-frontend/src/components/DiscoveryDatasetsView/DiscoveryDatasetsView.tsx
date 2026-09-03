@@ -21,6 +21,8 @@ import {
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
+import { useNotification } from '@/src/context/NotificationContext';
+import { NotificationType } from '@/src/models/notification';
 import { DiscoveryDataset } from '@/src/models/discovery-dataset';
 import { RequestData } from '@/src/models/request-data';
 import { sendDeleteRequest, sendGetRequest } from '@/src/server/api';
@@ -80,6 +82,7 @@ const getColumns = (onDeleteRow: (id: number) => void): ColDef[] => [
 export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const { setForbidden } = useAccessControl();
   const withNotification = useApiNotification();
+  const { showNotification } = useNotification();
   const [refreshToken, setRefreshToken] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showReindexConfirm, setShowReindexConfirm] = useState(false);
@@ -109,23 +112,45 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
 
   const deleteSelected = useCallback(() => {
     withNotification(
-      sendDeleteRequest(DISCOVERY_DATASETS_BULK_URL, {
-        item_ids: selectedIds,
-      }),
+      sendDeleteRequest<{ item_ids: number[] }, string>(
+        DISCOVERY_DATASETS_BULK_URL,
+        { item_ids: selectedIds },
+      ),
       'Failed to Delete Selected Discovery Datasets',
     ).then((result) => {
-      if (result.ok) setRefreshToken((x) => x + 1);
+      if (result.ok) {
+        const deletedCount = (JSON.parse(result.data) as DiscoveryDataset[])
+          .length;
+        setSelectedIds([]);
+        setRefreshToken((x) => x + 1);
+        showNotification({
+          type: NotificationType.success,
+          title: 'Discovery Dataset Records Deleted',
+          description: `Deleted ${deletedCount} discovery dataset record${deletedCount === 1 ? '' : 's'}`,
+        });
+      }
     });
-  }, [withNotification, selectedIds]);
+  }, [withNotification, selectedIds, showNotification]);
 
   const clearAllDatasets = useCallback(() => {
     withNotification(
-      sendDeleteRequest(CHANNEL_DISCOVERY_DATASETS_BULK_URL(selectedChannelId)),
+      sendDeleteRequest<object, string>(
+        CHANNEL_DISCOVERY_DATASETS_BULK_URL(selectedChannelId),
+      ),
       'Failed to Clear Discovery Datasets',
     ).then((result) => {
-      if (result.ok) setRefreshToken((x) => x + 1);
+      if (result.ok) {
+        const deletedCount = (JSON.parse(result.data) as DiscoveryDataset[])
+          .length;
+        setRefreshToken((x) => x + 1);
+        showNotification({
+          type: NotificationType.success,
+          title: 'Discovery Dataset Records Deleted',
+          description: `Deleted ${deletedCount} discovery dataset record${deletedCount === 1 ? '' : 's'}`,
+        });
+      }
     });
-  }, [withNotification, selectedChannelId]);
+  }, [withNotification, selectedChannelId, showNotification]);
 
   const deleteRow = useCallback(
     (id: number) => {
@@ -133,10 +158,17 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         sendDeleteRequest(DISCOVERY_DATASET_ID_URL(id)),
         'Failed to Delete Discovery Dataset',
       ).then((result) => {
-        if (result.ok) setRefreshToken((x) => x + 1);
+        if (result.ok) {
+          setRefreshToken((x) => x + 1);
+          showNotification({
+            type: NotificationType.success,
+            title: 'Discovery Dataset Record Deleted',
+            description: 'Deleted 1 discovery dataset record',
+          });
+        }
       });
     },
-    [withNotification],
+    [withNotification, showNotification],
   );
 
   const columns = useMemo(() => getColumns(deleteRow), [deleteRow]);
