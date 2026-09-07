@@ -19,11 +19,13 @@ import { RequestData } from '@/src/models/request-data';
 import { AutoUpdateJob } from '@/src/models/auto-update-job';
 import {
   DiscoveryDataset,
+  DiscoveryDatasetStats,
   DiscoveryIndexingJob,
   DiscoveryUploadSummary,
 } from '@/src/models/discovery-dataset';
 import { ApiResult, MAIN_API } from './api';
 import { BaseApi } from './base-api';
+import { mapDiscoveryDatasetsRequestToQueryString } from '@/src/utils/discovery-datasets';
 import { Job, JobStatus } from '@/src/models/job';
 import { DeduplicationJob } from '@/src/models/deduplication-job';
 
@@ -48,6 +50,10 @@ export const CHANNEL_DISCOVERY_DATASETS_URL = (id?: string | number): string =>
 export const CHANNEL_DISCOVERY_DATASETS_UPLOAD_URL = (
   id?: string | number,
 ): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/upload`;
+
+export const CHANNEL_DISCOVERY_DATASETS_STATS_URL = (
+  id?: string | number,
+): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/stats`;
 
 export const CHANNEL_DISCOVERY_INDEXING_JOBS_URL = (
   id?: string | number,
@@ -416,11 +422,25 @@ export class ChannelsApi extends BaseApi {
     limit: number,
     offset: number,
     token: JWT | null,
+    filters?: {
+      agency?: string;
+      validation_status?: string;
+      indexing_status?: string;
+    },
   ): Promise<ApiResult<RequestData<DiscoveryDataset>>> {
-    return this.get(
-      `${CHANNEL_DISCOVERY_DATASETS_URL(id)}?limit=${limit}&offset=${offset}`,
-      token,
-    );
+    const query = mapDiscoveryDatasetsRequestToQueryString({
+      limit,
+      offset,
+      ...filters,
+    });
+    return this.get(`${CHANNEL_DISCOVERY_DATASETS_URL(id)}?${query}`, token);
+  }
+
+  getChannelDiscoveryDatasetStats(
+    id: string,
+    token: JWT | null,
+  ): Promise<ApiResult<DiscoveryDatasetStats>> {
+    return this.get(CHANNEL_DISCOVERY_DATASETS_STATS_URL(id), token);
   }
 
   uploadChannelDiscoveryDatasets(

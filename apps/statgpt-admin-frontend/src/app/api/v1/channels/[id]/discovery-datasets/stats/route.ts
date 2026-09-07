@@ -10,22 +10,9 @@ export async function GET(
 ) {
   try {
     const params = await context.params;
-    const search = new URL(req.url).searchParams;
-    const limit = Number(search.get('limit')) || 100;
-    const offset = Number(search.get('offset')) || 0;
     const token = await getRequestToken(req);
     return apiResultToResponse(
-      await channelsApi.getChannelDiscoveryDatasets(
-        params.id,
-        limit,
-        offset,
-        token,
-        {
-          agency: search.get('agency') ?? undefined,
-          validation_status: search.get('validation_status') ?? undefined,
-          indexing_status: search.get('indexing_status') ?? undefined,
-        },
-      ),
+      await channelsApi.getChannelDiscoveryDatasetStats(params.id, token),
     );
   } catch {
     return Response.json({ error: 'Internal Server Error' }, { status: 500 });

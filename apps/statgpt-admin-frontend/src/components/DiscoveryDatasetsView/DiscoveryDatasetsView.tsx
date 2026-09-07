@@ -1,13 +1,14 @@
 'use client';
 
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { ColDef, GridOptions } from 'ag-grid-community';
+import { GridOptions } from 'ag-grid-community';
 import {
   IconFileArrowLeft,
   IconRefreshDot,
   IconTrash,
 } from '@tabler/icons-react';
 import { createPortal } from 'react-dom';
+import memoize from 'lodash/memoize';
 
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
@@ -23,7 +24,10 @@ import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '@/src/models/notification';
-import { DiscoveryDataset } from '@/src/models/discovery-dataset';
+import {
+  DiscoveryDataset,
+  DiscoveryDatasetStats,
+} from '@/src/models/discovery-dataset';
 import { RequestData } from '@/src/models/request-data';
 import { sendDeleteRequest, sendGetRequest } from '@/src/server/api';
 import {
@@ -32,52 +36,20 @@ import {
   DISCOVERY_DATASETS_BULK_URL,
 } from '@/src/server/channels-api';
 import { PopUpState } from '@/src/types/modal';
-import { ValidationStatusCell } from '@/src/components/GridView/ValidationStatusCell/ValidationStatusCell';
-import { IndexingStatusCell } from '@/src/components/GridView/IndexingStatusCell/IndexingStatusCell';
-import { DiscoveryDatasetActionColumn } from './ActionColumn/ActionColumn';
+import { getDiscoveryDatasetsColumns } from '@/src/constants/columns/discovery-datasets';
+import { getEnumFilterValue, getTextEquals } from '@/src/utils/client/grid';
+import {
+  DiscoveryDatasetsRequestModel,
+  mapDiscoveryDatasetsRequestToQueryString,
+} from '@/src/utils/discovery-datasets';
 import { UploadModal } from './UploadModal/UploadModal';
 import { ReindexConfirmDialog } from './ReindexConfirmDialog/ReindexConfirmDialog';
 import { useDiscoveryIndexingJobPolling } from './useDiscoveryIndexingJobPolling';
+import { DiscoveryDatasetsStats } from './DiscoveryDatasetsStats/DiscoveryDatasetsStats';
 
 interface Props {
   selectedChannelId: string;
 }
-
-const getColumns = (onDeleteRow: (id: number) => void): ColDef[] => [
-  {
-    width: 40,
-    maxWidth: 40,
-    headerCheckboxSelection: true,
-    checkboxSelection: true,
-    showDisabledCheckboxes: true,
-    pinned: 'left',
-  },
-  { field: 'id', headerName: 'ID', width: 90 },
-  { field: 'agency', headerName: 'Agency' },
-  { field: 'datasetId', headerName: 'Dataset ID' },
-  { field: 'name', headerName: 'Name' },
-  { field: 'url', headerName: 'URL' },
-  { field: 'referenceArea', headerName: 'Reference Area' },
-  { field: 'timeCoverage', headerName: 'Time Coverage' },
-  { field: 'frequencyCoverage', headerName: 'Frequency Coverage' },
-  {
-    field: 'validationStatus',
-    headerName: 'Validation Status',
-    cellRenderer: ValidationStatusCell,
-  },
-  {
-    field: 'indexingStatus',
-    headerName: 'Indexing Status',
-    cellRenderer: IndexingStatusCell,
-  },
-  {
-    width: 32,
-    maxWidth: 32,
-    cellRenderer: DiscoveryDatasetActionColumn,
-    cellRendererParams: { onDelete: onDeleteRow },
-    cellClass: 'ag-grid__action-column',
-  },
-];
 
 export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const { setForbidden } = useAccessControl();
@@ -92,10 +64,32 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   usePageInitialLoadingSync(isInitialLoading);
+  const [stats, setStats] = useState<DiscoveryDatasetStats | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
 
   useEffect(() => {
     setSelectedIds([]);
   }, [refreshToken]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsStatsLoading(true);
+
+    withNotification(
+      sendGetRequest<DiscoveryDatasetStats>(
+        `/api/v1/channels/${selectedChannelId}/discovery-datasets/stats`,
+      ),
+      'Failed to Load Discovery Dataset Stats',
+    ).then((result) => {
+      if (cancelled) return;
+      if (result.ok) setStats(result.data);
+      setIsStatsLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedChannelId, refreshToken, withNotification]);
 
   const gridOptions: GridOptions = useMemo(
     () => ({
@@ -171,7 +165,10 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
     [withNotification, showNotification],
   );
 
-  const columns = useMemo(() => getColumns(deleteRow), [deleteRow]);
+  const columns = useMemo(
+    () => getDiscoveryDatasetsColumns(deleteRow),
+    [deleteRow],
+  );
 
   const { triggerReindex, isReindexInProgress } =
     useDiscoveryIndexingJobPolling({
@@ -179,11 +176,15 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
       onCompleted: () => setRefreshToken((x) => x + 1),
     });
 
-  const fetchRows = useCallback(
-    async (args: FetchRowsArgs): Promise<FetchRowsResult<DiscoveryDataset>> => {
+  const fetchDiscoveryDatasetsPage = useCallback(
+    async (
+      params: DiscoveryDatasetsRequestModel,
+    ): Promise<FetchRowsResult<DiscoveryDataset>> => {
+      const query = mapDiscoveryDatasetsRequestToQueryString(params);
+
       const result = await withNotification(
         sendGetRequest<RequestData<DiscoveryDataset>>(
-          `/api/v1/channels/${selectedChannelId}/discovery-datasets?limit=${args.limit}&offset=${args.offset}`,
+          `/api/v1/channels/${selectedChannelId}/discovery-datasets?${query}`,
         ),
         'Failed to Load Discovery Datasets',
         [403],
@@ -203,6 +204,43 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
     [selectedChannelId, withNotification, setForbidden],
   );
 
+  // A floating text filter fires a fetch per debounced keystroke even when the trimmed
+  // value hasn't actually changed (e.g. typing extra spaces) - memoizing by the resulting
+  // query string skips the redundant request. Rebuilding the memoized function (a fresh
+  // cache) on refreshToken means a manual refresh (delete/upload/reindex) still forces a
+  // real refetch even with unchanged filters.
+  const fetchDiscoveryDatasetsPageMemoized = useMemo(
+    () =>
+      memoize(
+        fetchDiscoveryDatasetsPage,
+        mapDiscoveryDatasetsRequestToQueryString,
+      ),
+    [fetchDiscoveryDatasetsPage, refreshToken],
+  );
+
+  const fetchRows = useCallback(
+    (args: FetchRowsArgs): Promise<FetchRowsResult<DiscoveryDataset>> => {
+      const agency = getTextEquals(args.filterModel, 'agency');
+      const validation_status = getEnumFilterValue(
+        args.filterModel,
+        'validationStatus',
+      );
+      const indexing_status = getEnumFilterValue(
+        args.filterModel,
+        'indexingStatus',
+      );
+
+      return fetchDiscoveryDatasetsPageMemoized({
+        limit: args.limit,
+        offset: args.offset,
+        agency,
+        validation_status,
+        indexing_status,
+      });
+    },
+    [fetchDiscoveryDatasetsPageMemoized],
+  );
+
   return (
     <div className="bg-layer-2 flex flex-col h-full common-paddings">
       <div className="flex flex-row items-center justify-between mb-3">
@@ -219,6 +257,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
             cssClass="primary ml-3"
             title="Upload"
             icon={<IconFileArrowLeft {...BASE_ICON_PROPS} />}
+            disable={isReindexInProgress}
             onClick={() => setShowUploadModal(true)}
           />
           <Button
@@ -236,6 +275,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
           />
         </div>
       </div>
+      <DiscoveryDatasetsStats stats={stats} isLoading={isStatsLoading} />
       <div className="flex-1 min-h-0">
         <GridView<DiscoveryDataset>
           colDefs={columns}
