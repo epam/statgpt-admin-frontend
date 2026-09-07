@@ -23,7 +23,10 @@ import { DEFAULT_GRID_PAGE_SIZE } from '@/src/constants/columns/grid';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '@/src/models/notification';
-import { DiscoveryDataset } from '@/src/models/discovery-dataset';
+import {
+  DiscoveryDataset,
+  DiscoveryDatasetStats,
+} from '@/src/models/discovery-dataset';
 import { RequestData } from '@/src/models/request-data';
 import { sendDeleteRequest, sendGetRequest } from '@/src/server/api';
 import {
@@ -38,6 +41,7 @@ import { DiscoveryDatasetActionColumn } from './ActionColumn/ActionColumn';
 import { UploadModal } from './UploadModal/UploadModal';
 import { ReindexConfirmDialog } from './ReindexConfirmDialog/ReindexConfirmDialog';
 import { useDiscoveryIndexingJobPolling } from './useDiscoveryIndexingJobPolling';
+import { DiscoveryDatasetsStats } from './DiscoveryDatasetsStats/DiscoveryDatasetsStats';
 
 interface Props {
   selectedChannelId: string;
@@ -92,10 +96,32 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   usePageInitialLoadingSync(isInitialLoading);
+  const [stats, setStats] = useState<DiscoveryDatasetStats | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
 
   useEffect(() => {
     setSelectedIds([]);
   }, [refreshToken]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsStatsLoading(true);
+
+    withNotification(
+      sendGetRequest<DiscoveryDatasetStats>(
+        `/api/v1/channels/${selectedChannelId}/discovery-datasets/stats`,
+      ),
+      'Failed to Load Discovery Dataset Stats',
+    ).then((result) => {
+      if (cancelled) return;
+      if (result.ok) setStats(result.data);
+      setIsStatsLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedChannelId, refreshToken, withNotification]);
 
   const gridOptions: GridOptions = useMemo(
     () => ({
@@ -236,6 +262,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
           />
         </div>
       </div>
+      <DiscoveryDatasetsStats stats={stats} isLoading={isStatsLoading} />
       <div className="flex-1 min-h-0">
         <GridView<DiscoveryDataset>
           colDefs={columns}
