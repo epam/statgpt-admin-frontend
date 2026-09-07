@@ -69,6 +69,12 @@ export interface DiscoveryDataset {
   indexError?: string;
 }
 
+export interface DiscoveryDatasetStats {
+  total: number;
+  byValidationStatus: Record<DiscoveryValidationStatus, number>;
+  byIndexingStatus: Record<DiscoveryIndexingStatus, number>;
+}
+
 export interface DiscoveryUploadSummary {
   created: number;
   updated: number;

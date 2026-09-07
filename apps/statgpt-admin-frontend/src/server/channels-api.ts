@@ -19,6 +19,7 @@ import { RequestData } from '@/src/models/request-data';
 import { AutoUpdateJob } from '@/src/models/auto-update-job';
 import {
   DiscoveryDataset,
+  DiscoveryDatasetStats,
   DiscoveryIndexingJob,
   DiscoveryUploadSummary,
 } from '@/src/models/discovery-dataset';
@@ -49,6 +50,10 @@ export const CHANNEL_DISCOVERY_DATASETS_URL = (id?: string | number): string =>
 export const CHANNEL_DISCOVERY_DATASETS_UPLOAD_URL = (
   id?: string | number,
 ): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/upload`;
+
+export const CHANNEL_DISCOVERY_DATASETS_STATS_URL = (
+  id?: string | number,
+): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/stats`;
 
 export const CHANNEL_DISCOVERY_INDEXING_JOBS_URL = (
   id?: string | number,
@@ -429,6 +434,13 @@ export class ChannelsApi extends BaseApi {
       ...filters,
     });
     return this.get(`${CHANNEL_DISCOVERY_DATASETS_URL(id)}?${query}`, token);
+  }
+
+  getChannelDiscoveryDatasetStats(
+    id: string,
+    token: JWT | null,
+  ): Promise<ApiResult<DiscoveryDatasetStats>> {
+    return this.get(CHANNEL_DISCOVERY_DATASETS_STATS_URL(id), token);
   }
 
   uploadChannelDiscoveryDatasets(
