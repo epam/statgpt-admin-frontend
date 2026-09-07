@@ -219,6 +219,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
             cssClass="primary ml-3"
             title="Upload"
             icon={<IconFileArrowLeft {...BASE_ICON_PROPS} />}
+            disable={isReindexInProgress}
             onClick={() => setShowUploadModal(true)}
           />
           <Button
