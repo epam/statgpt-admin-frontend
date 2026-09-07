@@ -25,8 +25,8 @@ export const ReindexConfirmDialog = ({ modalState, onClose }: Props) => {
   return (
     <ConfirmDialog
       modalState={modalState}
-      header="Confirm discovery datasets reindexing"
-      description="Reindexing will re-validate all discovery dataset records and republish them to the knowledge base. This may be time-consuming."
+      header="Confirm Grade C datasets reindexing"
+      description="Reindexing will re-validate all Grade C dataset records and republish them to the knowledge base. This may be time-consuming."
       confirmLabel="Reindex"
       cancelLabel="Cancel"
       onClose={(confirmed) => onClose({ confirmed, force })}
