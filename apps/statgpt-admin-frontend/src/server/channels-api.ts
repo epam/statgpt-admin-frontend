@@ -25,6 +25,7 @@ import {
 } from '@/src/models/discovery-dataset';
 import { ApiResult, MAIN_API } from './api';
 import { BaseApi } from './base-api';
+import { mapDiscoveryDatasetsRequestToQueryString } from '@/src/utils/discovery-datasets';
 import { Job, JobStatus } from '@/src/models/job';
 import { DeduplicationJob } from '@/src/models/deduplication-job';
 
@@ -421,11 +422,18 @@ export class ChannelsApi extends BaseApi {
     limit: number,
     offset: number,
     token: JWT | null,
+    filters?: {
+      agency?: string;
+      validation_status?: string;
+      indexing_status?: string;
+    },
   ): Promise<ApiResult<RequestData<DiscoveryDataset>>> {
-    return this.get(
-      `${CHANNEL_DISCOVERY_DATASETS_URL(id)}?limit=${limit}&offset=${offset}`,
-      token,
-    );
+    const query = mapDiscoveryDatasetsRequestToQueryString({
+      limit,
+      offset,
+      ...filters,
+    });
+    return this.get(`${CHANNEL_DISCOVERY_DATASETS_URL(id)}?${query}`, token);
   }
 
   getChannelDiscoveryDatasetStats(
