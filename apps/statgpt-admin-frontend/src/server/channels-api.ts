@@ -56,6 +56,17 @@ export const CHANNEL_DISCOVERY_INDEXING_JOBS_URL = (
 export const DISCOVERY_INDEXING_JOB_ID_URL = (jobId: string | number): string =>
   `${MAIN_API}/discovery-datasets/indexing-jobs/${jobId}`;
 
+export const DISCOVERY_DATASETS_URL = `${MAIN_API}/discovery-datasets`;
+
+export const DISCOVERY_DATASET_ID_URL = (itemId: string | number): string =>
+  `${DISCOVERY_DATASETS_URL}/${itemId}`;
+
+export const DISCOVERY_DATASETS_BULK_URL = `${DISCOVERY_DATASETS_URL}/bulk`;
+
+export const CHANNEL_DISCOVERY_DATASETS_BULK_URL = (
+  id?: string | number,
+): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/bulk`;
+
 export const CHANNEL_JOBS_URL = (id?: string | number): string =>
   `${CHANNEL_ID_URL(id)}/jobs`;
 
@@ -457,5 +468,26 @@ export class ChannelsApi extends BaseApi {
     token: JWT | null,
   ): Promise<ApiResult<DiscoveryIndexingJob>> {
     return this.get(DISCOVERY_INDEXING_JOB_ID_URL(jobId), token);
+  }
+
+  removeDiscoveryDataset(
+    itemId: string | number,
+    token: JWT | null,
+  ): Promise<ApiResult<string>> {
+    return this.delete(DISCOVERY_DATASET_ID_URL(itemId), token);
+  }
+
+  removeDiscoveryDatasetsBulk(
+    itemIds: number[],
+    token: JWT | null,
+  ): Promise<ApiResult<string>> {
+    return this.delete(DISCOVERY_DATASETS_BULK_URL, token, itemIds);
+  }
+
+  clearChannelDiscoveryDatasets(
+    id: string,
+    token: JWT | null,
+  ): Promise<ApiResult<string>> {
+    return this.delete(CHANNEL_DISCOVERY_DATASETS_BULK_URL(id), token);
   }
 }

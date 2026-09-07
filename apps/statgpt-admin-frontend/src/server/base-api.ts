@@ -19,11 +19,12 @@ export class BaseApi {
   protected delete<T extends object, R>(
     url: string,
     token?: JWT | null,
+    dto?: T,
   ): Promise<ApiResult<R>> {
     return this.sendRequestSafe<T, R>(
       url,
       'DELETE',
-      void 0,
+      dto,
       void 0,
       void 0,
       token,

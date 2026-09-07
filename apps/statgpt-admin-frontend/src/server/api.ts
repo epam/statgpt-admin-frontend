@@ -41,8 +41,11 @@ export const sendGetRequest = <R extends object>(
   return sendRequestSafe<object, R>(url, 'GET');
 };
 
-export const sendDeleteRequest = <R>(url: string): Promise<ApiResult<R>> => {
-  return sendRequestSafe<object, R>(url, 'DELETE');
+export const sendDeleteRequest = <T extends object, R>(
+  url: string,
+  dto?: T,
+): Promise<ApiResult<R>> => {
+  return sendRequestSafe<T, R>(url, 'DELETE', dto);
 };
 
 export function apiResultToResponse<R>(result: ApiResult<R>): Response {
