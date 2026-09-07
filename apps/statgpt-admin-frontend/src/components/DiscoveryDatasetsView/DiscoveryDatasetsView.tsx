@@ -1,13 +1,14 @@
 'use client';
 
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { ColDef, GridOptions } from 'ag-grid-community';
+import { GridOptions } from 'ag-grid-community';
 import {
   IconFileArrowLeft,
   IconRefreshDot,
   IconTrash,
 } from '@tabler/icons-react';
 import { createPortal } from 'react-dom';
+import memoize from 'lodash/memoize';
 
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
@@ -32,9 +33,12 @@ import {
   DISCOVERY_DATASETS_BULK_URL,
 } from '@/src/server/channels-api';
 import { PopUpState } from '@/src/types/modal';
-import { ValidationStatusCell } from '@/src/components/GridView/ValidationStatusCell/ValidationStatusCell';
-import { IndexingStatusCell } from '@/src/components/GridView/IndexingStatusCell/IndexingStatusCell';
-import { DiscoveryDatasetActionColumn } from './ActionColumn/ActionColumn';
+import { getDiscoveryDatasetsColumns } from '@/src/constants/columns/discovery-datasets';
+import { getEnumFilterValue, getTextEquals } from '@/src/utils/client/grid';
+import {
+  DiscoveryDatasetsRequestModel,
+  mapDiscoveryDatasetsRequestToQueryString,
+} from '@/src/utils/discovery-datasets';
 import { UploadModal } from './UploadModal/UploadModal';
 import { ReindexConfirmDialog } from './ReindexConfirmDialog/ReindexConfirmDialog';
 import { useDiscoveryIndexingJobPolling } from './useDiscoveryIndexingJobPolling';
@@ -42,42 +46,6 @@ import { useDiscoveryIndexingJobPolling } from './useDiscoveryIndexingJobPolling
 interface Props {
   selectedChannelId: string;
 }
-
-const getColumns = (onDeleteRow: (id: number) => void): ColDef[] => [
-  {
-    width: 40,
-    maxWidth: 40,
-    headerCheckboxSelection: true,
-    checkboxSelection: true,
-    showDisabledCheckboxes: true,
-    pinned: 'left',
-  },
-  { field: 'id', headerName: 'ID', width: 90 },
-  { field: 'agency', headerName: 'Agency' },
-  { field: 'datasetId', headerName: 'Dataset ID' },
-  { field: 'name', headerName: 'Name' },
-  { field: 'url', headerName: 'URL' },
-  { field: 'referenceArea', headerName: 'Reference Area' },
-  { field: 'timeCoverage', headerName: 'Time Coverage' },
-  { field: 'frequencyCoverage', headerName: 'Frequency Coverage' },
-  {
-    field: 'validationStatus',
-    headerName: 'Validation Status',
-    cellRenderer: ValidationStatusCell,
-  },
-  {
-    field: 'indexingStatus',
-    headerName: 'Indexing Status',
-    cellRenderer: IndexingStatusCell,
-  },
-  {
-    width: 32,
-    maxWidth: 32,
-    cellRenderer: DiscoveryDatasetActionColumn,
-    cellRendererParams: { onDelete: onDeleteRow },
-    cellClass: 'ag-grid__action-column',
-  },
-];
 
 export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const { setForbidden } = useAccessControl();
@@ -171,7 +139,10 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
     [withNotification, showNotification],
   );
 
-  const columns = useMemo(() => getColumns(deleteRow), [deleteRow]);
+  const columns = useMemo(
+    () => getDiscoveryDatasetsColumns(deleteRow),
+    [deleteRow],
+  );
 
   const { triggerReindex, isReindexInProgress } =
     useDiscoveryIndexingJobPolling({
@@ -179,11 +150,15 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
       onCompleted: () => setRefreshToken((x) => x + 1),
     });
 
-  const fetchRows = useCallback(
-    async (args: FetchRowsArgs): Promise<FetchRowsResult<DiscoveryDataset>> => {
+  const fetchDiscoveryDatasetsPage = useCallback(
+    async (
+      params: DiscoveryDatasetsRequestModel,
+    ): Promise<FetchRowsResult<DiscoveryDataset>> => {
+      const query = mapDiscoveryDatasetsRequestToQueryString(params);
+
       const result = await withNotification(
         sendGetRequest<RequestData<DiscoveryDataset>>(
-          `/api/v1/channels/${selectedChannelId}/discovery-datasets?limit=${args.limit}&offset=${args.offset}`,
+          `/api/v1/channels/${selectedChannelId}/discovery-datasets?${query}`,
         ),
         'Failed to Load Discovery Datasets',
         [403],
@@ -201,6 +176,43 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
       return { rows: result.data.data, total: result.data.total };
     },
     [selectedChannelId, withNotification, setForbidden],
+  );
+
+  // A floating text filter fires a fetch per debounced keystroke even when the trimmed
+  // value hasn't actually changed (e.g. typing extra spaces) - memoizing by the resulting
+  // query string skips the redundant request. Rebuilding the memoized function (a fresh
+  // cache) on refreshToken means a manual refresh (delete/upload/reindex) still forces a
+  // real refetch even with unchanged filters.
+  const fetchDiscoveryDatasetsPageMemoized = useMemo(
+    () =>
+      memoize(
+        fetchDiscoveryDatasetsPage,
+        mapDiscoveryDatasetsRequestToQueryString,
+      ),
+    [fetchDiscoveryDatasetsPage, refreshToken],
+  );
+
+  const fetchRows = useCallback(
+    (args: FetchRowsArgs): Promise<FetchRowsResult<DiscoveryDataset>> => {
+      const agency = getTextEquals(args.filterModel, 'agency');
+      const validation_status = getEnumFilterValue(
+        args.filterModel,
+        'validationStatus',
+      );
+      const indexing_status = getEnumFilterValue(
+        args.filterModel,
+        'indexingStatus',
+      );
+
+      return fetchDiscoveryDatasetsPageMemoized({
+        limit: args.limit,
+        offset: args.offset,
+        agency,
+        validation_status,
+        indexing_status,
+      });
+    },
+    [fetchDiscoveryDatasetsPageMemoized],
   );
 
   return (

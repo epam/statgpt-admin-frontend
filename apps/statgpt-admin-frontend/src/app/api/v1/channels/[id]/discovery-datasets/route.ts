@@ -20,6 +20,11 @@ export async function GET(
         limit,
         offset,
         token,
+        {
+          agency: search.get('agency') ?? undefined,
+          validation_status: search.get('validation_status') ?? undefined,
+          indexing_status: search.get('indexing_status') ?? undefined,
+        },
       ),
     );
   } catch {

@@ -7,5 +7,8 @@ module.exports = {
     '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nx/next/babel'] }],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  moduleNameMapper: {
+    '\\.svg$': '<rootDir>/src/test-utils/svgMock.tsx',
+  },
   coverageDirectory: '../../coverage/apps/statgpt-admin-frontend',
 };
