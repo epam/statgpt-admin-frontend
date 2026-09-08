@@ -3,6 +3,7 @@
 import { FC } from 'react';
 
 import { DataField } from '@/src/components/BaseComponents/DataField/DataField';
+import { DataFieldList } from '@/src/components/BaseComponents/DataField/DataFieldList';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { Modal } from '@/src/components/Modal/Modal';
 import {
@@ -29,19 +30,25 @@ export const DiscoveryDatasetDetailsView: FC<Props> = ({ data, close }) => {
         <DataField label="Name" value={data.name} />
         <DataField label="Description" value={data.description} />
         <DataField label="URL" value={data.url} />
-        <DataField label="Reference Area" value={data.referenceArea} />
+        <DataFieldList label="Reference Area" value={data.referenceArea} />
         <DataField label="Regional Coverage" value={data.regionalCoverage} />
         <DataField
           label="Excluded Regional Values"
           value={data.excludedRegionalValues}
         />
         <DataField label="Time Coverage" value={data.timeCoverage} />
-        <DataField label="Frequency Coverage" value={data.frequencyCoverage} />
-        <DataField
+        <DataFieldList
+          label="Frequency Coverage"
+          value={data.frequencyCoverage}
+        />
+        <DataFieldList
           label="Indicators Coverage"
           value={data.indicatorsCoverage}
         />
-        <DataField label="Missing Indicators" value={data.missingIndicators} />
+        <DataFieldList
+          label="Missing Indicators"
+          value={data.missingIndicators}
+        />
         <DataField label="Channel ID" value={String(data.channelId ?? '')} />
         <DataField
           label="Validation Status"
