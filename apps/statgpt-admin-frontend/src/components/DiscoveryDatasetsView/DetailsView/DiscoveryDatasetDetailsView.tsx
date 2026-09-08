@@ -19,7 +19,7 @@ interface Props {
 
 export const DiscoveryDatasetDetailsView: FC<Props> = ({ data, close }) => {
   return (
-    <Modal title="Discovery Dataset Details" close={close} width="700px">
+    <Modal title="Grade C Dataset Details" close={close} width="700px">
       <></>
 
       <div className="flex flex-col gap-y-4 p-4 max-h-[70vh] overflow-auto">

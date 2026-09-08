@@ -195,14 +195,23 @@ function GridViewInner<T = BaseEntity>({
     }
   }, [api, datasource, isInfinite]);
 
-  if (isLoading) return <LoaderSmall />;
+  // Infinite-row grids fetch their own data lazily once `<AgGridReact>` mounts
+  // (via the datasource's `getRows`), so an early return here would prevent
+  // that fetch from ever firing - the overlay below covers the loading look
+  // instead, without unmounting the grid.
+  if (isLoading && !isInfinite) return <LoaderSmall />;
 
   return shouldShowEmpty ? (
     <EmptyState title={emptyDataTitle} />
   ) : shouldShowLoader ? (
     <LoaderSmall />
   ) : (
-    <div className="ag-theme-balham-dark h-full">
+    <div className="ag-theme-balham-dark relative h-full">
+      {isInfinite && isLoading && (
+        <div className="bg-layer-2 absolute inset-0 z-10 flex items-center justify-center">
+          <LoaderSmall />
+        </div>
+      )}
       <AgGridReact
         columnDefs={colDefs}
         theme={gridTheme}

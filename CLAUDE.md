@@ -60,6 +60,15 @@ Long-running operations (export/import) use **RxJS** `interval` + `race` + `time
 
 All domain models in `src/models/` extend `BaseEntity` (`id`, `title`, `description`, `created_at`, `updated_at`). `BaseEntityWithDetails` adds `details` + `preprocessing_status`. The `src/types/` directory contains only `PopUpState` enum for modal state.
 
+### Terminology: Grade A vs Grade C
+
+On a channel's detail page (`/channels/[id]`), the two dataset tabs are labeled **"Grade A datasets"** and **"Grade C datasets"** — these are the preferred user-facing names.
+
+- **Grade A** is the channel's regular dataset list (`DataSetsView`, `src/components/ChannelView/Datasets/`).
+- **Grade C** is what the code, API routes, and backend all call **"discovery datasets"** (`DiscoveryDatasetsView`, `src/models/discovery-dataset.ts`, `src/server/channels-api.ts`'s `DISCOVERY_DATASETS_URL`/`CHANNEL_DISCOVERY_DATASETS_URL`, the `/api/v1/.../discovery-datasets` BFF routes, and the upstream `statgpt-backend` API itself). "Grade C" and "discovery dataset(s)" refer to the same thing.
+
+Only user-visible text (labels, headings, button/modal titles, notification and confirm-dialog copy) uses "Grade C" — component names, file paths, model types, route paths, and API URLs keep the existing `Discovery*`/`discovery-datasets` naming, since that also mirrors the real backend contract. Don't rename those to "Grade C" without also coordinating a backend rename.
+
 ### State Management
 
 No global state library. State flows via:
