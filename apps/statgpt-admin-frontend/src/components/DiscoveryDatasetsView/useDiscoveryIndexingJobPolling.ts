@@ -65,7 +65,7 @@ const buildDiscoveryFinalNotification = (
       title: DISCOVERY_INDEXING_JOB_STATUS_TITLE[job.status],
       description:
         job.reasonForFailure?.trim() ||
-        'Unable to reindex discovery datasets. Please try again.',
+        'Unable to reindex Grade C datasets. Please try again.',
     };
   }
 

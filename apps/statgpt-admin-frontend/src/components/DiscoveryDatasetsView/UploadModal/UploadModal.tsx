@@ -71,7 +71,7 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
   };
 
   return (
-    <Modal title="Upload Discovery Datasets" close={close} width="600px">
+    <Modal title="Upload Grade C Datasets" close={close} width="600px">
       <></>
 
       <div className="flex flex-col gap-y-6 min-h-[200px] p-4">
