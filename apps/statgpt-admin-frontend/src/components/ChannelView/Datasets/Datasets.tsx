@@ -348,7 +348,7 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-row items-center justify-between w-full mb-4">
+      <div className="flex flex-row items-center justify-between w-full">
         <h3>Accessible Datasets: {selectedChannelDataSets.length}</h3>
         <div className="flex flex-row items-center">
           <DeduplicationStatsModal deduplication={deduplication} />

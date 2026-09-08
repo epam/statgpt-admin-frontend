@@ -79,7 +79,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
       sendGetRequest<DiscoveryDatasetStats>(
         `/api/v1/channels/${selectedChannelId}/discovery-datasets/stats`,
       ),
-      'Failed to Load Discovery Dataset Stats',
+      'Failed to Load Grade C Dataset Stats',
     ).then((result) => {
       if (cancelled) return;
       if (result.ok) setStats(result.data);
@@ -110,7 +110,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         DISCOVERY_DATASETS_BULK_URL,
         { item_ids: selectedIds },
       ),
-      'Failed to Delete Selected Discovery Datasets',
+      'Failed to Delete Selected Grade C Datasets',
     ).then((result) => {
       if (result.ok) {
         const deletedCount = (JSON.parse(result.data) as DiscoveryDataset[])
@@ -119,8 +119,8 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         setRefreshToken((x) => x + 1);
         showNotification({
           type: NotificationType.success,
-          title: 'Discovery Dataset Records Deleted',
-          description: `Deleted ${deletedCount} discovery dataset record${deletedCount === 1 ? '' : 's'}`,
+          title: 'Grade C Dataset Records Deleted',
+          description: `Deleted ${deletedCount} Grade C dataset record${deletedCount === 1 ? '' : 's'}`,
         });
       }
     });
@@ -131,7 +131,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
       sendDeleteRequest<object, string>(
         CHANNEL_DISCOVERY_DATASETS_BULK_URL(selectedChannelId),
       ),
-      'Failed to Clear Discovery Datasets',
+      'Failed to Clear Grade C Datasets',
     ).then((result) => {
       if (result.ok) {
         const deletedCount = (JSON.parse(result.data) as DiscoveryDataset[])
@@ -139,8 +139,8 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         setRefreshToken((x) => x + 1);
         showNotification({
           type: NotificationType.success,
-          title: 'Discovery Dataset Records Deleted',
-          description: `Deleted ${deletedCount} discovery dataset record${deletedCount === 1 ? '' : 's'}`,
+          title: 'Grade C Dataset Records Deleted',
+          description: `Deleted ${deletedCount} Grade C dataset record${deletedCount === 1 ? '' : 's'}`,
         });
       }
     });
@@ -150,14 +150,14 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
     (id: number) => {
       withNotification(
         sendDeleteRequest(DISCOVERY_DATASET_ID_URL(id)),
-        'Failed to Delete Discovery Dataset',
+        'Failed to Delete Grade C Dataset',
       ).then((result) => {
         if (result.ok) {
           setRefreshToken((x) => x + 1);
           showNotification({
             type: NotificationType.success,
-            title: 'Discovery Dataset Record Deleted',
-            description: 'Deleted 1 discovery dataset record',
+            title: 'Grade C Dataset Record Deleted',
+            description: 'Deleted 1 Grade C dataset record',
           });
         }
       });
@@ -186,7 +186,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         sendGetRequest<RequestData<DiscoveryDataset>>(
           `/api/v1/channels/${selectedChannelId}/discovery-datasets?${query}`,
         ),
-        'Failed to Load Discovery Datasets',
+        'Failed to Load Grade C Datasets',
         [403],
       );
 
@@ -242,9 +242,9 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   );
 
   return (
-    <div className="bg-layer-2 flex flex-col h-full common-paddings">
+    <div className="flex flex-col h-full">
       <div className="flex flex-row items-center justify-between mb-3">
-        <h1 className="mb-4">Discovery Datasets</h1>
+        <h3>Accessible Datasets: {stats?.total ?? 0}</h3>
         <div className="flex flex-row items-center">
           <Button
             cssClass="secondary"
@@ -279,11 +279,12 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
       <div className="flex-1 min-h-0">
         <GridView<DiscoveryDataset>
           colDefs={columns}
-          emptyDataTitle="No discovery datasets"
+          emptyDataTitle="No Grade C datasets"
           fetchRows={fetchRows}
           pageSize={DEFAULT_GRID_PAGE_SIZE}
           refreshToken={refreshToken}
           additionalOptions={gridOptions}
+          isLoading={isInitialLoading}
         />
       </div>
       {showUploadModal &&
@@ -306,8 +307,8 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         modalState={
           showDeleteSelectedConfirm ? PopUpState.Opened : PopUpState.Closed
         }
-        header="Delete selected discovery datasets"
-        description={`This will permanently delete ${selectedIds.length} selected discovery dataset record${selectedIds.length === 1 ? '' : 's'}.`}
+        header="Delete selected Grade C datasets"
+        description={`This will permanently delete ${selectedIds.length} selected Grade C dataset record${selectedIds.length === 1 ? '' : 's'}.`}
         confirmLabel="Delete"
         cancelLabel="Cancel"
         onClose={(confirmed) => {
@@ -317,8 +318,8 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
       />
       <ConfirmDialog
         modalState={showClearAllConfirm ? PopUpState.Opened : PopUpState.Closed}
-        header="Clear all discovery datasets"
-        description="This will permanently delete all discovery dataset records for this channel. This action cannot be undone."
+        header="Clear all Grade C datasets"
+        description="This will permanently delete all Grade C dataset records for this channel. This action cannot be undone."
         confirmLabel="Clear all"
         cancelLabel="Cancel"
         onClose={(confirmed) => {
