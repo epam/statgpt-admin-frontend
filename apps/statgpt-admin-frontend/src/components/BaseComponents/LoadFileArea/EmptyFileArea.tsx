@@ -5,14 +5,21 @@ import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 
 import { Button } from '@/src/components/BaseComponents/Button/Button';
+import { mergeClasses } from '@/src/utils/mergeClasses';
 
 interface Props {
   emptyTitle: string;
   acceptTypes: string;
+  className?: string;
   onChange: (url?: FileList) => void;
 }
 
-const EmptyFileArea: FC<Props> = ({ onChange, emptyTitle, acceptTypes }) => {
+const EmptyFileArea: FC<Props> = ({
+  onChange,
+  emptyTitle,
+  acceptTypes,
+  className,
+}) => {
   const dropRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,8 +73,8 @@ const EmptyFileArea: FC<Props> = ({ onChange, emptyTitle, acceptTypes }) => {
         onKeyDown={handleKeyDown}
         className="flex flex-col items-center cursor-pointer h-full w-full text-secondary tiny justify-center"
       >
-        <p className="mb-1">{emptyTitle}</p>
-        <p className="mb-0.5"> Or</p>
+        <p className={mergeClasses('mb-1', className)}>{emptyTitle}</p>
+        <p className={mergeClasses('mb-0.5', className)}> Or</p>
         <Button
           cssClass="tertiary"
           title={'Browse'}
