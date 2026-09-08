@@ -11,6 +11,7 @@ import {
 } from '@/src/models/discovery-dataset';
 import type { RequestData } from '@/src/models/request-data';
 import type { ApiResult } from '@/src/server/api';
+import { guardDiscoveryDatasetsEnabledResult } from '@/src/server/feature-flag-guard';
 import { logger } from '@/src/server/logger';
 import { getUserToken } from '@/src/utils/auth/get-token';
 import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
@@ -182,6 +183,9 @@ export async function triggerDiscoveryIndexingJob(
   id: string,
   force: boolean,
 ): Promise<ApiResult<DiscoveryIndexingJob>> {
+  const disabled = guardDiscoveryDatasetsEnabledResult<DiscoveryIndexingJob>();
+  if (disabled) return disabled;
+
   const token = await getUserToken(
     getIsEnableAuthToggle(),
     headers(),
@@ -199,6 +203,10 @@ export async function triggerDiscoveryIndexingJob(
 export async function getLatestDiscoveryIndexingJob(
   id: string,
 ): Promise<ApiResult<RequestData<DiscoveryIndexingJob>>> {
+  const disabled =
+    guardDiscoveryDatasetsEnabledResult<RequestData<DiscoveryIndexingJob>>();
+  if (disabled) return disabled;
+
   const token = await getUserToken(
     getIsEnableAuthToggle(),
     headers(),
@@ -210,6 +218,9 @@ export async function getLatestDiscoveryIndexingJob(
 export async function getDiscoveryIndexingJob(
   jobId: string | number,
 ): Promise<ApiResult<DiscoveryIndexingJob>> {
+  const disabled = guardDiscoveryDatasetsEnabledResult<DiscoveryIndexingJob>();
+  if (disabled) return disabled;
+
   const token = await getUserToken(
     getIsEnableAuthToggle(),
     headers(),
