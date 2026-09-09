@@ -12,12 +12,14 @@ interface LoadFileAreaProps {
   files?: FileList;
   acceptTypes: string;
   iconBeforeInput?: ReactNode;
+  inputClassName?: string;
   onChangeFile: (value?: FileList) => void;
 }
 
 interface LoadFileAreaFieldProps extends LoadFileAreaProps {
   fieldTitle: string;
   elementId: string;
+  labelClassName?: string;
 }
 
 export const LoadFileArea: FC<LoadFileAreaProps> = ({
@@ -25,6 +27,7 @@ export const LoadFileArea: FC<LoadFileAreaProps> = ({
   emptyTitle,
   files,
   iconBeforeInput,
+  inputClassName,
   onChangeFile,
 }) => {
   const removeFile = () => {
@@ -46,12 +49,14 @@ export const LoadFileArea: FC<LoadFileAreaProps> = ({
         onChange={onChangeFile}
         acceptTypes={acceptTypes}
         emptyTitle={emptyTitle}
+        className={inputClassName}
       />
     </DndProvider>
   ) : (
     <InputWithIcon
       inputId="file"
       value={files[0].name}
+      cssClass={inputClassName}
       iconAfterInput={removeFile()}
       iconBeforeInput={iconBeforeInput}
       onChangeFile={onChangeFile}
@@ -62,11 +67,16 @@ export const LoadFileArea: FC<LoadFileAreaProps> = ({
 export const LoadFileAreaField: FC<LoadFileAreaFieldProps> = ({
   fieldTitle,
   elementId,
+  labelClassName,
   ...props
 }) => {
   return (
     <div className="flex flex-col">
-      <Field fieldTitle={fieldTitle} htmlFor={elementId} />
+      <Field
+        fieldTitle={fieldTitle}
+        htmlFor={elementId}
+        className={labelClassName}
+      />
 
       <LoadFileArea {...props} />
     </div>

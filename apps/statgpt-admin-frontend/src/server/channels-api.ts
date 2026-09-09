@@ -21,6 +21,7 @@ import {
   DiscoveryDataset,
   DiscoveryDatasetStats,
   DiscoveryIndexingJob,
+  DiscoveryUploadMode,
   DiscoveryUploadSummary,
 } from '@/src/models/discovery-dataset';
 import { ApiResult, MAIN_API } from './api';
@@ -446,10 +447,11 @@ export class ChannelsApi extends BaseApi {
   uploadChannelDiscoveryDatasets(
     id: string,
     formData: FormData,
+    mode: DiscoveryUploadMode,
     token: JWT | null,
   ): Promise<ApiResult<DiscoveryUploadSummary>> {
     return this.post(
-      `${CHANNEL_DISCOVERY_DATASETS_UPLOAD_URL(id)}?mode=upsert`,
+      `${CHANNEL_DISCOVERY_DATASETS_UPLOAD_URL(id)}?mode=${mode}`,
       formData,
       void 0,
       void 0,
