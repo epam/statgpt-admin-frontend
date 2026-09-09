@@ -103,7 +103,9 @@ No global state library. State flows via:
 
 ### Environment Variables
 
-Required: `API_URL`, `DIAL_API_URL`, `AUTH_SECRET` (for auth). Optional: `AUTH_URL` (production), `AUTH_TRUST_HOST` (trusted reverse proxy or ingress), `DIAL_API_KEY` (if JWT not configured), `DISABLE_MENU_ITEMS`. Auth providers are configured via `AUTH_<PROVIDER>_*` env vars (Azure AD, Google, Auth0, GitLab, Keycloak, Okta).
+Required: `API_URL`, `DIAL_API_URL`, `AUTH_SECRET` (for auth). Optional: `AUTH_URL` (production), `AUTH_TRUST_HOST` (trusted reverse proxy or ingress), `DIAL_API_KEY` (if JWT not configured), `DISABLE_MENU_ITEMS`, `ENABLE_DISCOVERY_DATASETS`. Auth providers are configured via `AUTH_<PROVIDER>_*` env vars (Azure AD, Google, Auth0, GitLab, Keycloak, Okta).
+
+`ENABLE_DISCOVERY_DATASETS` gates all Grade C functionality and is opt-in — anything other than `true` disables it. When disabled, `/channels/[id]` renders the Grade A dataset list with no tab strip, and the discovery datasets BFF routes and server actions answer 404. It is read server-side (`src/utils/feature-flags.ts`) and reaches client components through `FeatureFlagsProvider` in `MainShell`; never expose it as `NEXT_PUBLIC_*`, which would bake it into the build.
 
 ### Security
 

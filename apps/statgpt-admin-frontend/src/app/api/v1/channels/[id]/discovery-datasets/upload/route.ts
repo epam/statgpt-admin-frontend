@@ -1,6 +1,7 @@
 import { channelsApi } from '@/src/app/api/api';
 import { DiscoveryUploadMode } from '@/src/models/discovery-dataset';
 import { getRequestToken } from '@/src/utils/auth/get-token';
+import { guardDiscoveryDatasetsEnabled } from '@/src/server/feature-flag-guard';
 
 export const runtime = 'nodejs';
 
@@ -8,6 +9,9 @@ export async function POST(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const disabled = guardDiscoveryDatasetsEnabled();
+  if (disabled) return disabled;
+
   try {
     const params = await context.params;
     const formData = await req.formData();
