@@ -261,7 +261,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
             onClick={() => setShowUploadModal(true)}
           />
           <Button
-            cssClass="secondary ml-3"
+            cssClass="secondary ml-3 min-w-[185px] justify-center"
             title={`Delete selected (${selectedIds.length})`}
             icon={<IconTrash {...BASE_ICON_PROPS} />}
             disable={selectedIds.length === 0}
@@ -271,6 +271,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
             cssClass="secondary ml-3"
             title="Clear all"
             icon={<IconTrash {...BASE_ICON_PROPS} />}
+            disable={isReindexInProgress || !stats?.total}
             onClick={() => setShowClearAllConfirm(true)}
           />
         </div>
