@@ -1,9 +1,13 @@
 import { channelsApi } from '@/src/app/api/api';
 import { getRequestToken } from '@/src/utils/auth/get-token';
+import { guardDiscoveryDatasetsEnabled } from '@/src/server/feature-flag-guard';
 
 export const dynamic = 'force-dynamic';
 
 export async function DELETE(req: Request) {
+  const disabled = guardDiscoveryDatasetsEnabled();
+  if (disabled) return disabled;
+
   try {
     const { item_ids: itemIds } = (await req.json()) as {
       item_ids: number[];

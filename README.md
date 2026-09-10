@@ -136,12 +136,13 @@ Environment variables are loaded from `apps/statgpt-admin-frontend/.env` for loc
 
 ### Application Variables
 
-| Variable             |                Required                | Description                                                                                                                                             | Example / Values                      | Default |
-| -------------------- | :------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ------- |
-| `API_URL`            |      Yes for main admin features       | StatGPT Backend API URL. See [StatGPT Backend](https://github.com/epam/statgpt-backend).                                                                | `https://statgpt-backend.example.com` |         |
-| `DIAL_API_URL`       | Yes for document and indexing features | AI DIAL Core API URL. See [AI DIAL Core dynamic settings](https://github.com/epam/ai-dial-core?tab=readme-ov-file#dynamic-settings).                    | `https://dial-core.example.com`       |         |
-| `DIAL_API_KEY`       |                   No                   | AI DIAL Core API key. Use it when DIAL Core requests should use an API key instead of the authenticated user's JWT.                                     | Any string                            |         |
-| `DISABLE_MENU_ITEMS` |                   No                   | Comma-separated menu item IDs to hide. The current UI consumes `datasources`, `documents`, `channels`, and `audit-logs`; `datasources` hides two items. | `datasources,documents,audit-logs`    |         |
+| Variable                    |                Required                | Description                                                                                                                                             | Example / Values                      | Default |
+| --------------------------- | :------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ------- |
+| `API_URL`                   |      Yes for main admin features       | StatGPT Backend API URL. See [StatGPT Backend](https://github.com/epam/statgpt-backend).                                                                | `https://statgpt-backend.example.com` |         |
+| `DIAL_API_URL`              | Yes for document and indexing features | AI DIAL Core API URL. See [AI DIAL Core dynamic settings](https://github.com/epam/ai-dial-core?tab=readme-ov-file#dynamic-settings).                    | `https://dial-core.example.com`       |         |
+| `DIAL_API_KEY`              |                   No                   | AI DIAL Core API key. Use it when DIAL Core requests should use an API key instead of the authenticated user's JWT.                                     | Any string                            |         |
+| `DISABLE_MENU_ITEMS`        |                   No                   | Comma-separated menu item IDs to hide. The current UI consumes `datasources`, `documents`, `channels`, and `audit-logs`; `datasources` hides two items. | `datasources,documents,audit-logs`    |         |
+| `ENABLE_DISCOVERY_DATASETS` |                   No                   | Enables Grade C (discovery) datasets. Any value other than `true` keeps the feature disabled.                                                           | `true`                                | `false` |
 
 ### Authentication Variables
 

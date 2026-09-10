@@ -75,6 +75,11 @@ export interface DiscoveryDatasetStats {
   byIndexingStatus: Record<DiscoveryIndexingStatus, number>;
 }
 
+export enum DiscoveryUploadMode {
+  Upsert = 'upsert',
+  Replace = 'replace',
+}
+
 export interface DiscoveryUploadSummary {
   created: number;
   updated: number;

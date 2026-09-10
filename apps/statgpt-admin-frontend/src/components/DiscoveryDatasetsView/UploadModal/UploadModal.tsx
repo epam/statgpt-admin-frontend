@@ -3,12 +3,14 @@
 import { FC, useState } from 'react';
 
 import { Button } from '@/src/components/BaseComponents/Button/Button';
+import Checkbox from '@/src/components/BaseComponents/Checkbox/Checkbox';
 import { LoadFileAreaField } from '@/src/components/BaseComponents/LoadFileArea/LoadFileArea';
 import LoaderSmall from '@/src/components/BaseComponents/Loader/Loader';
 import { Modal } from '@/src/components/Modal/Modal';
 import {
   DiscoveryPayloadErrorResponse,
   DiscoveryPayloadProblem,
+  DiscoveryUploadMode,
   DiscoveryUploadSummary,
 } from '@/src/models/discovery-dataset';
 import { sendPostRequest } from '@/src/server/api';
@@ -33,6 +35,7 @@ const SUMMARY_LABELS: { key: keyof DiscoveryUploadSummary; label: string }[] = [
 export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
   const [step, setStep] = useState<Step>('select');
   const [files, setFiles] = useState<FileList | undefined>(void 0);
+  const [deleteAbsent, setDeleteAbsent] = useState(false);
   const [summary, setSummary] = useState<DiscoveryUploadSummary | undefined>(
     void 0,
   );
@@ -43,11 +46,14 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
     if (!files) return;
     setStep('uploading');
 
+    const mode = deleteAbsent
+      ? DiscoveryUploadMode.Replace
+      : DiscoveryUploadMode.Upsert;
     const formData = new FormData();
     formData.append('file', files[0], files[0].name);
 
     const result = await sendPostRequest<FormData, DiscoveryUploadSummary>(
-      `/api/v1/channels/${channelId}/discovery-datasets/upload`,
+      `/api/v1/channels/${channelId}/discovery-datasets/upload?mode=${mode}`,
       formData,
     );
 
@@ -70,20 +76,44 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
     close();
   };
 
+  const handleFilesChange = (newFiles: FileList | undefined) => {
+    setFiles(newFiles);
+    if (!newFiles) setDeleteAbsent(false);
+  };
+
   return (
     <Modal title="Upload Grade C Datasets" close={close} width="600px">
       <></>
 
       <div className="flex flex-col gap-y-6 min-h-[200px] p-4">
         {step === 'select' && (
-          <LoadFileAreaField
-            elementId="file"
-            fieldTitle="File"
-            acceptTypes=".csv,.xlsx"
-            emptyTitle="Drop file here"
-            files={files}
-            onChangeFile={setFiles}
-          />
+          <>
+            <LoadFileAreaField
+              elementId="file"
+              fieldTitle="File"
+              acceptTypes=".csv,.xlsx"
+              emptyTitle="Drop file here"
+              files={files}
+              onChangeFile={handleFilesChange}
+              labelClassName="text-sm"
+              inputClassName="text-sm"
+            />
+
+            {files && (
+              <div className="flex flex-col gap-2">
+                <Checkbox
+                  id="upload-delete-absent"
+                  label="Also delete records not in this file"
+                  checked={deleteAbsent}
+                  onChange={(value) => setDeleteAbsent(!!value)}
+                />
+                <p className="whitespace-pre-wrap text-sm text-secondary">
+                  Records present in the channel but missing from the uploaded
+                  file will be permanently deleted.
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         {step === 'uploading' && <LoaderSmall containerClassName="h-[150px]" />}
@@ -151,9 +181,9 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
             <Button cssClass="secondary mr-3" title="Cancel" onClick={close} />
             <Button
               cssClass="primary"
-              title="Next"
+              title="Upload"
               disable={files == null}
-              onClick={() => upload()}
+              onClick={upload}
             />
           </>
         )}
