@@ -36,8 +36,11 @@ import {
   DISCOVERY_DATASETS_BULK_URL,
 } from '@/src/server/channels-api';
 import { PopUpState } from '@/src/types/modal';
-import { getDiscoveryDatasetsColumns } from '@/src/constants/columns/discovery-datasets';
-import { getEnumFilterValue, getTextEquals } from '@/src/utils/client/grid';
+import {
+  getDiscoveryDatasetsColumns,
+  getDiscoveryDatasetsFilterValues,
+} from '@/src/constants/columns/discovery-datasets';
+import { getEnumFilterValue } from '@/src/utils/client/grid';
 import {
   DiscoveryDatasetsRequestModel,
   mapDiscoveryDatasetsRequestToQueryString,
@@ -166,8 +169,12 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   );
 
   const columns = useMemo(
-    () => getDiscoveryDatasetsColumns(deleteRow),
-    [deleteRow],
+    () =>
+      getDiscoveryDatasetsColumns(
+        deleteRow,
+        getDiscoveryDatasetsFilterValues(stats),
+      ),
+    [deleteRow, stats],
   );
 
   const { triggerReindex, isReindexInProgress } =
@@ -220,7 +227,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
 
   const fetchRows = useCallback(
     (args: FetchRowsArgs): Promise<FetchRowsResult<DiscoveryDataset>> => {
-      const agency = getTextEquals(args.filterModel, 'agency');
+      const agency = getEnumFilterValue(args.filterModel, 'agency');
       const validation_status = getEnumFilterValue(
         args.filterModel,
         'validationStatus',

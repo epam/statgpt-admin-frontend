@@ -73,6 +73,7 @@ export interface DiscoveryDatasetStats {
   total: number;
   byValidationStatus: Record<DiscoveryValidationStatus, number>;
   byIndexingStatus: Record<DiscoveryIndexingStatus, number>;
+  byAgency: Record<string, number>;
 }
 
 export enum DiscoveryUploadMode {

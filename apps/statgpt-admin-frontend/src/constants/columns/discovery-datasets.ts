@@ -8,22 +8,36 @@ import { DiscoveryDatasetActionColumn } from '@/src/components/DiscoveryDatasets
 import {
   DISCOVERY_INDEXING_STATUS_LABEL,
   DISCOVERY_VALIDATION_STATUS_LABEL,
+  DiscoveryDatasetStats,
   DiscoveryIndexingStatus,
   DiscoveryValidationStatus,
 } from '@/src/models/discovery-dataset';
 
-// The backend matches agency against a normalized natural-key column with `==`, not a
-// substring search, so the filter must be exact-match too - "contains" would silently
-// return nothing for a partial name.
-const EQUALS_TEXT_FILTER = {
-  filterOptions: ['equals'],
-  defaultOption: 'equals',
-  maxNumConditions: 1,
-  debounceMs: 400,
-};
+/** The statuses/agencies a channel's data actually holds, keyed by column field. */
+export interface DiscoveryDatasetsFilterValues {
+  agency: readonly string[];
+  validationStatus: readonly string[];
+  indexingStatus: readonly string[];
+}
+
+const presentKeys = <K extends string>(
+  byStatus: Record<K, number> | undefined,
+): K[] =>
+  Object.entries(byStatus ?? {})
+    .filter(([, count]) => (count as number) > 0)
+    .map(([status]) => status as K);
+
+export const getDiscoveryDatasetsFilterValues = (
+  stats: DiscoveryDatasetStats | null,
+): DiscoveryDatasetsFilterValues => ({
+  agency: Object.keys(stats?.byAgency ?? {}),
+  validationStatus: presentKeys(stats?.byValidationStatus),
+  indexingStatus: presentKeys(stats?.byIndexingStatus),
+});
 
 export const getDiscoveryDatasetsColumns = (
   onDeleteRow: (id: number) => void,
+  filterValues: DiscoveryDatasetsFilterValues,
 ): ColDef[] => [
   {
     width: 40,
@@ -38,8 +52,9 @@ export const getDiscoveryDatasetsColumns = (
   {
     field: 'agency',
     headerName: 'Agency',
-    filter: 'agTextColumnFilter',
-    filterParams: EQUALS_TEXT_FILTER,
+    filter: EnumSelectFilter,
+    filterParams: { values: filterValues.agency },
+    floatingFilterComponent: EnumSelectEmptyFilter,
     sortable: false,
   },
   { field: 'datasetId', headerName: 'Dataset ID', sortable: false },
@@ -62,7 +77,7 @@ export const getDiscoveryDatasetsColumns = (
     cellRenderer: ValidationStatusCell,
     filter: EnumSelectFilter,
     filterParams: {
-      values: Object.values(DiscoveryValidationStatus),
+      values: filterValues.validationStatus,
       formatValue: (v: string) =>
         DISCOVERY_VALIDATION_STATUS_LABEL[v as DiscoveryValidationStatus] ?? v,
     },
@@ -75,7 +90,7 @@ export const getDiscoveryDatasetsColumns = (
     cellRenderer: IndexingStatusCell,
     filter: EnumSelectFilter,
     filterParams: {
-      values: Object.values(DiscoveryIndexingStatus),
+      values: filterValues.indexingStatus,
       formatValue: (v: string) =>
         DISCOVERY_INDEXING_STATUS_LABEL[v as DiscoveryIndexingStatus] ?? v,
     },

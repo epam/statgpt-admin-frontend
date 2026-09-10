@@ -1,18 +1,69 @@
 import { EnumSelectEmptyFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter/EnumSelectEmptyFilter';
 import { EnumSelectFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter/EnumSelectFilter';
-import { getDiscoveryDatasetsColumns } from './discovery-datasets';
+import {
+  DiscoveryIndexingStatus,
+  DiscoveryValidationStatus,
+} from '@/src/models/discovery-dataset';
+import {
+  getDiscoveryDatasetsColumns,
+  getDiscoveryDatasetsFilterValues,
+} from './discovery-datasets';
+
+describe('getDiscoveryDatasetsFilterValues', () => {
+  it('lists agencies in the order the stats map holds them', () => {
+    const values = getDiscoveryDatasetsFilterValues({
+      total: 3,
+      byValidationStatus: {} as never,
+      byIndexingStatus: {} as never,
+      byAgency: { 'Bank Indonesia (BI)': 2, OECD: 1 },
+    });
+
+    expect(values.agency).toEqual(['Bank Indonesia (BI)', 'OECD']);
+  });
+
+  it('drops statuses the channel holds no records for', () => {
+    const values = getDiscoveryDatasetsFilterValues({
+      total: 3,
+      byValidationStatus: {
+        [DiscoveryValidationStatus.Valid]: 3,
+        [DiscoveryValidationStatus.Invalid]: 0,
+        [DiscoveryValidationStatus.NotValidated]: 0,
+      },
+      byIndexingStatus: {
+        [DiscoveryIndexingStatus.Indexed]: 3,
+        [DiscoveryIndexingStatus.New]: 0,
+        [DiscoveryIndexingStatus.Outdated]: 0,
+        [DiscoveryIndexingStatus.Failed]: 0,
+      },
+      byAgency: {},
+    });
+
+    expect(values.validationStatus).toEqual([DiscoveryValidationStatus.Valid]);
+    expect(values.indexingStatus).toEqual([DiscoveryIndexingStatus.Indexed]);
+  });
+
+  it('returns empty lists with no stats yet', () => {
+    expect(getDiscoveryDatasetsFilterValues(null)).toEqual({
+      agency: [],
+      validationStatus: [],
+      indexingStatus: [],
+    });
+  });
+});
 
 describe('getDiscoveryDatasetsColumns', () => {
-  const columns = getDiscoveryDatasetsColumns(() => {});
+  const columns = getDiscoveryDatasetsColumns(() => {}, {
+    agency: ['Bank Indonesia (BI)', 'OECD'],
+    validationStatus: [DiscoveryValidationStatus.Valid],
+    indexingStatus: [DiscoveryIndexingStatus.Indexed],
+  });
   const byField = (field: string) => columns.find((c) => c.field === field);
 
-  it('gives agency an exact-match text filter, matching the backend agency_key equality check', () => {
+  it('gives agency an enum select filter populated from the channel data, with an empty floating filter', () => {
     expect(byField('agency')).toMatchObject({
-      filter: 'agTextColumnFilter',
-      filterParams: expect.objectContaining({
-        filterOptions: ['equals'],
-        defaultOption: 'equals',
-      }),
+      filter: EnumSelectFilter,
+      filterParams: { values: ['Bank Indonesia (BI)', 'OECD'] },
+      floatingFilterComponent: EnumSelectEmptyFilter,
     });
   });
 
