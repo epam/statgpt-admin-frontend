@@ -1,9 +1,10 @@
 'use client';
 
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GridOptions } from 'ag-grid-community';
 import {
   IconFileArrowLeft,
+  IconFileArrowRight,
   IconRefreshDot,
   IconTrash,
 } from '@tabler/icons-react';
@@ -36,8 +37,11 @@ import {
   DISCOVERY_DATASETS_BULK_URL,
 } from '@/src/server/channels-api';
 import { PopUpState } from '@/src/types/modal';
-import { getDiscoveryDatasetsColumns } from '@/src/constants/columns/discovery-datasets';
-import { getEnumFilterValue, getTextEquals } from '@/src/utils/client/grid';
+import {
+  getDiscoveryDatasetsColumns,
+  getDiscoveryDatasetsFilterValues,
+} from '@/src/constants/columns/discovery-datasets';
+import { getEnumFilterValue } from '@/src/utils/client/grid';
 import {
   DiscoveryDatasetsRequestModel,
   mapDiscoveryDatasetsRequestToQueryString,
@@ -62,6 +66,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const [showDeleteSelectedConfirm, setShowDeleteSelectedConfirm] =
     useState(false);
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   usePageInitialLoadingSync(isInitialLoading);
   const [stats, setStats] = useState<DiscoveryDatasetStats | null>(null);
@@ -105,45 +110,51 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   );
 
   const deleteSelected = useCallback(() => {
+    setIsMutating(true);
     withNotification(
       sendDeleteRequest<{ item_ids: number[] }, string>(
         DISCOVERY_DATASETS_BULK_URL,
         { item_ids: selectedIds },
       ),
       'Failed to Delete Selected Grade C Datasets',
-    ).then((result) => {
-      if (result.ok) {
-        const deletedCount = (JSON.parse(result.data) as DiscoveryDataset[])
-          .length;
-        setSelectedIds([]);
-        setRefreshToken((x) => x + 1);
-        showNotification({
-          type: NotificationType.success,
-          title: 'Grade C Dataset Records Deleted',
-          description: `Deleted ${deletedCount} Grade C dataset record${deletedCount === 1 ? '' : 's'}`,
-        });
-      }
-    });
+    )
+      .then((result) => {
+        if (result.ok) {
+          const deletedCount = (JSON.parse(result.data) as DiscoveryDataset[])
+            .length;
+          setSelectedIds([]);
+          setRefreshToken((x) => x + 1);
+          showNotification({
+            type: NotificationType.success,
+            title: 'Grade C Dataset Records Deleted',
+            description: `Deleted ${deletedCount} Grade C dataset record${deletedCount === 1 ? '' : 's'}`,
+          });
+        }
+      })
+      .finally(() => setIsMutating(false));
   }, [withNotification, selectedIds, showNotification]);
 
   const clearAllDatasets = useCallback(() => {
+    setIsMutating(true);
     withNotification(
       sendDeleteRequest<object, string>(
         CHANNEL_DISCOVERY_DATASETS_BULK_URL(selectedChannelId),
       ),
       'Failed to Clear Grade C Datasets',
-    ).then((result) => {
-      if (result.ok) {
-        const deletedCount = (JSON.parse(result.data) as DiscoveryDataset[])
-          .length;
-        setRefreshToken((x) => x + 1);
-        showNotification({
-          type: NotificationType.success,
-          title: 'Grade C Dataset Records Deleted',
-          description: `Deleted ${deletedCount} Grade C dataset record${deletedCount === 1 ? '' : 's'}`,
-        });
-      }
-    });
+    )
+      .then((result) => {
+        if (result.ok) {
+          const deletedCount = (JSON.parse(result.data) as DiscoveryDataset[])
+            .length;
+          setRefreshToken((x) => x + 1);
+          showNotification({
+            type: NotificationType.success,
+            title: 'Grade C Dataset Records Deleted',
+            description: `Deleted ${deletedCount} Grade C dataset record${deletedCount === 1 ? '' : 's'}`,
+          });
+        }
+      })
+      .finally(() => setIsMutating(false));
   }, [withNotification, selectedChannelId, showNotification]);
 
   const deleteRow = useCallback(
@@ -166,8 +177,12 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   );
 
   const columns = useMemo(
-    () => getDiscoveryDatasetsColumns(deleteRow),
-    [deleteRow],
+    () =>
+      getDiscoveryDatasetsColumns(
+        deleteRow,
+        getDiscoveryDatasetsFilterValues(stats),
+      ),
+    [deleteRow, stats],
   );
 
   const { triggerReindex, isReindexInProgress } =
@@ -218,9 +233,15 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
     [fetchDiscoveryDatasetsPage, refreshToken],
   );
 
+  const currentFiltersRef = useRef<{
+    agency?: string;
+    validation_status?: string;
+    indexing_status?: string;
+  }>({});
+
   const fetchRows = useCallback(
     (args: FetchRowsArgs): Promise<FetchRowsResult<DiscoveryDataset>> => {
-      const agency = getTextEquals(args.filterModel, 'agency');
+      const agency = getEnumFilterValue(args.filterModel, 'agency');
       const validation_status = getEnumFilterValue(
         args.filterModel,
         'validationStatus',
@@ -229,6 +250,12 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         args.filterModel,
         'indexingStatus',
       );
+
+      currentFiltersRef.current = {
+        agency,
+        validation_status,
+        indexing_status,
+      };
 
       return fetchDiscoveryDatasetsPageMemoized({
         limit: args.limit,
@@ -241,6 +268,21 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
     [fetchDiscoveryDatasetsPageMemoized],
   );
 
+  const exportDatasets = useCallback(() => {
+    const filters = currentFiltersRef.current;
+    const query = new URLSearchParams();
+    if (filters.agency) query.set('agency', filters.agency);
+    if (filters.validation_status)
+      query.set('validation_status', filters.validation_status);
+    if (filters.indexing_status)
+      query.set('indexing_status', filters.indexing_status);
+
+    const url = `/api/v1/channels/${selectedChannelId}/discovery-datasets/export${
+      query.toString() ? `?${query}` : ''
+    }`;
+    window.open(url, '_blank');
+  }, [selectedChannelId]);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-row items-center justify-between mb-3">
@@ -250,27 +292,37 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
             cssClass="secondary"
             title="Reindex"
             icon={<IconRefreshDot {...BASE_ICON_PROPS} />}
-            disable={isReindexInProgress}
+            disable={isReindexInProgress || isMutating || !stats?.total}
             onClick={() => setShowReindexConfirm(true)}
           />
           <Button
             cssClass="primary ml-3"
             title="Upload"
             icon={<IconFileArrowLeft {...BASE_ICON_PROPS} />}
-            disable={isReindexInProgress}
+            disable={isReindexInProgress || isMutating}
             onClick={() => setShowUploadModal(true)}
           />
           <Button
             cssClass="secondary ml-3"
+            title="Export"
+            icon={<IconFileArrowRight {...BASE_ICON_PROPS} />}
+            disable={isReindexInProgress || isMutating || !stats?.total}
+            onClick={exportDatasets}
+          />
+          <Button
+            cssClass="secondary ml-3 min-w-[185px] justify-center"
             title={`Delete selected (${selectedIds.length})`}
             icon={<IconTrash {...BASE_ICON_PROPS} />}
-            disable={selectedIds.length === 0}
+            disable={
+              isReindexInProgress || isMutating || selectedIds.length === 0
+            }
             onClick={() => setShowDeleteSelectedConfirm(true)}
           />
           <Button
             cssClass="secondary ml-3"
             title="Clear all"
             icon={<IconTrash {...BASE_ICON_PROPS} />}
+            disable={isReindexInProgress || isMutating || !stats?.total}
             onClick={() => setShowClearAllConfirm(true)}
           />
         </div>
