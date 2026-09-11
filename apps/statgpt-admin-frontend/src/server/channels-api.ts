@@ -56,6 +56,10 @@ export const CHANNEL_DISCOVERY_DATASETS_STATS_URL = (
   id?: string | number,
 ): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/stats`;
 
+export const CHANNEL_DISCOVERY_DATASETS_EXPORT_URL = (
+  id?: string | number,
+): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/export`;
+
 export const CHANNEL_DISCOVERY_INDEXING_JOBS_URL = (
   id?: string | number,
 ): string => `${CHANNEL_DISCOVERY_DATASETS_URL(id)}/indexing-jobs`;
@@ -442,6 +446,25 @@ export class ChannelsApi extends BaseApi {
     token: JWT | null,
   ): Promise<ApiResult<DiscoveryDatasetStats>> {
     return this.get(CHANNEL_DISCOVERY_DATASETS_STATS_URL(id), token);
+  }
+
+  exportChannelDiscoveryDatasets(
+    id: string,
+    token: JWT | null,
+    filters?: {
+      agency?: string;
+      validation_status?: string;
+      indexing_status?: string;
+    },
+  ) {
+    const searchParams = new URLSearchParams();
+    Object.entries(filters ?? {}).forEach(([key, value]) => {
+      if (value) searchParams.set(key, value);
+    });
+
+    const url = CHANNEL_DISCOVERY_DATASETS_EXPORT_URL(id);
+    const query = searchParams.toString();
+    return this.streamRequest(query ? `${url}?${query}` : url, token);
   }
 
   uploadChannelDiscoveryDatasets(
