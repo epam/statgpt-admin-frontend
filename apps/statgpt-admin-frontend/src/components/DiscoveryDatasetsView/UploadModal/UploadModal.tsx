@@ -3,9 +3,9 @@
 import { FC, useState } from 'react';
 
 import { Button } from '@/src/components/BaseComponents/Button/Button';
-import Checkbox from '@/src/components/BaseComponents/Checkbox/Checkbox';
 import { LoadFileAreaField } from '@/src/components/BaseComponents/LoadFileArea/LoadFileArea';
 import LoaderSmall from '@/src/components/BaseComponents/Loader/Loader';
+import Switch from '@/src/components/BaseComponents/Switch/Switch';
 import { Modal } from '@/src/components/Modal/Modal';
 import {
   DiscoveryPayloadErrorResponse,
@@ -15,7 +15,7 @@ import {
 } from '@/src/models/discovery-dataset';
 import { sendPostRequest } from '@/src/server/api';
 
-type Step = 'select' | 'uploading' | 'success' | 'error';
+type Step = 'select' | 'confirm' | 'uploading' | 'success' | 'error';
 
 interface Props {
   channelId: string;
@@ -35,7 +35,7 @@ const SUMMARY_LABELS: { key: keyof DiscoveryUploadSummary; label: string }[] = [
 export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
   const [step, setStep] = useState<Step>('select');
   const [files, setFiles] = useState<FileList | undefined>(void 0);
-  const [deleteAbsent, setDeleteAbsent] = useState(false);
+  const [replace, setReplace] = useState(false);
   const [summary, setSummary] = useState<DiscoveryUploadSummary | undefined>(
     void 0,
   );
@@ -46,7 +46,7 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
     if (!files) return;
     setStep('uploading');
 
-    const mode = deleteAbsent
+    const mode = replace
       ? DiscoveryUploadMode.Replace
       : DiscoveryUploadMode.Upsert;
     const formData = new FormData();
@@ -71,6 +71,14 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
     setStep('error');
   };
 
+  const onUploadClick = (): void => {
+    if (replace) {
+      setStep('confirm');
+    } else {
+      upload();
+    }
+  };
+
   const finish = () => {
     onUploaded();
     close();
@@ -78,7 +86,7 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
 
   const handleFilesChange = (newFiles: FileList | undefined) => {
     setFiles(newFiles);
-    if (!newFiles) setDeleteAbsent(false);
+    if (!newFiles) setReplace(false);
   };
 
   return (
@@ -100,23 +108,26 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
             />
 
             {files && (
-              <div className="flex flex-col gap-2">
-                <Checkbox
-                  id="upload-delete-absent"
-                  label="Also delete records not in this file"
-                  checked={deleteAbsent}
-                  onChange={(value) => setDeleteAbsent(!!value)}
-                />
-                <p className="whitespace-pre-wrap text-sm text-secondary">
-                  Records present in the channel but missing from the uploaded
-                  file will be permanently deleted.
-                </p>
-              </div>
+              <Switch
+                isOn={replace}
+                title="Replace records not in this file"
+                switchId="upload-replace"
+                onChange={setReplace}
+              />
             )}
           </>
         )}
 
-        {step === 'uploading' && <LoaderSmall containerClassName="h-[150px]" />}
+        {step === 'confirm' && (
+          <p className="text-sm text-primary">
+            This will permanently delete records present in the channel but
+            missing from the uploaded file.
+          </p>
+        )}
+
+        {step === 'uploading' && (
+          <LoaderSmall size={32} containerClassName="h-[150px]" />
+        )}
 
         {step === 'success' && summary && (
           <div className="flex flex-col gap-y-2">
@@ -182,6 +193,22 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
             <Button
               cssClass="primary"
               title="Upload"
+              disable={files == null}
+              onClick={onUploadClick}
+            />
+          </>
+        )}
+
+        {step === 'confirm' && (
+          <>
+            <Button
+              cssClass="secondary mr-3"
+              title="Back"
+              onClick={() => setStep('select')}
+            />
+            <Button
+              cssClass="primary"
+              title="Confirm Upload"
               disable={files == null}
               onClick={upload}
             />
