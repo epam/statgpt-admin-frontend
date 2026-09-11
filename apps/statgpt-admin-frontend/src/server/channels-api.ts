@@ -174,10 +174,12 @@ export class ChannelsApi extends BaseApi {
     updateDatasets: boolean,
     updateDataSources: boolean,
     cleanUp: boolean,
+    discoveryDatasetsMode: DiscoveryUploadMode,
+    glossaryTermsMode: DiscoveryUploadMode,
     token: JWT | null,
   ): Promise<ApiResult<null>> {
     const initResult = await this.post(
-      `${CHANNELS_IMPORT_URL}?update_data_sources=${updateDataSources}&update_datasets=${updateDatasets}&clean_up=${cleanUp}`,
+      `${CHANNELS_IMPORT_URL}?update_data_sources=${updateDataSources}&update_datasets=${updateDatasets}&clean_up=${cleanUp}&discovery_datasets_mode=${discoveryDatasetsMode}&glossary_terms_mode=${glossaryTermsMode}`,
       formData,
       void 0,
       void 0,
