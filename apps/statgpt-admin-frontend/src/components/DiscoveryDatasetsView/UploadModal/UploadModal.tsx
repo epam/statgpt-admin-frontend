@@ -29,7 +29,6 @@ const SUMMARY_LABELS: { key: keyof DiscoveryUploadSummary; label: string }[] = [
   { key: 'unchanged', label: 'Unchanged' },
   { key: 'deleted', label: 'Deleted' },
   { key: 'rowsRead', label: 'Rows Read' },
-  { key: 'rowsSkipped', label: 'Rows Skipped' },
 ];
 
 export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
