@@ -46,7 +46,6 @@ describe('UploadModal', () => {
         unchanged: 0,
         deleted: 0,
         rowsRead: 0,
-        rowsSkipped: 0,
       },
     });
   });
