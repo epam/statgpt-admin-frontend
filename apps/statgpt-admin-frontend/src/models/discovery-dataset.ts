@@ -87,7 +87,6 @@ export interface DiscoveryUploadSummary {
   unchanged: number;
   deleted: number;
   rowsRead: number;
-  rowsSkipped: number;
 }
 
 export interface DiscoveryPayloadProblem {
