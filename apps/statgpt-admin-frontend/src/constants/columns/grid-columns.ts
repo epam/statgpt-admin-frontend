@@ -9,8 +9,10 @@ import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
 import { StatusCell } from '@/src/components/GridView/StatusCell/StatusCell';
 import { CheckboxFilter } from '@/src/components/GridView/CustomFilters/CheckboxFilter/CheckboxFilter';
+import { DataSet } from '@/src/models/data-sets';
 import { GridCheckboxFilterModel } from '@/src/models/grid';
 import { getNestedValue } from '@/src/utils/client/grid';
+import { generateShortUrn } from '@/src/utils/urn';
 
 const DATA_SOURCE_FIELD = 'data_source.title';
 
@@ -56,7 +58,19 @@ export const CHANNELS_COLUMNS: ColDef[] = [
   }),
 ];
 
-export const getDataSetsColumns = (dataSources: string[]): ColDef[] => [
+export const DATASET_URN_COLUMN: ColDef<DataSet> = {
+  headerName: 'URN',
+  filter: 'agTextColumnFilter',
+  valueGetter: ({ data }) => {
+    const { urn } = data?.details ?? {};
+    return urn
+      ? generateShortUrn(urn.resourceId, urn.version, urn.agencyId)
+      : '';
+  },
+};
+
+export const getDataSetSelectionColumns = (dataSources: string[]): ColDef[] => [
+  DATASET_URN_COLUMN,
   ...BASE_COLUMNS,
   {
     field: DATA_SOURCE_FIELD,
@@ -65,6 +79,10 @@ export const getDataSetsColumns = (dataSources: string[]): ColDef[] => [
     filterParams: { values: dataSources },
     floatingFilter: false,
   },
+];
+
+export const getDataSetsColumns = (dataSources: string[]): ColDef[] => [
+  ...getDataSetSelectionColumns(dataSources),
   {
     field: 'preprocessing_status',
     headerName: 'Status',
