@@ -35,8 +35,8 @@ export default async function Page() {
 
   const rows = data?.data ?? [];
   const dataSources = rows
-    .map((ds) => (ds as Record<string, any>).data_source?.title)
-    .filter((t): t is string => typeof t === 'string');
+    .map((dataSet) => dataSet.data_source?.title)
+    .filter((title): title is string => typeof title === 'string');
 
   return (
     <DataSetsView

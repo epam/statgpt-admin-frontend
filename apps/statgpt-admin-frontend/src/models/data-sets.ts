@@ -14,6 +14,9 @@ export interface DataSetDetails {
 export interface DataSet extends BaseEntity {
   /** Data Source Id */
   data_source_id?: number;
+  data_source?: {
+    title?: string;
+  };
   details?: DataSetDetails;
   preprocessing_status?: string;
 }
