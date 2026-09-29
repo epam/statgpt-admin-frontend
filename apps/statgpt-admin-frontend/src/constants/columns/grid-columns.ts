@@ -8,22 +8,41 @@ import {
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
 import { StatusCell } from '@/src/components/GridView/StatusCell/StatusCell';
-import { CheckboxFilter } from '@/src/components/GridView/CustomFilters/CheckboxFilter/CheckboxFilter';
+import { EnumSelectEmptyFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter/EnumSelectEmptyFilter';
+import { EnumSelectFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter/EnumSelectFilter';
 import { DataSet } from '@/src/models/data-sets';
-import { GridCheckboxFilterModel } from '@/src/models/grid';
+import { GridEnumSelectFilterModel } from '@/src/models/grid';
 import { getNestedValue } from '@/src/utils/client/grid';
 import { generateShortUrn } from '@/src/utils/urn';
 
 const DATA_SOURCE_FIELD = 'data_source.title';
 
-const createCheckboxFilter = (field: string) => ({
-  component: CheckboxFilter,
+// The dataset's `status.status` (aliased as `preprocessing_status`) is a
+// backend-fixed literal (`online` | `offline` | `invalid_config`), so unlike
+// "Data Source" (an open-ended, user-defined list we never fully know) it's
+// safe to offer as a complete select rather than free-text search.
+const DATASET_STATUS_VALUES = ['online', 'offline', 'invalid_config'];
+
+const CONTAINS_TEXT_FILTER = {
+  filterOptions: ['contains'],
+  defaultOption: 'contains',
+  maxNumConditions: 1,
+  debounceMs: 400,
+};
+
+const toSentenceCase = (value: string) => {
+  const normalized = value.replace(/_/g, ' ').toLowerCase();
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+};
+
+const createEnumFilter = (field: string) => ({
+  component: EnumSelectFilter,
   doesFilterPass: (
-    params: DoesFilterPassParams<unknown, unknown, GridCheckboxFilterModel>,
+    params: DoesFilterPassParams<unknown, unknown, GridEnumSelectFilterModel>,
   ): boolean => {
     const model = params.model;
-    if (!model || !model.values.length) return true;
-    return model.values.includes(getNestedValue(params.data, field));
+    if (!model?.value) return true;
+    return getNestedValue(params.data, field) === model.value;
   },
 });
 
@@ -69,34 +88,37 @@ export const DATASET_URN_COLUMN: ColDef<DataSet> = {
   },
 };
 
-export const getDataSetSelectionColumns = (dataSources: string[]): ColDef[] => [
+export const getDataSetSelectionColumns = (): ColDef[] => [
   DATASET_URN_COLUMN,
   ...BASE_COLUMNS,
   {
     field: DATA_SOURCE_FIELD,
     headerName: 'Data Source',
-    filter: createCheckboxFilter(DATA_SOURCE_FIELD),
-    filterParams: { values: dataSources },
-    floatingFilter: false,
+    filter: 'agTextColumnFilter',
+    filterParams: CONTAINS_TEXT_FILTER,
   },
 ];
 
-export const getDataSetsColumns = (dataSources: string[]): ColDef[] => [
-  ...getDataSetSelectionColumns(dataSources),
+export const getDataSetsColumns = (): ColDef[] => [
+  ...getDataSetSelectionColumns(),
   {
     field: 'preprocessing_status',
     headerName: 'Status',
-    filter: 'agTextColumnFilter',
+    filter: createEnumFilter('preprocessing_status'),
+    filterParams: {
+      values: DATASET_STATUS_VALUES,
+      formatValue: toSentenceCase,
+    },
+    floatingFilter: true,
+    floatingFilterComponent: EnumSelectEmptyFilter,
     cellRenderer: StatusCell,
     tooltipField: 'status.details',
     tooltipComponent: DETAILS_TOOLTIP_KEY,
   },
 ];
 
-export const getDataSetsColumnsWithActions = (
-  dataSources: string[],
-): ColDef[] => [
-  ...getDataSetsColumns(dataSources),
+export const getDataSetsColumnsWithActions = (): ColDef[] => [
+  ...getDataSetsColumns(),
   ACTION_COLUMN({
     listView: Menu.DATA_SETS,
     items: [EntityOperation.EditDataset, EntityOperation.Delete],
