@@ -34,14 +34,10 @@ export default async function Page() {
   }
 
   const rows = data?.data ?? [];
-  const dataSources = rows
-    .map((dataSet) => dataSet.data_source?.title)
-    .filter((title): title is string => typeof title === 'string');
 
   return (
     <DataSetsView
       data={rows}
-      dataSources={dataSources}
       initialError={result.ok ? null : result.error.message}
     />
   );

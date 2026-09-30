@@ -175,10 +175,14 @@ function GridViewInner<T = BaseEntity>({
     return ds;
   }, [fetchRows]);
 
-  const shouldShowEmpty =
-    !isInfinite && !isLoading && (!data || data.length === 0);
-  const shouldShowLoader =
-    !isInfinite && isLoading && (!data || data.length === 0);
+  const hasData = !isInfinite && !!data && data.length > 0;
+  const shouldShowEmpty = !isInfinite && !isLoading && !hasData;
+  // Only take over the whole panel with a full-size loader when there is no
+  // data to show underneath yet (e.g. the very first load). Once the grid has
+  // rows, a later refresh must keep <AgGridReact> mounted - unmounting it
+  // would throw away its internal state (applied filters, sort, scroll
+  // position), which is what caused issue #277.
+  const shouldShowFullLoader = !isInfinite && isLoading && !hasData;
 
   const onGridReady = useCallback((e: any) => {
     setApi(e.api);
@@ -195,19 +199,13 @@ function GridViewInner<T = BaseEntity>({
     }
   }, [api, datasource, isInfinite]);
 
-  // Infinite-row grids fetch their own data lazily once `<AgGridReact>` mounts
-  // (via the datasource's `getRows`), so an early return here would prevent
-  // that fetch from ever firing - the overlay below covers the loading look
-  // instead, without unmounting the grid.
-  if (isLoading && !isInfinite) return <LoaderSmall />;
-
   return shouldShowEmpty ? (
     <EmptyState title={emptyDataTitle} />
-  ) : shouldShowLoader ? (
+  ) : shouldShowFullLoader ? (
     <LoaderSmall />
   ) : (
     <div className="ag-theme-balham-dark relative h-full">
-      {isInfinite && isLoading && (
+      {isLoading && (
         <div className="bg-layer-2 absolute inset-0 z-10 flex items-center justify-center">
           <LoaderSmall />
         </div>
