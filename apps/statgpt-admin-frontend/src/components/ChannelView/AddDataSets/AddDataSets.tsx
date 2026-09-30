@@ -48,10 +48,6 @@ export const AddDatasets: FC<Props> = ({ close, add }) => {
     }
   }, []);
 
-  const dataSources = dataSets
-    .map((dataSet) => dataSet.data_source?.title)
-    .filter((title): title is string => typeof title === 'string');
-
   return (
     <Modal title="Add Datasets" close={close} height="80vh">
       <></>
@@ -68,7 +64,7 @@ export const AddDatasets: FC<Props> = ({ close, add }) => {
                   showDisabledCheckboxes: true,
                   pinned: 'left',
                 },
-                ...getDataSetSelectionColumns(dataSources),
+                ...getDataSetSelectionColumns(),
               ]}
               data={dataSets}
               additionalOptions={gridOptions}
