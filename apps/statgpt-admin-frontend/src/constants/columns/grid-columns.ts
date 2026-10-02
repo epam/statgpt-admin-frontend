@@ -23,13 +23,6 @@ const DATA_SOURCE_FIELD = 'data_source.title';
 // safe to offer as a complete select rather than free-text search.
 const DATASET_STATUS_VALUES = ['online', 'offline', 'invalid_config'];
 
-const CONTAINS_TEXT_FILTER = {
-  filterOptions: ['contains'],
-  defaultOption: 'contains',
-  maxNumConditions: 1,
-  debounceMs: 400,
-};
-
 const toSentenceCase = (value: string) => {
   const normalized = value.replace(/_/g, ' ').toLowerCase();
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
@@ -95,7 +88,6 @@ export const getDataSetSelectionColumns = (): ColDef[] => [
     field: DATA_SOURCE_FIELD,
     headerName: 'Data Source',
     filter: 'agTextColumnFilter',
-    filterParams: CONTAINS_TEXT_FILTER,
   },
 ];
 
