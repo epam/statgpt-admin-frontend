@@ -45,7 +45,15 @@ import {
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
-import { StatusCell } from '@/src/components/GridView/StatusCell/StatusCell';
+import {
+  StatusCell,
+  toSentenceCase,
+} from '@/src/components/GridView/StatusCell/StatusCell';
+import { EnumSelectEmptyFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter/EnumSelectEmptyFilter';
+import { EnumSelectFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter/EnumSelectFilter';
+import { DATASET_STATUS_VALUES } from '@/src/models/data-sets';
+import { GridEnumSelectFilterModel } from '@/src/models/grid';
+import { getNestedValue } from '@/src/utils/client/grid';
 import {
   Menu as DropdownMenu,
   MenuItem as DropdownMenuItem,
@@ -55,12 +63,23 @@ import { DeduplicationAlert } from './DeduplicationAlert';
 import { DeduplicationStatsModal } from './DeduplicationStatsModal';
 import { LastVersionCheckCell } from './LastVersionCheckCell';
 import { VersionCell } from '@/src/components/GridView/VersionCell/VersionCell';
-import { ColDef } from 'ag-grid-community';
+import { ColDef, DoesFilterPassParams } from 'ag-grid-community';
 import { useDeduplicationJobPolling } from './useDeduplicationJobPolling';
 
 interface Props {
   selectedChannelId?: string;
 }
+
+const createEnumFilter = (field: string) => ({
+  component: EnumSelectFilter,
+  doesFilterPass: (
+    params: DoesFilterPassParams<unknown, unknown, GridEnumSelectFilterModel>,
+  ): boolean => {
+    const model = params.model;
+    if (!model?.value) return true;
+    return getNestedValue(params.data, field) === model.value;
+  },
+});
 
 export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
   const { showNotification, removeNotification } = useNotification();
@@ -193,7 +212,13 @@ export const DataSetsView: FC<Props> = ({ selectedChannelId }) => {
     {
       field: 'dataset.status.status',
       headerName: 'Dataset Status',
-      filter: 'agTextColumnFilter',
+      filter: createEnumFilter('dataset.status.status'),
+      filterParams: {
+        values: DATASET_STATUS_VALUES,
+        formatValue: toSentenceCase,
+      },
+      floatingFilter: true,
+      floatingFilterComponent: EnumSelectEmptyFilter,
       cellRenderer: StatusCell,
       tooltipField: 'dataset.status.details',
       tooltipComponent: DETAILS_TOOLTIP_KEY,

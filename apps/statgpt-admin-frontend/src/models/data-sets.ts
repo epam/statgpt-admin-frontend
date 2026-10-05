@@ -21,6 +21,12 @@ export interface DataSet extends BaseEntity {
   preprocessing_status?: string;
 }
 
+/**
+ * The dataset's `status.status` (aliased as `preprocessing_status` on `DataSet`) is a backend-fixed
+ * literal, so it's a complete, known set of values rather than open-ended user data.
+ */
+export const DATASET_STATUS_VALUES = ['online', 'offline', 'invalid_config'];
+
 export type ChannelResultStatus =
   | 'auto_updated'
   | 'needs_reindex'

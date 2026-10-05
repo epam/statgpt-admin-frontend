@@ -10,7 +10,7 @@ const STATUS_DOT_COLOR: Record<string, string> = {
   invalid_config: 'bg-yellow-800',
 };
 
-const toSentenceCase = (value: string) => {
+export const toSentenceCase = (value: string) => {
   const normalized = value.replace(/_/g, ' ').toLowerCase();
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 };
