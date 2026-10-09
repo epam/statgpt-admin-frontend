@@ -91,7 +91,8 @@
     "postcss": "8.5.26",
     "sharp@^0.35.0": "0.35.5",
     "smol-toml@^1.0.0": "1.9.1",
-    "undici@^7.0.0": "7.29.1"
+    "undici@^7.0.0": "7.29.1",
+    "postcss-selector-parser": "7.1.6"
   },
   "engines": {
     "node": ">=24.14.0",
