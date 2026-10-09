@@ -109,6 +109,7 @@ The production build is written to `dist/apps/statgpt-admin-frontend`.
 ## 🐳 Docker
 
 The Docker image builds the application and runs the generated production Next.js app. The container exposes port `3000`.
+The image uses npm during the build and dependency installation, then removes npm/npx and npm's bundled dependencies from the final image. The app starts directly with `node`; runtime npm commands are unavailable.
 
 ```bash
 docker build -t statgpt-admin-frontend .
