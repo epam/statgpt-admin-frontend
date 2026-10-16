@@ -147,13 +147,13 @@ Environment variables are loaded from `apps/statgpt-admin-frontend/.env` for loc
 
 ### Authentication Variables
 
-Authentication is optional. If `AUTH_URL` is not set, application pages skip session checks. If `AUTH_URL` is set, configure `AUTH_SECRET` and at least one supported auth provider.
+Authentication is optional. If neither `AUTH_URL` nor `NEXTAUTH_URL` is set, the app skips all session checks and serves pages without sign-in. In that mode, set `OIDC_AUTH_ENABLED=false` on the StatGPT Backend so it accepts requests without a token, and set `DIAL_API_KEY` for document and indexing features. If `AUTH_URL` is set, configure `AUTH_SECRET` and at least one supported auth provider.
 
-| Variable          |                       Required                       | Description                                                                                               | Example / Values         | Default |
-| ----------------- | :--------------------------------------------------: | --------------------------------------------------------------------------------------------------------- | ------------------------ | ------- |
-| `AUTH_URL`        |       Required when authentication is enabled        | Public application URL used by Auth.js. Required for production auth deployments.                         | `http://localhost:4100`  |         |
-| `AUTH_SECRET`     | Recommended locally; required for authenticated runs | Secret used by Auth.js to sign and encrypt JWT/session data. Generate one with `openssl rand -base64 32`. | Any strong random string |         |
-| `AUTH_TRUST_HOST` |       Required behind a trusted reverse proxy        | Allows Auth.js to trust `Host` / `X-Forwarded-*` headers in ingress or reverse proxy deployments.         | `true` / `false`         | `false` |
+| Variable          |                       Required                       | Description                                                                                                                                                                                                   | Example / Values         | Default |
+| ----------------- | :--------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ------- |
+| `AUTH_URL`        |       Required when authentication is enabled        | Public application URL used by Auth.js. Required for production auth deployments.                                                                                                                             | `http://localhost:4100`  |         |
+| `AUTH_SECRET`     | Recommended locally; required for authenticated runs | Secret used by Auth.js to sign and encrypt JWT/session data. Generate one with `openssl rand -base64 32`.                                                                                                     | Any strong random string |         |
+| `AUTH_TRUST_HOST` |       Required behind a trusted reverse proxy        | Allows Auth.js to trust `Host` / `X-Forwarded-*` headers in ingress or reverse proxy deployments. Auth.js treats any non-empty value, including `false`, as enabled; to disable it, leave the variable unset. | `true`                   | Unset   |
 
 ### Auth Provider Variables
 
