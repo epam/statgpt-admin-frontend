@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { AccessControlProvider } from '@/src/context/AccessControlContext';
 import { NotificationProvider } from '@/src/context/NotificationContext';
 import { SidebarProvider } from '@/src/context/SidebarContext';
+import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 import { ReactNode } from 'react';
 import './global.scss';
 import { NextAuthProvider } from './provider';
@@ -29,7 +30,7 @@ export default async function RootLayout({
       </head>
       <body className={inter.variable}>
         <NotificationProvider>
-          <NextAuthProvider>
+          <NextAuthProvider isAuthEnabled={getIsEnableAuthToggle()}>
             <AccessControlProvider>
               <SidebarProvider>{children}</SidebarProvider>
             </AccessControlProvider>
