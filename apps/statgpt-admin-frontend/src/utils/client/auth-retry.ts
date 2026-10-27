@@ -56,3 +56,15 @@ export const withAuthRetry = async <R>(
 
   return send();
 };
+
+/**
+ * Wraps a server action returning `ApiResult` so that it is repeated once,
+ * with the same arguments, after a 401 and a session refresh (see
+ * `withAuthRetry`). Server actions read the session cookie sent by the
+ * browser, so they hit the same expired token as the BFF route handlers.
+ * @param action - server action to wrap
+ */
+export const withAuthRetryAction =
+  <A extends unknown[], R>(action: (...args: A) => Promise<ApiResult<R>>) =>
+  (...args: A): Promise<ApiResult<R>> =>
+    withAuthRetry(() => action(...args));

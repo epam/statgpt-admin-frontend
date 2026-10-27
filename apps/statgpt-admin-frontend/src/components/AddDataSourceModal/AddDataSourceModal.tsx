@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from 'react';
 import {
   createDataSource,
   getDataSourcesTypes,
-} from '@/src/app/data-sources/actions';
+} from '@/src/app/data-sources/client-actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { Configuration } from '@/src/components/Configuration/Configuration';
 import { Modal } from '@/src/components/Modal/Modal';

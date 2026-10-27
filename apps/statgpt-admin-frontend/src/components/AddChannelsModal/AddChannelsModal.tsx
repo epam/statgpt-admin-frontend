@@ -1,7 +1,7 @@
 import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
 
-import { createChannel } from '@/src/app/channels/actions';
+import { createChannel } from '@/src/app/channels/client-actions';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { useYamlParser } from '@/src/hooks/use-yaml-parser';
 import { Configuration } from '@/src/components/Configuration/Configuration';

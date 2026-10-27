@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 
-import { getChannelDatasets } from '@/src/app/channels/actions';
+import { getChannelDatasets } from '@/src/app/channels/client-actions';
 import { ChannelDataset } from '@/src/models/channel-dataset';
 import { useAccessControl } from '@/src/context/AccessControlContext';
 import { useApiNotification } from '@/src/hooks/use-api-notification';

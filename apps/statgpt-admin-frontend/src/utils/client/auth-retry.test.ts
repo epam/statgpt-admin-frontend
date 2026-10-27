@@ -2,7 +2,7 @@
 /* global describe, it, expect, jest, beforeEach */
 import type { ApiResult } from '@/src/server/api';
 
-import { withAuthRetry } from './auth-retry';
+import { withAuthRetry, withAuthRetryAction } from './auth-retry';
 
 const mockGetSession = jest.fn();
 
@@ -132,5 +132,36 @@ describe('withAuthRetry', () => {
 
     expect(result).toEqual(failure(401));
     expect(send).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('withAuthRetryAction', () => {
+  beforeEach(() => {
+    mockGetSession.mockReset();
+    mockGetSession.mockResolvedValue({ user: {} });
+  });
+
+  it('forwards the arguments and returns the action result', async () => {
+    const action = jest.fn().mockResolvedValue(ok('data'));
+
+    const result = await withAuthRetryAction(action)('42', { force: true });
+
+    expect(result).toEqual(ok('data'));
+    expect(action).toHaveBeenCalledWith('42', { force: true });
+  });
+
+  it('retries with the same arguments after a 401', async () => {
+    const action = jest
+      .fn()
+      .mockResolvedValueOnce(failure(401))
+      .mockResolvedValueOnce(ok('data'));
+
+    const result = await withAuthRetryAction(action)('42', 7);
+
+    expect(result).toEqual(ok('data'));
+    expect(action).toHaveBeenCalledTimes(2);
+    expect(action).toHaveBeenNthCalledWith(1, '42', 7);
+    expect(action).toHaveBeenNthCalledWith(2, '42', 7);
+    expect(mockGetSession).toHaveBeenCalledTimes(1);
   });
 });
