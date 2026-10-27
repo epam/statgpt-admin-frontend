@@ -5,6 +5,7 @@ import {
   getAuthSecret,
   getSessionCookieName,
 } from '@/src/utils/auth/auth-cookie';
+import { getIsEnableAuthToggle } from '@/src/utils/get-auth-toggle';
 
 export const config = {
   matcher: [
@@ -56,6 +57,10 @@ async function proxyFn(request: Request) {
 }
 
 async function authProxyFn(req: Request) {
+  if (!getIsEnableAuthToggle()) {
+    return proxyFn(req);
+  }
+
   const token = await getToken({
     req,
     cookieName: getSessionCookieName(),

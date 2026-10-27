@@ -58,6 +58,7 @@ export const JobsView: FC<Props> = ({ selectedChannelId }) => {
     {
       width: 32,
       maxWidth: 32,
+      sortable: false,
       cellRenderer: JobsActionColumn,
       cellClass: 'ag-grid__action-column',
     },

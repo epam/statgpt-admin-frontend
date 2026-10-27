@@ -6,7 +6,7 @@ import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { BASE_ICON_PROPS } from '@/src/constants/layout';
 import { GridView } from '@/src/components/GridView/GridView';
 import { Modal } from '@/src/components/Modal/Modal';
-import { BASE_COLUMNS } from '@/src/constants/columns/common-columns';
+import { getDataSetSelectionColumns } from '@/src/constants/columns/grid-columns';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { DataSet } from '@/src/models/data-sets';
 import { RequestData } from '@/src/models/request-data';
@@ -64,7 +64,7 @@ export const AddDatasets: FC<Props> = ({ close, add }) => {
                   showDisabledCheckboxes: true,
                   pinned: 'left',
                 },
-                ...BASE_COLUMNS,
+                ...getDataSetSelectionColumns(),
               ]}
               data={dataSets}
               additionalOptions={gridOptions}

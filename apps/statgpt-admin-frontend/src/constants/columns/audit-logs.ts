@@ -70,6 +70,7 @@ export const getAuditLogsColumns = ({
   {
     width: 32,
     maxWidth: 32,
+    sortable: false,
     cellRenderer: AUDIT_LOG_DETAILS_CELL_RENDERER_KEY,
     cellClass: 'ag-grid__action-column',
   },

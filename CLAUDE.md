@@ -109,7 +109,7 @@ Required: `API_URL`, `DIAL_API_URL`, `AUTH_SECRET` (for auth). Optional: `AUTH_U
 
 ### Security
 
-CSP nonces are generated per-request in both `next.config.js` (static headers) and `middleware.ts` (dynamic injection). The middleware wraps NextAuth `withAuth` and injects the nonce into response headers. Known CVEs in the base Docker image (`node:24-alpine`) are tracked in `.trivyignore`.
+CSP nonces are generated per-request in both `next.config.js` (static headers) and `middleware.ts` (dynamic injection). The middleware wraps NextAuth `withAuth` and injects the nonce into response headers. Image CVEs are fixed in the `Dockerfile` (pinned base tag, named `apk upgrade` packages, npm removed from the runtime image), not suppressed: the repo has no `.trivyignore`.
 
 ### Testing
 

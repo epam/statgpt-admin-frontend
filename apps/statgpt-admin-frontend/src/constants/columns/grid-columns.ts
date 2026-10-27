@@ -7,21 +7,27 @@ import {
 } from '@/src/constants/columns/common-columns';
 import { ACTION_COLUMN, EntityOperation } from '@/src/constants/columns/action';
 import { DETAILS_TOOLTIP_KEY } from '@/src/components/GridView/DetailsTooltip/DetailsTooltip';
-import { StatusCell } from '@/src/components/GridView/StatusCell/StatusCell';
-import { CheckboxFilter } from '@/src/components/GridView/CustomFilters/CheckboxFilter/CheckboxFilter';
-import { GridCheckboxFilterModel } from '@/src/models/grid';
+import {
+  StatusCell,
+  toSentenceCase,
+} from '@/src/components/GridView/StatusCell/StatusCell';
+import { EnumSelectEmptyFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter/EnumSelectEmptyFilter';
+import { EnumSelectFilter } from '@/src/components/GridView/CustomFilters/EnumSelectFilter/EnumSelectFilter';
+import { DATASET_STATUS_VALUES, DataSet } from '@/src/models/data-sets';
+import { GridEnumSelectFilterModel } from '@/src/models/grid';
 import { getNestedValue } from '@/src/utils/client/grid';
+import { generateShortUrn } from '@/src/utils/urn';
 
 const DATA_SOURCE_FIELD = 'data_source.title';
 
-const createCheckboxFilter = (field: string) => ({
-  component: CheckboxFilter,
+const createEnumFilter = (field: string) => ({
+  component: EnumSelectFilter,
   doesFilterPass: (
-    params: DoesFilterPassParams<unknown, unknown, GridCheckboxFilterModel>,
+    params: DoesFilterPassParams<unknown, unknown, GridEnumSelectFilterModel>,
   ): boolean => {
     const model = params.model;
-    if (!model || !model.values.length) return true;
-    return model.values.includes(getNestedValue(params.data, field));
+    if (!model?.value) return true;
+    return getNestedValue(params.data, field) === model.value;
   },
 });
 
@@ -56,29 +62,47 @@ export const CHANNELS_COLUMNS: ColDef[] = [
   }),
 ];
 
-export const getDataSetsColumns = (dataSources: string[]): ColDef[] => [
+export const DATASET_URN_COLUMN: ColDef<DataSet> = {
+  headerName: 'URN',
+  filter: 'agTextColumnFilter',
+  valueGetter: ({ data }) => {
+    const { urn } = data?.details ?? {};
+    return urn
+      ? generateShortUrn(urn.resourceId, urn.version, urn.agencyId)
+      : '';
+  },
+};
+
+export const getDataSetSelectionColumns = (): ColDef[] => [
+  DATASET_URN_COLUMN,
   ...BASE_COLUMNS,
   {
     field: DATA_SOURCE_FIELD,
     headerName: 'Data Source',
-    filter: createCheckboxFilter(DATA_SOURCE_FIELD),
-    filterParams: { values: dataSources },
-    floatingFilter: false,
+    filter: 'agTextColumnFilter',
   },
+];
+
+export const getDataSetsColumns = (): ColDef[] => [
+  ...getDataSetSelectionColumns(),
   {
     field: 'preprocessing_status',
     headerName: 'Status',
-    filter: 'agTextColumnFilter',
+    filter: createEnumFilter('preprocessing_status'),
+    filterParams: {
+      values: DATASET_STATUS_VALUES,
+      formatValue: toSentenceCase,
+    },
+    floatingFilter: true,
+    floatingFilterComponent: EnumSelectEmptyFilter,
     cellRenderer: StatusCell,
     tooltipField: 'status.details',
     tooltipComponent: DETAILS_TOOLTIP_KEY,
   },
 ];
 
-export const getDataSetsColumnsWithActions = (
-  dataSources: string[],
-): ColDef[] => [
-  ...getDataSetsColumns(dataSources),
+export const getDataSetsColumnsWithActions = (): ColDef[] => [
+  ...getDataSetsColumns(),
   ACTION_COLUMN({
     listView: Menu.DATA_SETS,
     items: [EntityOperation.EditDataset, EntityOperation.Delete],

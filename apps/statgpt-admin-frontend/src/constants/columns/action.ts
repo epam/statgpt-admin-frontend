@@ -42,6 +42,7 @@ export const ACTION_COLUMN = ({
 }: ActionColumnOptions): ColDef => ({
   width: 32,
   maxWidth: 32,
+  sortable: false,
   cellRenderer: key,
   cellClass: 'ag-grid__action-column',
   cellRendererParams: {

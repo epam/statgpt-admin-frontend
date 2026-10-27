@@ -101,6 +101,7 @@ export const TermsView: FC<Props> = ({ selectedChannelId }) => {
     {
       width: 32,
       maxWidth: 32,
+      sortable: false,
       cellRenderer: TermsActionColumn,
       cellClass: 'ag-grid__action-column',
       cellRendererParams: {

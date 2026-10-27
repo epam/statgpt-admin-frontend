@@ -9,15 +9,11 @@ import { DataSet } from '@/src/models/data-sets';
 
 interface Props {
   data: DataSet[];
-  dataSources: string[];
   initialError?: string | null;
 }
 
-export function DataSetsView({ data, dataSources, initialError }: Props) {
-  const colDefs = useMemo(
-    () => getDataSetsColumnsWithActions(dataSources),
-    [dataSources],
-  );
+export function DataSetsView({ data, initialError }: Props) {
+  const colDefs = useMemo(() => getDataSetsColumnsWithActions(), []);
 
   return (
     <ListView
