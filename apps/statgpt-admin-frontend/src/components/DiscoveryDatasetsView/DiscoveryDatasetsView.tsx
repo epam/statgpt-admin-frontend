@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { GridOptions } from 'ag-grid-community';
+import { GridApi, GridOptions } from 'ag-grid-community';
 import {
   IconFileArrowLeft,
   IconFileArrowRight,
@@ -41,7 +41,10 @@ import {
   getDiscoveryDatasetsColumns,
   getDiscoveryDatasetsFilterValues,
 } from '@/src/constants/columns/discovery-datasets';
-import { getEnumFilterValue } from '@/src/utils/client/grid';
+import {
+  getEnumFilterValue,
+  pruneStaleEnumFilters,
+} from '@/src/utils/client/grid';
 import {
   DiscoveryDatasetsRequestModel,
   mapDiscoveryDatasetsRequestToQueryString,
@@ -95,6 +98,22 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
       cancelled = true;
     };
   }, [selectedChannelId, refreshToken, withNotification]);
+
+  const gridApiRef = useRef<GridApi | null>(null);
+
+  /**
+   * Resets enum filters whose value vanished from the channel (e.g. its last
+   * record was deleted), so the grid doesn't stay filtered on an option that
+   * no longer exists.
+   */
+  useEffect(() => {
+    const api = gridApiRef.current;
+    if (!api || !stats) return;
+    const pruned = pruneStaleEnumFilters(api.getFilterModel(), {
+      ...getDiscoveryDatasetsFilterValues(stats),
+    });
+    if (pruned) api.setFilterModel(pruned);
+  }, [stats]);
 
   const gridOptions: GridOptions = useMemo(
     () => ({
@@ -336,6 +355,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
           pageSize={DEFAULT_GRID_PAGE_SIZE}
           refreshToken={refreshToken}
           additionalOptions={gridOptions}
+          gridApiRef={gridApiRef}
           isLoading={isInitialLoading}
         />
       </div>
