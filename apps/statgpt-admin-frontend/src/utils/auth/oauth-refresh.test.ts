@@ -1,6 +1,12 @@
 /** @jest-environment node */
 /* global describe, it, expect, jest, beforeEach, afterEach, afterAll */
+import { logger } from '@/src/server/logger';
+
 import { OAuthRefreshError, refreshOAuthToken } from './oauth-refresh';
+
+jest.mock('@/src/server/logger', () => ({
+  logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn() },
+}));
 
 const jsonResponse = (status: number, body: unknown): Response =>
   ({
@@ -122,6 +128,22 @@ describe('refreshOAuthToken', () => {
 
     expect(caught).toBeInstanceOf(OAuthRefreshError);
     expect((caught as OAuthRefreshError).code).toBeUndefined();
+  });
+
+  it('logs and rethrows when the shared deadline aborts the request', async () => {
+    const aborted = new AbortController();
+    aborted.abort();
+    jest.spyOn(AbortSignal, 'timeout').mockReturnValue(aborted.signal);
+    fetchMock.mockRejectedValueOnce(
+      new DOMException('This operation was aborted', 'AbortError'),
+    );
+
+    await expect(
+      refreshOAuthToken('google', 'old-refresh-token'),
+    ).rejects.toThrow('aborted');
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('timed out'),
+    );
   });
 
   it('throws before any network call when the provider is not configured', async () => {

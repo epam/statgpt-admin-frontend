@@ -103,4 +103,25 @@ export default [
       ],
     },
   },
+  {
+    files: ['**/src/components/**/*.{ts,tsx}', '**/src/context/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@/src/app/channels/actions',
+                '@/src/app/data-sources/actions',
+                '@/src/app/data-sets/actions',
+              ],
+              message:
+                'Client code must use the retrying wrappers from the matching client-actions module.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];

@@ -26,3 +26,9 @@ export const WAIT_REFRESH_TOKEN_TIMEOUT_MS =
  * refreshed before a backend request can run into its actual expiry.
  */
 export const ACCESS_TOKEN_EXPIRY_SKEW_MS = 60_000;
+
+/**
+ * Upper bound of the expiry skew as a share of the token's own lifetime, so a
+ * short-lived token is not treated as expired from the moment it is issued.
+ */
+export const ACCESS_TOKEN_SKEW_LIFETIME_RATIO = 0.2;

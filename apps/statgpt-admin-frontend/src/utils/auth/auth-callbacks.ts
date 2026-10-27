@@ -1,5 +1,6 @@
 import { NextAuthConfig, Profile, Session } from 'next-auth';
 
+import { SESSION_ERROR } from '@/src/constants/auth';
 import { Token } from '@/src/models/token';
 import { NextClient } from './nextauth-client';
 import {
@@ -10,8 +11,46 @@ import {
 } from './oauth-refresh';
 import {
   ACCESS_TOKEN_EXPIRY_SKEW_MS,
+  ACCESS_TOKEN_SKEW_LIFETIME_RATIO,
   WAIT_REFRESH_TOKEN_TIMEOUT_MS,
 } from './refresh-token-timing';
+
+/**
+ * Expiry time and lifetime of an access token as the IdP reported them.
+ * @param source - OAuth token response carrying `expires_in` (seconds from
+ * now) or `expires_at` (epoch seconds)
+ */
+const getAccessTokenTiming = (source: {
+  expires_in?: unknown;
+  expires_at?: unknown;
+}) => {
+  const now = Date.now();
+  const accessTokenExpires =
+    typeof source.expires_in === 'number'
+      ? now + source.expires_in * 1000
+      : (source.expires_at as number) * 1000;
+
+  return {
+    accessTokenExpires,
+    accessTokenLifetimeMs: accessTokenExpires - now,
+  };
+};
+
+/**
+ * How long before its expiry a token already counts as stale: the fixed skew,
+ * capped by a share of the token's own lifetime when that is known.
+ * @param token - token to get the skew for
+ */
+const getExpirySkewMs = (token: Record<string, unknown>) => {
+  const lifetime = token.accessTokenLifetimeMs;
+
+  return typeof lifetime === 'number' && lifetime > 0
+    ? Math.min(
+        ACCESS_TOKEN_EXPIRY_SKEW_MS,
+        lifetime * ACCESS_TOKEN_SKEW_LIFETIME_RATIO,
+      )
+    : ACCESS_TOKEN_EXPIRY_SKEW_MS;
+};
 
 /**
  * Tells whether the access token is still valid for longer than the expiry
@@ -20,14 +59,24 @@ import {
  */
 const isAccessTokenFresh = (token: Record<string, unknown>) =>
   typeof token.accessTokenExpires === 'number' &&
-  Date.now() < token.accessTokenExpires - ACCESS_TOKEN_EXPIRY_SKEW_MS;
+  Date.now() < token.accessTokenExpires - getExpirySkewMs(token);
+
+/**
+ * Tells whether the access token has not actually expired yet, regardless of
+ * the expiry skew.
+ * @param token - token to check
+ */
+const isAccessTokenUnexpired = (token: Record<string, unknown>) =>
+  typeof token.accessTokenExpires === 'number' &&
+  Date.now() < token.accessTokenExpires;
 
 /**
  * Takes a token, and returns a new token with updated
  * `accessToken` and `accessTokenExpires`. If an error occurs,
  * returns the old token and an error property: `RefreshTokenExpired` when the
  * IdP rejected the refresh token for good (`invalid_grant`) or none exists,
- * otherwise the transient `RefreshAccessTokenError`.
+ * otherwise the transient `RefreshAccessTokenError`. A transient failure of an
+ * early refresh keeps the still unexpired token usable and reports no error.
  * @param token - token whose access token has to be refreshed
  */
 export async function refreshAccessToken(token: Token) {
@@ -105,10 +154,9 @@ export async function refreshAccessToken(token: Token) {
     const returnToken = {
       ...token,
       access_token: refreshedTokens.access_token,
-      accessTokenExpires: refreshedTokens.expires_in
-        ? Date.now() + refreshedTokens.expires_in * 1000
-        : (refreshedTokens.expires_at as number) * 1000,
+      ...getAccessTokenTiming(refreshedTokens),
       refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
+      error: undefined,
     };
 
     NextClient.setIsRefreshTokenStart(token.userId, {
@@ -136,9 +184,15 @@ export async function refreshAccessToken(token: Token) {
       !!error.code &&
       TERMINAL_REFRESH_ERROR_CODES.includes(error.code);
 
+    if (!isTerminal && isAccessTokenUnexpired(token)) {
+      return { ...token, error: undefined };
+    }
+
     return {
       ...token,
-      error: isTerminal ? 'RefreshTokenExpired' : 'RefreshAccessTokenError',
+      error: isTerminal
+        ? SESSION_ERROR.RefreshTokenExpired
+        : SESSION_ERROR.RefreshAccessToken,
     };
   }
 }
@@ -154,22 +208,27 @@ export const callbacks = {
         ...options.token,
         jobTitle: profile?.job_title,
         access_token: options.account.access_token,
-        accessTokenExpires:
-          typeof options.account.expires_in === 'number'
-            ? Date.now() + options.account.expires_in * 1000
-            : (options.account.expires_at as number) * 1000,
+        ...getAccessTokenTiming(options.account),
         refreshToken: options.account.refresh_token,
         providerId: options.account.provider,
         userId: options.user.id ?? options.token.sub ?? '',
       };
     }
 
-    // Return previous token if the access token is not about to expire
-    if (
-      options.token.providerId === 'credentials' ||
-      isAccessTokenFresh(options.token)
-    ) {
+    if (options.token.providerId === 'credentials') {
       return options.token;
+    }
+
+    // The refresh token is dead, asking the IdP again cannot help
+    if (options.token.error === SESSION_ERROR.RefreshTokenExpired) {
+      return options.token;
+    }
+
+    // Return previous token if the access token is not about to expire
+    if (isAccessTokenFresh(options.token)) {
+      return options.token.error
+        ? { ...options.token, error: undefined }
+        : options.token;
     }
     const typedToken = options.token as Token;
     // Access token has expired, try to update it

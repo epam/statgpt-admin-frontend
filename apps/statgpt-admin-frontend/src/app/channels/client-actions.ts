@@ -1,3 +1,8 @@
+/**
+ * Client-side versions of the channel server actions: each one refreshes the
+ * session and retries once when the backend answers 401. Client components
+ * must import from here instead of `./actions`.
+ */
 import { withAuthRetryAction } from '@/src/utils/client/auth-retry';
 import {
   createChannel as createChannelAction,
@@ -21,11 +26,6 @@ import {
   getDiscoveryIndexingJob as getDiscoveryIndexingJobAction,
 } from './actions';
 
-/**
- * Client-side versions of the channel server actions: each one refreshes the
- * session and retries once when the backend answers 401. Client components
- * must import from here instead of `./actions`.
- */
 export const createChannel = withAuthRetryAction(createChannelAction);
 export const getChannel = withAuthRetryAction(getChannelAction);
 export const deduplicateDataset = withAuthRetryAction(deduplicateDatasetAction);

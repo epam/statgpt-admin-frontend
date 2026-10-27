@@ -1,15 +1,15 @@
+import { SESSION_ERROR } from '@/src/constants/auth';
 import type { ApiResult } from '@/src/server/api';
 
 const UNAUTHORIZED = 401;
-
-const TERMINAL_SESSION_ERROR = 'RefreshTokenExpired';
 
 let refreshInFlight: Promise<boolean> | null = null;
 let signInRequested = false;
 
 /**
- * Sends the browser to the sign-in page. Done at most once per page load, so a
- * burst of failing requests cannot start several redirects.
+ * Sends the browser to the sign-in page. Done at most once at a time, so a
+ * burst of failing requests cannot start several redirects; a failed attempt
+ * allows the next one.
  * @param signIn - `signIn` from `next-auth/react`
  */
 const requestSignIn = (signIn: () => Promise<unknown>) => {
@@ -18,7 +18,9 @@ const requestSignIn = (signIn: () => Promise<unknown>) => {
   }
 
   signInRequested = true;
-  signIn().catch(() => undefined);
+  signIn().catch(() => {
+    signInRequested = false;
+  });
 };
 
 /**
@@ -44,7 +46,7 @@ const refreshSession = (): Promise<boolean> => {
           return true;
         }
 
-        if (error === TERMINAL_SESSION_ERROR) {
+        if (error === SESSION_ERROR.RefreshTokenExpired) {
           requestSignIn(signIn);
         }
 
@@ -63,8 +65,9 @@ const refreshSession = (): Promise<boolean> => {
 /**
  * Runs a request and, if the backend answers 401 (expired access token in the
  * session cookie), refreshes the session and sends the same request once more.
- * A 401 means the request was rejected before being processed, so repeating it
- * is safe. Does nothing on the server, where there is no browser session.
+ * A 401 is taken to mean the backend rejected the credentials before doing any
+ * work, so repeating the request is considered safe. Does nothing on the server,
+ * where there is no browser session.
  * @param send - performs the request; must be safe to call twice
  */
 export const withAuthRetry = async <R>(

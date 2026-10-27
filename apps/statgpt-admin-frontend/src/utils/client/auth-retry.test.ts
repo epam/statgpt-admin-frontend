@@ -222,6 +222,19 @@ describe('withAuthRetry with a session that cannot be refreshed', () => {
     expect(mockSignIn).not.toHaveBeenCalled();
   });
 
+  it('tries to sign in again on a later failure when the first attempt did not go through', async () => {
+    mockGetSession.mockResolvedValue({ error: 'RefreshTokenExpired' });
+    mockSignIn.mockRejectedValueOnce(new Error('navigation failed'));
+    const { withAuthRetry } = load();
+    const send = jest.fn().mockResolvedValue(failure(401));
+
+    await withAuthRetry(send);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await withAuthRetry(send);
+
+    expect(mockSignIn).toHaveBeenCalledTimes(2);
+  });
+
   it('still returns the original 401 when signing in fails', async () => {
     mockGetSession.mockResolvedValue({ error: 'RefreshTokenExpired' });
     mockSignIn.mockRejectedValue(new Error('navigation failed'));

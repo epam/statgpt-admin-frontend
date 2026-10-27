@@ -5,6 +5,11 @@ import { Token } from '@/src/models/token';
 import { callbacks, refreshAccessToken } from './auth-callbacks';
 import { NextClient } from './nextauth-client';
 import { OAuthRefreshError, refreshOAuthToken } from './oauth-refresh';
+import { WAIT_REFRESH_TOKEN_TIMEOUT_MS } from './refresh-token-timing';
+
+jest.mock('@/src/server/logger', () => ({
+  logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn() },
+}));
 
 jest.mock('./oauth-refresh', () => ({
   ...jest.requireActual('./oauth-refresh'),
@@ -282,5 +287,180 @@ describe('jwt callback', () => {
 
     expect(mockRefreshOAuthToken).not.toHaveBeenCalled();
     expect(result).toBe(token);
+  });
+});
+
+describe('session error handling', () => {
+  const runJwt = (token: Token) =>
+    callbacks.jwt({ token, account: null, user: undefined } as never);
+
+  const resultError = (result: unknown) => (result as { error?: string }).error;
+
+  beforeEach(() => {
+    resetRefreshMap();
+    mockRefreshOAuthToken.mockReset();
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.useRealTimers();
+  });
+
+  it('drops a previous error once a refresh succeeds', async () => {
+    mockRefreshOAuthToken.mockResolvedValue({
+      access_token: 'fresh-access-token',
+      expires_in: 3600,
+    });
+
+    const result = await refreshAccessToken(
+      baseToken({ error: 'RefreshAccessTokenError' }),
+    );
+
+    expect(resultError(result)).toBeUndefined();
+    expect((result as { access_token?: string }).access_token).toBe(
+      'fresh-access-token',
+    );
+  });
+
+  it('recovers from a transient failure on the next refresh', async () => {
+    mockRefreshOAuthToken.mockRejectedValueOnce(new Error('network blip'));
+    const failed = await refreshAccessToken(baseToken());
+    expect(resultError(failed)).toBe('RefreshAccessTokenError');
+
+    mockRefreshOAuthToken.mockResolvedValueOnce({
+      access_token: 'fresh-access-token',
+      expires_in: 3600,
+    });
+    const recovered = await runJwt(failed as Token);
+
+    expect(resultError(recovered)).toBeUndefined();
+  });
+
+  it('keeps serving a still valid token when a refresh fails ahead of expiry', async () => {
+    mockRefreshOAuthToken.mockRejectedValue(new Error('network blip'));
+    const token = baseToken({
+      accessTokenExpires: Date.now() + 30_000,
+      access_token: 'still-valid-access-token',
+    });
+
+    const result = await refreshAccessToken(token);
+
+    expect(resultError(result)).toBeUndefined();
+    expect((result as { access_token?: string }).access_token).toBe(
+      'still-valid-access-token',
+    );
+  });
+
+  it('still reports a terminal failure ahead of expiry', async () => {
+    mockRefreshOAuthToken.mockRejectedValue(
+      new OAuthRefreshError('rejected', 'invalid_grant'),
+    );
+
+    const result = await refreshAccessToken(
+      baseToken({ accessTokenExpires: Date.now() + 30_000 }),
+    );
+
+    expect(resultError(result)).toBe('RefreshTokenExpired');
+  });
+
+  it('does not call the IdP again for a token already marked as expired for good', async () => {
+    const token = baseToken({ error: 'RefreshTokenExpired' });
+
+    const result = await runJwt(token);
+
+    expect(mockRefreshOAuthToken).not.toHaveBeenCalled();
+    expect(result).toBe(token);
+  });
+
+  it('clears a leftover transient error from a token that is valid again', async () => {
+    const result = await runJwt(
+      baseToken({
+        error: 'RefreshAccessTokenError',
+        accessTokenExpires: Date.now() + 300_000,
+      }),
+    );
+
+    expect(mockRefreshOAuthToken).not.toHaveBeenCalled();
+    expect(resultError(result)).toBeUndefined();
+  });
+
+  it('gives up waiting for another refresh after the wait timeout without touching its lock', async () => {
+    jest.useFakeTimers();
+    const holder = { isRefreshing: true, token: baseToken() };
+    setRefreshEntry(holder);
+
+    const pending = refreshAccessToken(baseToken());
+    await jest.advanceTimersByTimeAsync(WAIT_REFRESH_TOKEN_TIMEOUT_MS + 100);
+    const result = await pending;
+
+    expect(resultError(result)).toBe('RefreshAccessTokenError');
+    expect(mockRefreshOAuthToken).not.toHaveBeenCalled();
+    expect(NextClient.getRefreshToken('user-1')).toBe(holder);
+  });
+});
+
+describe('access token expiry skew', () => {
+  const runJwt = (token: Token) =>
+    callbacks.jwt({ token, account: null, user: undefined } as never);
+
+  beforeEach(() => {
+    resetRefreshMap();
+    mockRefreshOAuthToken.mockReset();
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('refreshes a token without a known expiry', async () => {
+    mockRefreshOAuthToken.mockResolvedValue({
+      access_token: 'fresh-access-token',
+      expires_in: 3600,
+    });
+
+    await runJwt(
+      baseToken({ accessTokenExpires: undefined as unknown as number }),
+    );
+
+    expect(mockRefreshOAuthToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not refresh a short-lived token on every call', async () => {
+    mockRefreshOAuthToken.mockResolvedValue({
+      access_token: 'fresh-access-token',
+      refresh_token: 'fresh-refresh-token',
+      expires_in: 30,
+    });
+
+    const refreshed = await runJwt(baseToken());
+    await runJwt(refreshed as Token);
+    await runJwt(refreshed as Token);
+
+    expect(mockRefreshOAuthToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a short-lived token until close to its end, then refreshes it', async () => {
+    mockRefreshOAuthToken.mockResolvedValue({
+      access_token: 'fresh-access-token',
+      expires_in: 30,
+    });
+    const fresh = {
+      ...baseToken(),
+      accessTokenLifetimeMs: 30_000,
+      accessTokenExpires: Date.now() + 20_000,
+    } as Token;
+    const nearEnd = {
+      ...fresh,
+      accessTokenExpires: Date.now() + 3_000,
+    } as Token;
+
+    await runJwt(fresh);
+    expect(mockRefreshOAuthToken).not.toHaveBeenCalled();
+
+    await runJwt(nearEnd);
+    expect(mockRefreshOAuthToken).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,7 +1,12 @@
 import { TokenSet } from '@auth/core/types';
 
+import { logger } from '@/src/server/logger';
 import { REFRESH_FETCH_TIMEOUT_MS } from './refresh-token-timing';
 
+/**
+ * Error code for a session that has no refresh token to renew the access
+ * token with. Not an OAuth code, it is raised locally.
+ */
 export const NO_REFRESH_TOKEN_CODE = 'no_refresh_token';
 
 /**
@@ -20,6 +25,10 @@ export const TERMINAL_REFRESH_ERROR_CODES = [
 export class OAuthRefreshError extends Error {
   code?: string;
 
+  /**
+   * @param message - human readable reason, normally the IdP's description
+   * @param code - OAuth `error` code of the response, if any
+   */
   constructor(message: string, code?: string) {
     super(message);
     this.name = 'OAuthRefreshError';
@@ -122,6 +131,14 @@ const discoverTokenEndpoint = async (issuer: string, signal: AbortSignal) => {
   return metadata.token_endpoint;
 };
 
+/**
+ * Exchanges a refresh token for a new access token at the provider's token
+ * endpoint (discovered from the issuer when it is not fixed). Discovery and
+ * exchange share one deadline.
+ * @param providerId - Auth.js id of the provider the session was created with
+ * @param refreshToken - refresh token to exchange
+ * @throws OAuthRefreshError when the IdP answers with an error response
+ */
 export const refreshOAuthToken = async (
   providerId: string,
   refreshToken: string,
@@ -182,7 +199,7 @@ export const refreshOAuthToken = async (
     return tokens;
   } catch (error: unknown) {
     if (signal.aborted) {
-      console.error(
+      logger.error(
         `Refresh request to ${providerId} timed out after ${REFRESH_FETCH_TIMEOUT_MS}ms`,
       );
     }
