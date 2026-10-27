@@ -61,7 +61,7 @@ interface Props {
 export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const { setForbidden } = useAccessControl();
   const withNotification = useApiNotification();
-  const { showNotification } = useNotification();
+  const { showNotification, removeNotification } = useNotification();
   const [refreshToken, setRefreshToken] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showReindexConfirm, setShowReindexConfirm] = useState(false);
@@ -128,14 +128,38 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
     [],
   );
 
+  /**
+   * Shows a persistent loading toast until the request settles, so the user
+   * sees that a delete is running while the grid still holds the old rows.
+   * @param title - loading toast title
+   * @param description - loading toast description
+   * @param request - pending delete request
+   */
+  const withDeleteProgress = useCallback(
+    <R,>(title: string, description: string, request: Promise<R>) => {
+      const toastId = showNotification({
+        type: NotificationType.loading,
+        title,
+        description,
+        duration: null,
+      });
+      return request.finally(() => removeNotification(toastId));
+    },
+    [showNotification, removeNotification],
+  );
+
   const deleteSelected = useCallback(() => {
     setIsMutating(true);
-    withNotification(
-      sendDeleteRequest<{ item_ids: number[] }, string>(
-        DISCOVERY_DATASETS_BULK_URL,
-        { item_ids: selectedIds },
+    withDeleteProgress(
+      'Deleting selected Grade C datasets',
+      `Deleting ${selectedIds.length} selected Grade C dataset record${selectedIds.length === 1 ? '' : 's'}.`,
+      withNotification(
+        sendDeleteRequest<{ item_ids: number[] }, string>(
+          DISCOVERY_DATASETS_BULK_URL,
+          { item_ids: selectedIds },
+        ),
+        'Failed to Delete Selected Grade C Datasets',
       ),
-      'Failed to Delete Selected Grade C Datasets',
     )
       .then((result) => {
         if (result.ok) {
@@ -151,15 +175,19 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         }
       })
       .finally(() => setIsMutating(false));
-  }, [withNotification, selectedIds, showNotification]);
+  }, [withNotification, withDeleteProgress, selectedIds, showNotification]);
 
   const clearAllDatasets = useCallback(() => {
     setIsMutating(true);
-    withNotification(
-      sendDeleteRequest<object, string>(
-        CHANNEL_DISCOVERY_DATASETS_BULK_URL(selectedChannelId),
+    withDeleteProgress(
+      'Clearing Grade C datasets',
+      'Deleting all Grade C dataset records for this channel. This may take a few seconds.',
+      withNotification(
+        sendDeleteRequest<object, string>(
+          CHANNEL_DISCOVERY_DATASETS_BULK_URL(selectedChannelId),
+        ),
+        'Failed to Clear Grade C Datasets',
       ),
-      'Failed to Clear Grade C Datasets',
     )
       .then((result) => {
         if (result.ok) {
@@ -174,13 +202,22 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         }
       })
       .finally(() => setIsMutating(false));
-  }, [withNotification, selectedChannelId, showNotification]);
+  }, [
+    withNotification,
+    withDeleteProgress,
+    selectedChannelId,
+    showNotification,
+  ]);
 
   const deleteRow = useCallback(
     (id: number) => {
-      withNotification(
-        sendDeleteRequest(DISCOVERY_DATASET_ID_URL(id)),
-        'Failed to Delete Grade C Dataset',
+      withDeleteProgress(
+        'Deleting Grade C dataset',
+        'Deleting 1 Grade C dataset record.',
+        withNotification(
+          sendDeleteRequest(DISCOVERY_DATASET_ID_URL(id)),
+          'Failed to Delete Grade C Dataset',
+        ),
       ).then((result) => {
         if (result.ok) {
           setRefreshToken((x) => x + 1);
@@ -192,7 +229,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
         }
       });
     },
-    [withNotification, showNotification],
+    [withNotification, withDeleteProgress, showNotification],
   );
 
   const columns = useMemo(
