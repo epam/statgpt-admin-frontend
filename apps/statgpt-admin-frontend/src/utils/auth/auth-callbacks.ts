@@ -2,6 +2,7 @@ import { NextAuthConfig, Profile, Session } from 'next-auth';
 
 import { SESSION_ERROR } from '@/src/constants/auth';
 import { Token } from '@/src/models/token';
+import { logError, logger } from '@/src/server/logger';
 import { NextClient } from './nextauth-client';
 import {
   NO_REFRESH_TOKEN_CODE,
@@ -75,8 +76,9 @@ const isAccessTokenUnexpired = (token: Record<string, unknown>) =>
  * `accessToken` and `accessTokenExpires`. If an error occurs,
  * returns the old token and an error property: `RefreshTokenExpired` when the
  * IdP rejected the refresh token for good (`invalid_grant`) or none exists,
- * otherwise the transient `RefreshAccessTokenError`. A transient failure of an
- * early refresh keeps the still unexpired token usable and reports no error.
+ * otherwise the transient `RefreshAccessTokenError`. While the access token has
+ * not expired yet, a transient failure or a missing refresh token keeps it
+ * usable and reports no error; a rejected refresh token is reported at once.
  * @param token - token whose access token has to be refreshed
  */
 export async function refreshAccessToken(token: Token) {
@@ -142,7 +144,7 @@ export async function refreshAccessToken(token: Token) {
     }
 
     if (!refreshedTokens.refresh_token) {
-      console.warn(
+      logger.warn(
         `Auth provider didn't provide new refresh token. Sub: ${displayedTokenSub}`,
       );
     }
@@ -165,12 +167,7 @@ export async function refreshAccessToken(token: Token) {
     });
     return returnToken;
   } catch (error: unknown) {
-    console.error(
-      error,
-      `Error when refreshing token: ${
-        (error as Error).message
-      }. Sub: ${displayedTokenSub}`,
-    );
+    logError(error, { sub: displayedTokenSub }, 'Error when refreshing token');
 
     if (hasAcquiredLock) {
       NextClient.setIsRefreshTokenStart(token.userId, {
@@ -184,7 +181,14 @@ export async function refreshAccessToken(token: Token) {
       !!error.code &&
       TERMINAL_REFRESH_ERROR_CODES.includes(error.code);
 
-    if (!isTerminal && isAccessTokenUnexpired(token)) {
+    const isMissingRefreshToken =
+      error instanceof OAuthRefreshError &&
+      error.code === NO_REFRESH_TOKEN_CODE;
+
+    if (
+      (!isTerminal || isMissingRefreshToken) &&
+      isAccessTokenUnexpired(token)
+    ) {
       return { ...token, error: undefined };
     }
 
@@ -224,7 +228,6 @@ export const callbacks = {
       return options.token;
     }
 
-    // Return previous token if the access token is not about to expire
     if (isAccessTokenFresh(options.token)) {
       return options.token.error
         ? { ...options.token, error: undefined }

@@ -9,7 +9,7 @@ const readSource = (relativePath: string) =>
 const exportedActionNames = (source: string) =>
   [
     ...source.matchAll(/^export (?:async )?function (\w+)/gm),
-    ...source.matchAll(/^export const (\w+) = async/gm),
+    ...source.matchAll(/^export const (\w+)/gm),
   ]
     .map((match) => match[1])
     .sort();
@@ -24,6 +24,7 @@ const wrappedActions = (source: string) =>
 describe.each([
   ['channels', 'channels/actions.ts', 'channels/client-actions.ts'],
   ['data-sources', 'data-sources/actions.ts', 'data-sources/client-actions.ts'],
+  ['data-sets', 'data-sets/actions.ts', 'data-sets/client-actions.ts'],
 ])('%s client actions', (_name, actionsPath, clientActionsPath) => {
   const clientSource = readSource(clientActionsPath);
   const wrapped = wrappedActions(clientSource);

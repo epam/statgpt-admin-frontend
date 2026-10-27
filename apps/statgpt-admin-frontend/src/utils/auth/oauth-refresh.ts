@@ -112,6 +112,11 @@ const getRefreshProviderConfig = (
   }
 };
 
+/**
+ * Reads the token endpoint from the issuer's OpenID configuration.
+ * @param issuer - OIDC issuer URL
+ * @param signal - aborts the request when the shared refresh deadline passes
+ */
 const discoverTokenEndpoint = async (issuer: string, signal: AbortSignal) => {
   const response = await fetch(
     `${trimTrailingSlash(issuer)}/.well-known/openid-configuration`,

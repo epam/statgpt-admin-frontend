@@ -1,14 +1,18 @@
 /** @jest-environment node */
 /* global describe, it, expect, jest, beforeEach, afterEach */
+import { logError } from '@/src/server/logger';
 import { Token } from '@/src/models/token';
 
 import { callbacks, refreshAccessToken } from './auth-callbacks';
+import { decode, encode } from 'next-auth/jwt';
+
 import { NextClient } from './nextauth-client';
 import { OAuthRefreshError, refreshOAuthToken } from './oauth-refresh';
 import { WAIT_REFRESH_TOKEN_TIMEOUT_MS } from './refresh-token-timing';
 
 jest.mock('@/src/server/logger', () => ({
   logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn() },
+  logError: jest.fn(),
 }));
 
 jest.mock('./oauth-refresh', () => ({
@@ -44,8 +48,6 @@ describe('refreshAccessToken', () => {
   beforeEach(() => {
     resetRefreshMap();
     mockRefreshOAuthToken.mockReset();
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -244,7 +246,6 @@ describe('jwt callback', () => {
       refresh_token: 'fresh-refresh-token',
       expires_in: 3600,
     });
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -299,8 +300,6 @@ describe('session error handling', () => {
   beforeEach(() => {
     resetRefreshMap();
     mockRefreshOAuthToken.mockReset();
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -408,7 +407,6 @@ describe('access token expiry skew', () => {
   beforeEach(() => {
     resetRefreshMap();
     mockRefreshOAuthToken.mockReset();
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -462,5 +460,130 @@ describe('access token expiry skew', () => {
 
     await runJwt(nearEnd);
     expect(mockRefreshOAuthToken).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('missing refresh token', () => {
+  beforeEach(() => {
+    resetRefreshMap();
+    mockRefreshOAuthToken.mockReset();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('is not reported while the access token is still valid', async () => {
+    const result = await refreshAccessToken(
+      baseToken({
+        refreshToken: undefined as unknown as string,
+        accessTokenExpires: Date.now() + 30_000,
+        access_token: 'still-valid-access-token',
+      }),
+    );
+
+    expect(mockRefreshOAuthToken).not.toHaveBeenCalled();
+    expect((result as { error?: string }).error).toBeUndefined();
+    expect((result as { access_token?: string }).access_token).toBe(
+      'still-valid-access-token',
+    );
+  });
+
+  it('is reported as soon as the access token has expired', async () => {
+    const result = await refreshAccessToken(
+      baseToken({
+        refreshToken: undefined as unknown as string,
+        accessTokenExpires: Date.now() - 1_000,
+      }),
+    );
+
+    expect((result as { error?: string }).error).toBe('RefreshTokenExpired');
+  });
+});
+
+describe('refresh failure logging', () => {
+  beforeEach(() => {
+    resetRefreshMap();
+    mockRefreshOAuthToken.mockReset();
+    (logError as jest.Mock).mockReset();
+  });
+
+  it('logs the failure through the shared logger without the token', async () => {
+    const failure = new Error('network blip');
+    mockRefreshOAuthToken.mockRejectedValue(failure);
+
+    await refreshAccessToken(baseToken());
+
+    expect(logError).toHaveBeenCalledTimes(1);
+    const [loggedError, context, message] = (logError as jest.Mock).mock
+      .calls[0];
+    expect(loggedError).toBe(failure);
+    expect(JSON.stringify(context)).not.toContain('old-refresh-token');
+    expect(message).toContain('refreshing token');
+  });
+});
+
+describe('jwt callback on sign-in', () => {
+  const signIn = (account: Record<string, unknown>) =>
+    callbacks.jwt({
+      token: { sub: 'user-1' },
+      account: { provider: 'google', access_token: 'a', ...account },
+      user: { id: 'user-1' },
+      profile: { job_title: 'Analyst' },
+    } as never);
+
+  beforeEach(() => {
+    jest.useFakeTimers({ now: 1_700_000_000_000 });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('records expiry and lifetime from expires_in', async () => {
+    const result = await signIn({ expires_in: 3600, refresh_token: 'r' });
+
+    expect(result).toMatchObject({
+      accessTokenExpires: 1_700_000_000_000 + 3_600_000,
+      accessTokenLifetimeMs: 3_600_000,
+      providerId: 'google',
+      userId: 'user-1',
+      jobTitle: 'Analyst',
+      refreshToken: 'r',
+    });
+  });
+
+  it('records expiry and lifetime from expires_at when expires_in is absent', async () => {
+    const result = await signIn({ expires_at: 1_700_000_000 + 1800 });
+
+    expect(result).toMatchObject({
+      accessTokenExpires: (1_700_000_000 + 1800) * 1000,
+      accessTokenLifetimeMs: 1_800_000,
+    });
+  });
+});
+
+describe('token serialization', () => {
+  const secret = 'test-secret-test-secret-test-secret';
+  const salt = 'next-auth.session-token';
+
+  it('does not carry a cleared error into the session cookie', async () => {
+    const healed = (await callbacks.jwt({
+      token: baseToken({
+        error: 'RefreshAccessTokenError',
+        accessTokenExpires: Date.now() + 300_000,
+      }),
+      account: null,
+      user: undefined,
+    } as never)) as Token;
+
+    const decoded = await decode({
+      token: await encode({ token: healed, secret, salt }),
+      secret,
+      salt,
+    });
+
+    expect(decoded).not.toBeNull();
+    expect(decoded).not.toHaveProperty('error');
   });
 });

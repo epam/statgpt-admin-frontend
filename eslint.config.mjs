@@ -104,7 +104,11 @@ export default [
     },
   },
   {
-    files: ['**/src/components/**/*.{ts,tsx}', '**/src/context/**/*.{ts,tsx}'],
+    files: [
+      '**/src/components/**/*.{ts,tsx}',
+      '**/src/context/**/*.{ts,tsx}',
+      '**/src/hooks/**/*.{ts,tsx}',
+    ],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -112,9 +116,9 @@ export default [
           patterns: [
             {
               group: [
-                '@/src/app/channels/actions',
-                '@/src/app/data-sources/actions',
-                '@/src/app/data-sets/actions',
+                '**/channels/actions',
+                '**/data-sources/actions',
+                '**/data-sets/actions',
               ],
               message:
                 'Client code must use the retrying wrappers from the matching client-actions module.',
