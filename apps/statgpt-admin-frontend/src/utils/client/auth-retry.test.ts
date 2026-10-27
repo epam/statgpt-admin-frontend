@@ -5,9 +5,11 @@ import type { ApiResult } from '@/src/server/api';
 import { withAuthRetry, withAuthRetryAction } from './auth-retry';
 
 const mockGetSession = jest.fn();
+const mockSignIn = jest.fn();
 
 jest.mock('next-auth/react', () => ({
   getSession: () => mockGetSession(),
+  signIn: (...args: unknown[]) => mockSignIn(...args),
 }));
 
 const ok = (data: string): ApiResult<string> => ({ ok: true, data });
@@ -163,5 +165,70 @@ describe('withAuthRetryAction', () => {
     expect(action).toHaveBeenNthCalledWith(1, '42', 7);
     expect(action).toHaveBeenNthCalledWith(2, '42', 7);
     expect(mockGetSession).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('withAuthRetry with a session that cannot be refreshed', () => {
+  const load = () => {
+    let loaded: typeof import('./auth-retry');
+    jest.isolateModules(() => {
+      loaded = jest.requireActual('./auth-retry');
+    });
+    return loaded!;
+  };
+
+  beforeEach(() => {
+    mockGetSession.mockReset();
+    mockSignIn.mockReset();
+  });
+
+  it('sends the user to sign-in when the refresh token is gone for good', async () => {
+    mockGetSession.mockResolvedValue({ error: 'RefreshTokenExpired' });
+    const send = jest.fn().mockResolvedValue(failure(401));
+
+    const result = await load().withAuthRetry(send);
+
+    expect(result).toEqual(failure(401));
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(mockSignIn).toHaveBeenCalledTimes(1);
+  });
+
+  it('requests sign-in only once however many requests fail', async () => {
+    mockGetSession.mockResolvedValue({ error: 'RefreshTokenExpired' });
+    const { withAuthRetry } = load();
+    const send = jest.fn().mockResolvedValue(failure(401));
+
+    await Promise.all([withAuthRetry(send), withAuthRetry(send)]);
+    await withAuthRetry(send);
+
+    expect(mockSignIn).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not sign out on a transient refresh error', async () => {
+    mockGetSession.mockResolvedValue({ error: 'RefreshAccessTokenError' });
+    const send = jest.fn().mockResolvedValue(failure(401));
+
+    await load().withAuthRetry(send);
+
+    expect(mockSignIn).not.toHaveBeenCalled();
+  });
+
+  it('does not redirect when there is no session at all', async () => {
+    mockGetSession.mockResolvedValue(null);
+    const send = jest.fn().mockResolvedValue(failure(401));
+
+    await load().withAuthRetry(send);
+
+    expect(mockSignIn).not.toHaveBeenCalled();
+  });
+
+  it('still returns the original 401 when signing in fails', async () => {
+    mockGetSession.mockResolvedValue({ error: 'RefreshTokenExpired' });
+    mockSignIn.mockRejectedValue(new Error('navigation failed'));
+    const send = jest.fn().mockResolvedValue(failure(401));
+
+    const result = await load().withAuthRetry(send);
+
+    expect(result).toEqual(failure(401));
   });
 });

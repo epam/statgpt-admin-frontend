@@ -2,13 +2,16 @@ import { NextAuthConfig, Profile, Session } from 'next-auth';
 
 import { Token } from '@/src/models/token';
 import { NextClient } from './nextauth-client';
-import { OAuthRefreshError, refreshOAuthToken } from './oauth-refresh';
+import {
+  NO_REFRESH_TOKEN_CODE,
+  OAuthRefreshError,
+  refreshOAuthToken,
+  TERMINAL_REFRESH_ERROR_CODES,
+} from './oauth-refresh';
 import {
   ACCESS_TOKEN_EXPIRY_SKEW_MS,
   WAIT_REFRESH_TOKEN_TIMEOUT_MS,
 } from './refresh-token-timing';
-
-const TERMINAL_REFRESH_ERROR_CODE = 'invalid_grant';
 
 /**
  * Tells whether the access token is still valid for longer than the expiry
@@ -23,8 +26,8 @@ const isAccessTokenFresh = (token: Record<string, unknown>) =>
  * Takes a token, and returns a new token with updated
  * `accessToken` and `accessTokenExpires`. If an error occurs,
  * returns the old token and an error property: `RefreshTokenExpired` when the
- * IdP rejected the refresh token for good (`invalid_grant`), otherwise the
- * transient `RefreshAccessTokenError`.
+ * IdP rejected the refresh token for good (`invalid_grant`) or none exists,
+ * otherwise the transient `RefreshAccessTokenError`.
  * @param token - token whose access token has to be refreshed
  */
 export async function refreshAccessToken(token: Token) {
@@ -71,7 +74,10 @@ export async function refreshAccessToken(token: Token) {
         : token.refreshToken?.refresh_token;
 
     if (!refreshToken) {
-      throw new Error('No refresh token exists');
+      throw new OAuthRefreshError(
+        'No refresh token exists',
+        NO_REFRESH_TOKEN_CODE,
+      );
     }
 
     const refreshedTokens = await refreshOAuthToken(
@@ -127,7 +133,8 @@ export async function refreshAccessToken(token: Token) {
 
     const isTerminal =
       error instanceof OAuthRefreshError &&
-      error.code === TERMINAL_REFRESH_ERROR_CODE;
+      !!error.code &&
+      TERMINAL_REFRESH_ERROR_CODES.includes(error.code);
 
     return {
       ...token,

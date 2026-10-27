@@ -182,15 +182,13 @@ describe('refreshAccessToken', () => {
       expect((result as { error?: string }).error).toBe('RefreshTokenExpired');
     });
 
-    it('returns RefreshAccessTokenError when the token has no refresh token', async () => {
+    it('returns RefreshTokenExpired when the token has no refresh token', async () => {
       const result = await refreshAccessToken(
         baseToken({ refreshToken: undefined as unknown as string }),
       );
 
       expect(mockRefreshOAuthToken).not.toHaveBeenCalled();
-      expect((result as { error?: string }).error).toBe(
-        'RefreshAccessTokenError',
-      );
+      expect((result as { error?: string }).error).toBe('RefreshTokenExpired');
     });
   });
 

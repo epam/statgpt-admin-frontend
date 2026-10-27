@@ -2,6 +2,17 @@ import { TokenSet } from '@auth/core/types';
 
 import { REFRESH_FETCH_TIMEOUT_MS } from './refresh-token-timing';
 
+export const NO_REFRESH_TOKEN_CODE = 'no_refresh_token';
+
+/**
+ * Error codes after which retrying the refresh cannot help and the user has to
+ * sign in again: the IdP rejected the refresh token, or none was ever issued.
+ */
+export const TERMINAL_REFRESH_ERROR_CODES = [
+  'invalid_grant',
+  NO_REFRESH_TOKEN_CODE,
+];
+
 /**
  * Error from the IdP's token endpoint. `code` is the OAuth `error` field of the
  * response (e.g. `invalid_grant`), when the response carried one.

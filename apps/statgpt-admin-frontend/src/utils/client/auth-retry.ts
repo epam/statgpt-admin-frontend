@@ -2,12 +2,32 @@ import type { ApiResult } from '@/src/server/api';
 
 const UNAUTHORIZED = 401;
 
+const TERMINAL_SESSION_ERROR = 'RefreshTokenExpired';
+
 let refreshInFlight: Promise<boolean> | null = null;
+let signInRequested = false;
+
+/**
+ * Sends the browser to the sign-in page. Done at most once per page load, so a
+ * burst of failing requests cannot start several redirects.
+ * @param signIn - `signIn` from `next-auth/react`
+ */
+const requestSignIn = (signIn: () => Promise<unknown>) => {
+  if (signInRequested) {
+    return;
+  }
+
+  signInRequested = true;
+  signIn().catch(() => undefined);
+};
 
 /**
  * Asks Auth.js for the current session. `/api/auth/session` runs the `jwt`
  * callback, which renews an expired access token, and the response sets the
- * refreshed session cookie. Concurrent callers share a single request.
+ * refreshed session cookie. Concurrent callers share a single request. When
+ * the session carries the terminal `RefreshTokenExpired` error (refresh token
+ * rejected or never issued) retrying cannot help, so the user is sent to
+ * sign-in. A transient error or a missing session only reports failure.
  * `next-auth/react` is imported lazily so this module stays safe to import
  * from code that also runs on the server.
  * @returns whether the session is usable afterwards
@@ -16,9 +36,19 @@ const refreshSession = (): Promise<boolean> => {
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       try {
-        const { getSession } = await import('next-auth/react');
+        const { getSession, signIn } = await import('next-auth/react');
         const session = await getSession();
-        return !!session && !(session as { error?: unknown }).error;
+        const error = (session as { error?: string } | null)?.error;
+
+        if (session && !error) {
+          return true;
+        }
+
+        if (error === TERMINAL_SESSION_ERROR) {
+          requestSignIn(signIn);
+        }
+
+        return false;
       } catch {
         return false;
       }
