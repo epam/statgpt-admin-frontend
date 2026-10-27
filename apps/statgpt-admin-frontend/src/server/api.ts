@@ -1,6 +1,7 @@
 import { JWT } from 'next-auth/jwt';
 
 import { getApiHeaders } from '@/src/utils/auth/api-headers';
+import { withAuthRetry } from '@/src/utils/client/auth-retry';
 import { parseApiError } from './api-error-parser';
 
 export const ADMIN = '';
@@ -32,20 +33,22 @@ export const sendPostRequest = <T extends object, R>(
   qs?: Record<string, string>,
   initHeaders?: HeadersInit,
 ): Promise<ApiResult<R>> => {
-  return sendRequestSafe(url, 'POST', dto, qs, initHeaders);
+  return withAuthRetry(() =>
+    sendRequestSafe<T, R>(url, 'POST', dto, qs, initHeaders),
+  );
 };
 
 export const sendGetRequest = <R extends object>(
   url: string,
 ): Promise<ApiResult<R>> => {
-  return sendRequestSafe<object, R>(url, 'GET');
+  return withAuthRetry(() => sendRequestSafe<object, R>(url, 'GET'));
 };
 
 export const sendDeleteRequest = <T extends object, R>(
   url: string,
   dto?: T,
 ): Promise<ApiResult<R>> => {
-  return sendRequestSafe<T, R>(url, 'DELETE', dto);
+  return withAuthRetry(() => sendRequestSafe<T, R>(url, 'DELETE', dto));
 };
 
 export function apiResultToResponse<R>(result: ApiResult<R>): Response {

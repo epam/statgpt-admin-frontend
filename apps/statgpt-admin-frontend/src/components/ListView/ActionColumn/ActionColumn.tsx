@@ -4,7 +4,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { FC, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { exportChannel, removeChannel } from '@/src/app/channels/actions';
+import {
+  exportChannel,
+  removeChannel,
+} from '@/src/app/channels/client-actions';
 import { removeDocument } from '@/src/app/documents/action';
 import {
   Menu as DropdownMenu,

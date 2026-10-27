@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import {
   exportChannel,
   getChannelIndexStatus,
-} from '@/src/app/channels/actions';
+} from '@/src/app/channels/client-actions';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { DataSetChannelResults } from '@/src/components/EditDataEntity/DataSetChannelResults';
 import { EditDataEntity } from '@/src/components/EditDataEntity/EditDataEntity';

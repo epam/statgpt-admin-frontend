@@ -2,7 +2,7 @@ import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
 import { stringify } from 'yaml';
 
-import { getDataSources } from '@/src/app/data-sources/actions';
+import { getDataSources } from '@/src/app/data-sources/client-actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { DatasetConfigForm } from '@/src/components/DatasetConfigForm/DatasetConfigForm';
 import { Modal } from '@/src/components/Modal/Modal';
