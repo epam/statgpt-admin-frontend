@@ -1,5 +1,41 @@
 import { TokenSet } from '@auth/core/types';
 
+import { logger } from '@/src/server/logger';
+import { REFRESH_FETCH_TIMEOUT_MS } from './refresh-token-timing';
+
+/**
+ * Error code for a session that has no refresh token to renew the access
+ * token with. Not an OAuth code, it is raised locally.
+ */
+export const NO_REFRESH_TOKEN_CODE = 'no_refresh_token';
+
+/**
+ * Error codes after which retrying the refresh cannot help and the user has to
+ * sign in again: the IdP rejected the refresh token, or none was ever issued.
+ */
+export const TERMINAL_REFRESH_ERROR_CODES = [
+  'invalid_grant',
+  NO_REFRESH_TOKEN_CODE,
+];
+
+/**
+ * Error from the IdP's token endpoint. `code` is the OAuth `error` field of the
+ * response (e.g. `invalid_grant`), when the response carried one.
+ */
+export class OAuthRefreshError extends Error {
+  code?: string;
+
+  /**
+   * @param message - human readable reason, normally the IdP's description
+   * @param code - OAuth `error` code of the response, if any
+   */
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = 'OAuthRefreshError';
+    this.code = code;
+  }
+}
+
 type RefreshProviderConfig = {
   clientId?: string;
   clientSecret?: string;
@@ -76,9 +112,15 @@ const getRefreshProviderConfig = (
   }
 };
 
-const discoverTokenEndpoint = async (issuer: string) => {
+/**
+ * Reads the token endpoint from the issuer's OpenID configuration.
+ * @param issuer - OIDC issuer URL
+ * @param signal - aborts the request when the shared refresh deadline passes
+ */
+const discoverTokenEndpoint = async (issuer: string, signal: AbortSignal) => {
   const response = await fetch(
     `${trimTrailingSlash(issuer)}/.well-known/openid-configuration`,
+    { signal },
   );
 
   if (!response.ok) {
@@ -94,6 +136,14 @@ const discoverTokenEndpoint = async (issuer: string) => {
   return metadata.token_endpoint;
 };
 
+/**
+ * Exchanges a refresh token for a new access token at the provider's token
+ * endpoint (discovered from the issuer when it is not fixed). Discovery and
+ * exchange share one deadline.
+ * @param providerId - Auth.js id of the provider the session was created with
+ * @param refreshToken - refresh token to exchange
+ * @throws OAuthRefreshError when the IdP answers with an error response
+ */
 export const refreshOAuthToken = async (
   providerId: string,
   refreshToken: string,
@@ -104,45 +154,60 @@ export const refreshOAuthToken = async (
     throw new Error(`Refresh provider ${providerId} is not configured`);
   }
 
-  const tokenEndpoint =
-    config.tokenEndpoint ??
-    (config.issuer ? await discoverTokenEndpoint(config.issuer) : undefined);
+  const signal = AbortSignal.timeout(REFRESH_FETCH_TIMEOUT_MS);
 
-  if (!tokenEndpoint) {
-    throw new Error(`Token endpoint is not configured for ${providerId}`);
+  try {
+    const tokenEndpoint =
+      config.tokenEndpoint ??
+      (config.issuer
+        ? await discoverTokenEndpoint(config.issuer, signal)
+        : undefined);
+
+    if (!tokenEndpoint) {
+      throw new Error(`Token endpoint is not configured for ${providerId}`);
+    }
+
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+    });
+
+    const response = await fetch(tokenEndpoint, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body,
+      signal,
+    });
+
+    const tokens = (await response.json()) as TokenSet & {
+      error?: string;
+      error_description?: string;
+    };
+
+    if (!response.ok) {
+      throw new OAuthRefreshError(
+        tokens.error_description ??
+          tokens.error ??
+          `Failed to refresh ${providerId} access token`,
+        tokens.error,
+      );
+    }
+
+    if (!tokens.expires_at && tokens.expires_in) {
+      tokens.expires_at = Math.floor(Date.now() / 1000) + tokens.expires_in;
+    }
+
+    return tokens;
+  } catch (error: unknown) {
+    if (signal.aborted) {
+      logger.error(
+        `Refresh request to ${providerId} timed out after ${REFRESH_FETCH_TIMEOUT_MS}ms`,
+      );
+    }
+    throw error;
   }
-
-  const body = new URLSearchParams({
-    grant_type: 'refresh_token',
-    refresh_token: refreshToken,
-    client_id: config.clientId,
-    client_secret: config.clientSecret,
-  });
-
-  const response = await fetch(tokenEndpoint, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/x-www-form-urlencoded',
-    },
-    body,
-  });
-
-  const tokens = (await response.json()) as TokenSet & {
-    error?: string;
-    error_description?: string;
-  };
-
-  if (!response.ok) {
-    throw new Error(
-      tokens.error_description ??
-        tokens.error ??
-        `Failed to refresh ${providerId} access token`,
-    );
-  }
-
-  if (!tokens.expires_at && tokens.expires_in) {
-    tokens.expires_at = Math.floor(Date.now() / 1000) + tokens.expires_in;
-  }
-
-  return tokens;
 };

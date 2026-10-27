@@ -3,7 +3,7 @@
 import { FC, useEffect, useState } from 'react';
 
 import { useAccessControl } from '@/src/context/AccessControlContext';
-import { getChannelJobs } from '@/src/app/channels/actions';
+import { getChannelJobs } from '@/src/app/channels/client-actions';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
