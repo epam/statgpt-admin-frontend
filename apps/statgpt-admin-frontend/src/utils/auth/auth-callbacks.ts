@@ -1,19 +1,37 @@
 import { NextAuthConfig, Profile, Session } from 'next-auth';
 
 import { Token } from '@/src/models/token';
-import { NextClient, RefreshToken } from './nextauth-client';
-import { refreshOAuthToken } from './oauth-refresh';
+import { NextClient } from './nextauth-client';
+import { OAuthRefreshError, refreshOAuthToken } from './oauth-refresh';
+import {
+  ACCESS_TOKEN_EXPIRY_SKEW_MS,
+  WAIT_REFRESH_TOKEN_TIMEOUT_MS,
+} from './refresh-token-timing';
 
-const waitRefreshTokenTimeout = 5;
+const TERMINAL_REFRESH_ERROR_CODE = 'invalid_grant';
+
+/**
+ * Tells whether the access token is still valid for longer than the expiry
+ * skew, i.e. safe to send to the backend without refreshing it first.
+ * @param token - token to check
+ */
+const isAccessTokenFresh = (token: Record<string, unknown>) =>
+  typeof token.accessTokenExpires === 'number' &&
+  Date.now() < token.accessTokenExpires - ACCESS_TOKEN_EXPIRY_SKEW_MS;
 
 /**
  * Takes a token, and returns a new token with updated
  * `accessToken` and `accessTokenExpires`. If an error occurs,
- * returns the old token and an error property
+ * returns the old token and an error property: `RefreshTokenExpired` when the
+ * IdP rejected the refresh token for good (`invalid_grant`), otherwise the
+ * transient `RefreshAccessTokenError`.
+ * @param token - token whose access token has to be refreshed
  */
-async function refreshAccessToken(token: Token) {
+export async function refreshAccessToken(token: Token) {
   const displayedTokenSub =
     process.env.SHOW_TOKEN_SUB === 'true' ? token.sub : '******';
+  let hasAcquiredLock = false;
+
   try {
     if (!token.providerId) {
       throw new Error(`No provider information exists in token`);
@@ -24,27 +42,25 @@ async function refreshAccessToken(token: Token) {
       const refresh = NextClient.getRefreshToken(token.userId);
 
       if (!refresh || !refresh.isRefreshing) {
-        const localToken: RefreshToken = refresh || {
-          isRefreshing: true,
-          token,
-        };
-        if (
-          typeof localToken.token?.accessTokenExpires === 'number' &&
-          Date.now() < localToken.token.accessTokenExpires
-        ) {
-          return localToken.token;
+        const candidate = refresh?.token ?? token;
+        if (isAccessTokenFresh(candidate)) {
+          return candidate;
         }
 
-        NextClient.setIsRefreshTokenStart(token.userId, localToken);
+        NextClient.setIsRefreshTokenStart(token.userId, {
+          isRefreshing: true,
+          token: candidate,
+        });
+        hasAcquiredLock = true;
         break;
       }
 
       await NextClient.delay();
       msWaiting += 50;
 
-      if (msWaiting >= waitRefreshTokenTimeout * 1000) {
+      if (msWaiting >= WAIT_REFRESH_TOKEN_TIMEOUT_MS) {
         throw new Error(
-          `Waiting more than ${waitRefreshTokenTimeout} seconds for refreshing token`,
+          `Waiting more than ${WAIT_REFRESH_TOKEN_TIMEOUT_MS / 1000} seconds for refreshing token`,
         );
       }
     }
@@ -102,9 +118,20 @@ async function refreshAccessToken(token: Token) {
       }. Sub: ${displayedTokenSub}`,
     );
 
+    if (hasAcquiredLock) {
+      NextClient.setIsRefreshTokenStart(token.userId, {
+        isRefreshing: false,
+        token: undefined,
+      });
+    }
+
+    const isTerminal =
+      error instanceof OAuthRefreshError &&
+      error.code === TERMINAL_REFRESH_ERROR_CODE;
+
     return {
       ...token,
-      error: 'RefreshAccessTokenError',
+      error: isTerminal ? 'RefreshTokenExpired' : 'RefreshAccessTokenError',
     };
   }
 }
@@ -130,11 +157,10 @@ export const callbacks = {
       };
     }
 
-    // Return previous token if the access token has not expired yet
+    // Return previous token if the access token is not about to expire
     if (
       options.token.providerId === 'credentials' ||
-      (typeof options.token.accessTokenExpires === 'number' &&
-        Date.now() < options.token.accessTokenExpires)
+      isAccessTokenFresh(options.token)
     ) {
       return options.token;
     }
