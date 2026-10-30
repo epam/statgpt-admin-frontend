@@ -7,7 +7,7 @@ import { UploadModal } from './UploadModal';
 
 jest.mock('@/src/components/BaseComponents/LoadFileArea/LoadFileArea', () => ({
   __esModule: true,
-  LoadFileAreaField: ({
+  LoadFileArea: ({
     onChangeFile,
   }: {
     onChangeFile: (files?: FileList) => void;
@@ -152,12 +152,62 @@ describe('UploadModal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
     await screen.findByText('Bad header row.');
 
-    selectFile();
-
+    fireEvent.change(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      { target: { files: [new File([], 'fixed.csv')] } },
+    );
     expect(screen.queryByText('Bad header row.')).toBeNull();
+    expect(screen.getByText('fixed.csv')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'select file' })).toBeNull();
     expect(
       (screen.getByRole('button', { name: 'Upload' }) as HTMLButtonElement)
         .disabled,
+    ).toBe(false);
+  });
+
+  it('turns the delete toggle off on a rejected file and leaves it usable after choosing another file', async () => {
+    rejectUpload({
+      message: 'Bad header row.',
+      problems: [],
+      truncated: false,
+    });
+    renderModal();
+    const getToggle = () =>
+      document.getElementById(SWITCH_ID) as HTMLInputElement;
+
+    selectFile();
+    toggleSwitch();
+    fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
+    await screen.findByText('Bad header row.');
+
+    expect(getToggle().checked).toBe(false);
+    expect(getToggle().disabled).toBe(true);
+
+    fireEvent.change(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      { target: { files: [new File([], 'fixed.csv')] } },
+    );
+
+    expect(getToggle().checked).toBe(false);
+    expect(getToggle().disabled).toBe(false);
+  });
+
+  it('turns the delete toggle off when another file is chosen', () => {
+    renderModal();
+
+    selectFile();
+    toggleSwitch();
+    expect(
+      (document.getElementById(SWITCH_ID) as HTMLInputElement).checked,
+    ).toBe(true);
+
+    fireEvent.change(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      { target: { files: [new File([], 'other.csv')] } },
+    );
+
+    expect(
+      (document.getElementById(SWITCH_ID) as HTMLInputElement).checked,
     ).toBe(false);
   });
 });

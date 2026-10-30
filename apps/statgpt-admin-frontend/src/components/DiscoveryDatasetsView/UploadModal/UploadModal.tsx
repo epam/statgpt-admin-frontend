@@ -4,7 +4,6 @@ import { FC, useState } from 'react';
 
 import { AlertBanner } from '@/src/components/BaseComponents/AlertBanner/AlertBanner';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
-import { LoadFileAreaField } from '@/src/components/BaseComponents/LoadFileArea/LoadFileArea';
 import LoaderSmall from '@/src/components/BaseComponents/Loader/Loader';
 import Switch from '@/src/components/BaseComponents/Switch/Switch';
 import { Modal } from '@/src/components/Modal/Modal';
@@ -17,7 +16,11 @@ import {
 } from '@/src/models/discovery-dataset';
 import { sendPostRequest } from '@/src/server/api';
 
+import { UploadFileField } from './UploadFileField';
+
 type Step = 'select' | 'uploading' | 'success';
+
+const FILE_ERROR_ID = 'upload-file-error';
 
 interface Props {
   channelId: string;
@@ -56,7 +59,7 @@ const formatProblem = (problem: DiscoveryPayloadProblem): string => {
 
 export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
   const [step, setStep] = useState<Step>('select');
-  const [files, setFiles] = useState<FileList | undefined>(void 0);
+  const [file, setFile] = useState<File | undefined>(void 0);
   const [deleteAbsent, setDeleteAbsent] = useState(false);
   const [summary, setSummary] = useState<DiscoveryUploadSummary | undefined>(
     void 0,
@@ -66,14 +69,14 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
   >(void 0);
 
   const upload = async () => {
-    if (!files) return;
+    if (!file) return;
     setStep('uploading');
 
     const mode = deleteAbsent
       ? DiscoveryUploadMode.Replace
       : DiscoveryUploadMode.Upsert;
     const formData = new FormData();
-    formData.append('file', files[0], files[0].name);
+    formData.append('file', file, file.name);
 
     const result = await sendPostRequest<FormData, DiscoveryUploadSummary>(
       `/api/v1/channels/${channelId}/discovery-datasets/upload?mode=${mode}`,
@@ -94,6 +97,7 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
       problems: detail?.problems ?? [],
       truncated: detail?.truncated ?? false,
     });
+    setDeleteAbsent(false);
     setStep('select');
   };
 
@@ -102,10 +106,10 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
     close();
   };
 
-  const handleFilesChange = (newFiles: FileList | undefined) => {
-    setFiles(newFiles);
+  const handleFileChange = (newFile: File | undefined) => {
+    setFile(newFile);
     setFileError(void 0);
-    if (!newFiles) setDeleteAbsent(false);
+    setDeleteAbsent(false);
   };
 
   const hasError = fileError != null;
@@ -118,19 +122,16 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
         {step === 'select' && (
           <>
             <div className="flex flex-col gap-y-1">
-              <LoadFileAreaField
-                elementId="file"
-                fieldTitle="File"
+              <UploadFileField
+                file={file}
                 acceptTypes=".csv,.xlsx"
-                emptyTitle="Drop file here"
-                files={files}
-                onChangeFile={handleFilesChange}
-                labelClassName="text-sm"
-                inputClassName="text-sm"
+                invalid={hasError}
+                errorId={FILE_ERROR_ID}
+                onChangeFile={handleFileChange}
               />
 
               {fileError && (
-                <div className="flex flex-col gap-y-2">
+                <div id={FILE_ERROR_ID} className="flex flex-col gap-y-2">
                   <p className="small text-error">{fileError.message}</p>
                   {fileError.problems.length > 0 && (
                     <div className="flex flex-col gap-y-2 overflow-auto max-h-[200px]">
@@ -151,7 +152,7 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
               )}
             </div>
 
-            {files && (
+            {file && (
               <Switch
                 isOn={deleteAbsent}
                 disabled={hasError}
@@ -161,7 +162,7 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
               />
             )}
 
-            {files && !hasError && (
+            {file && !hasError && (
               <div
                 className={deleteAbsent ? undefined : 'invisible'}
                 aria-hidden={!deleteAbsent}
@@ -207,7 +208,7 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
             <Button
               cssClass="primary"
               title="Upload"
-              disable={files == null || hasError}
+              disable={file == null || hasError}
               onClick={upload}
             />
           </>
