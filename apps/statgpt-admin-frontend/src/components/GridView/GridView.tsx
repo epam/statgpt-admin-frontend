@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
   useCallback,
+  RefObject,
 } from 'react';
 import {
   AllCommunityModule,
@@ -14,6 +15,7 @@ import {
   colorSchemeDark,
   GridApi,
   GridOptions,
+  GridPreDestroyedEvent,
   ITooltipParams,
   IGetRowsParams,
   IDatasource,
@@ -59,6 +61,8 @@ interface Props<T = BaseEntity> {
   queryKey?: string;
   refreshToken?: number;
   isLoading?: boolean;
+  /** Receives the grid api once the grid is ready and null once it is destroyed. */
+  gridApiRef?: RefObject<GridApi | null>;
 }
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -100,6 +104,7 @@ function GridViewInner<T = BaseEntity>({
   queryKey,
   refreshToken,
   isLoading,
+  gridApiRef,
 }: Props<T>) {
   const [api, setApi] = useState<GridApi | null>(null);
 
@@ -184,9 +189,20 @@ function GridViewInner<T = BaseEntity>({
   // position), which is what caused issue #277.
   const shouldShowFullLoader = !isInfinite && isLoading && !hasData;
 
-  const onGridReady = useCallback((e: any) => {
-    setApi(e.api);
-  }, []);
+  const onGridReady = useCallback(
+    (e: any) => {
+      if (gridApiRef) gridApiRef.current = e.api;
+      setApi(e.api);
+    },
+    [gridApiRef],
+  );
+
+  const onGridPreDestroyed = useCallback(
+    (e: GridPreDestroyedEvent) => {
+      if (gridApiRef?.current === e.api) gridApiRef.current = null;
+    },
+    [gridApiRef],
+  );
 
   const lastDatasourceRef = useRef<IDatasource | undefined>(undefined);
   useEffect(() => {
@@ -219,6 +235,7 @@ function GridViewInner<T = BaseEntity>({
         components={GRID_CUSTOM_COMPONENT}
         loadingOverlayComponent="loadingOverlay"
         onGridReady={onGridReady}
+        onGridPreDestroyed={onGridPreDestroyed}
         tooltipShowDelay={500}
         defaultColDef={defaultColDef}
         onGridSizeChanged={(e) => e.api.sizeColumnsToFit()}

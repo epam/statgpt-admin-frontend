@@ -8,7 +8,7 @@ import {
   getChannelTerms,
   removeChannelTerm,
   updateChannelTerms,
-} from '@/src/app/channels/actions';
+} from '@/src/app/channels/client-actions';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { Loader } from '@/src/components/BaseComponents/Loader/Loader';
 import { GridView } from '@/src/components/GridView/GridView';

@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import {
   deduplicateDataset,
   getDeduplicationJob,
-} from '@/src/app/channels/actions';
+} from '@/src/app/channels/client-actions';
 import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { useJobPolling } from '@/src/hooks/useJobPolling';
 import {

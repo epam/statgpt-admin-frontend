@@ -32,10 +32,6 @@ export const DiscoveryDatasetDetailsView: FC<Props> = ({ data, close }) => {
         <DataField label="URL" value={data.url} />
         <DataFieldList label="Reference Area" value={data.referenceArea} />
         <DataField label="Regional Coverage" value={data.regionalCoverage} />
-        <DataField
-          label="Excluded Regional Values"
-          value={data.excludedRegionalValues}
-        />
         <DataField label="Time Coverage" value={data.timeCoverage} />
         <DataFieldList
           label="Frequency Coverage"
@@ -44,6 +40,10 @@ export const DiscoveryDatasetDetailsView: FC<Props> = ({ data, close }) => {
         <DataFieldList
           label="Indicators Coverage"
           value={data.indicatorsCoverage}
+        />
+        <DataFieldList
+          label="Published Indicators"
+          value={data.indicatorsSummary}
         />
         <DataFieldList
           label="Missing Indicators"

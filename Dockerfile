@@ -1,4 +1,4 @@
-FROM node:24.21-alpine3.24 AS base
+FROM node:24.22.1-alpine3.24 AS base
 
 # zlib 1.3.2-r0 in the base image is affected by CVE-2026-85091; 1.3.2-r1 is patched.
 RUN apk upgrade --no-cache zlib

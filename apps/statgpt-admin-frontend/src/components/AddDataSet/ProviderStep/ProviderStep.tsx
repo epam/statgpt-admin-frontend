@@ -1,7 +1,7 @@
 import { ColDef } from 'ag-grid-community';
 import { FC, useEffect, useState } from 'react';
 
-import { loadProviders } from '@/src/app/data-sources/actions';
+import { loadProviders } from '@/src/app/data-sources/client-actions';
 import {
   RADIO_SELECT_COLUMN,
   SINGLE_SELECT_GRID_CLASS,

@@ -50,7 +50,6 @@ export interface DiscoveryDataset {
   id: number;
   referenceArea?: string;
   regionalCoverage?: string;
-  excludedRegionalValues?: string;
   agency?: string;
   datasetId?: string;
   name?: string;
@@ -59,6 +58,7 @@ export interface DiscoveryDataset {
   timeCoverage?: string;
   frequencyCoverage?: string;
   indicatorsCoverage?: string;
+  indicatorsSummary?: string;
   missingIndicators?: string;
   channelId?: number;
   validationStatus?: DiscoveryValidationStatus;
