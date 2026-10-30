@@ -8,15 +8,18 @@ import { DataField } from './DataField';
  * @param label - field label
  * @param value - raw delimited string value
  * @param delimiter - separator to split on, defaults to `;`
+ * @param emptyText - shown when the value has no non-empty segments
  */
 export const DataFieldList = ({
   label,
   value = '',
   delimiter = ';',
+  emptyText,
 }: {
   label: string;
   value?: string | null;
   delimiter?: string;
+  emptyText?: string;
 }) => {
   const items = (value ?? '')
     .split(delimiter)
@@ -24,7 +27,13 @@ export const DataFieldList = ({
     .filter((item) => item.length > 0);
 
   if (items.length < 2) {
-    return <DataField label={label} value={value} />;
+    return (
+      <DataField
+        label={label}
+        value={items.length === 0 ? '' : value}
+        emptyText={emptyText}
+      />
+    );
   }
 
   return (
