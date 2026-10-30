@@ -73,6 +73,39 @@ describe('UploadModal', () => {
     expect(mockedSendPostRequest.mock.calls[0][0]).toContain('mode=upsert');
   });
 
+  it('keeps the form mounted but inert under the loader while uploading, so the modal does not resize', async () => {
+    let finishUpload: (value: unknown) => void = () => {};
+    mockedSendPostRequest.mockReturnValue(
+      new Promise((resolve) => {
+        finishUpload = resolve;
+      }),
+    );
+    renderModal();
+
+    selectFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
+
+    const form = document.getElementById(SWITCH_ID)?.closest('[inert]');
+    expect(screen.getByRole('status', { name: 'Uploading' })).toBeTruthy();
+    expect(form?.getAttribute('aria-hidden')).toBe('true');
+    expect(form?.className).toContain('invisible');
+    expect(
+      (screen.getByRole('button', { name: 'Upload' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(
+      (screen.getByRole('button', { name: 'Cancel' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+
+    finishUpload({
+      ok: true,
+      data: { created: 0, updated: 0, unchanged: 0, deleted: 0, rowsRead: 0 },
+    });
+    await waitFor(() => expect(screen.getByText(/completed/i)).toBeTruthy());
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
   it('reveals the warning banner when the delete toggle is on, keeping its space reserved', () => {
     renderModal();
 

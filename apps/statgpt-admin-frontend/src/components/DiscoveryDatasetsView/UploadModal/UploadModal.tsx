@@ -15,6 +15,7 @@ import {
   DiscoveryUploadSummary,
 } from '@/src/models/discovery-dataset';
 import { sendPostRequest } from '@/src/server/api';
+import { mergeClasses } from '@/src/utils/mergeClasses';
 
 import { UploadFileField } from './UploadFileField';
 
@@ -113,14 +114,22 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
   };
 
   const hasError = fileError != null;
+  const isUploading = step === 'uploading';
 
   return (
     <Modal title="Upload Grade C Dataset" close={close} width="600px">
       <></>
 
-      <div className="flex flex-col gap-y-4 min-h-[200px] px-6 pt-4 pb-4">
-        {step === 'select' && (
-          <>
+      <div className="relative flex flex-col gap-y-4 min-h-[200px] px-6 pt-4 pb-4">
+        {(step === 'select' || isUploading) && (
+          <div
+            className={mergeClasses(
+              'flex flex-col gap-y-4',
+              isUploading && 'invisible',
+            )}
+            aria-hidden={isUploading}
+            inert={isUploading}
+          >
             <div className="flex flex-col gap-y-1">
               <UploadFileField
                 file={file}
@@ -173,11 +182,17 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
                 </AlertBanner>
               </div>
             )}
-          </>
+          </div>
         )}
 
-        {step === 'uploading' && (
-          <LoaderSmall size={32} containerClassName="h-[150px]" />
+        {isUploading && (
+          <div
+            role="status"
+            aria-label="Uploading"
+            className="absolute inset-0 flex items-center justify-center"
+          >
+            <LoaderSmall size={32} />
+          </div>
         )}
 
         {step === 'success' && summary && (
@@ -202,13 +217,18 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
       </div>
 
       <div className="flex flex-row justify-end">
-        {step === 'select' && (
+        {(step === 'select' || isUploading) && (
           <>
-            <Button cssClass="secondary mr-3" title="Cancel" onClick={close} />
+            <Button
+              cssClass="secondary mr-3"
+              title="Cancel"
+              disable={isUploading}
+              onClick={close}
+            />
             <Button
               cssClass="primary"
               title="Upload"
-              disable={file == null || hasError}
+              disable={file == null || hasError || isUploading}
               onClick={upload}
             />
           </>
