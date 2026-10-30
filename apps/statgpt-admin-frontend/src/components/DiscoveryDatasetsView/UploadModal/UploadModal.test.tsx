@@ -28,12 +28,25 @@ jest.mock('@/src/server/api', () => ({
 
 const mockedSendPostRequest = sendPostRequest as jest.Mock;
 
-const toggleSwitch = (switchId: string): void => {
-  fireEvent.click(document.getElementById(switchId) as HTMLInputElement);
+const SWITCH_ID = 'upload-delete-absent';
+
+const toggleSwitch = (): void => {
+  fireEvent.click(document.getElementById(SWITCH_ID) as HTMLInputElement);
+};
+
+const selectFile = (): void => {
+  fireEvent.click(screen.getByRole('button', { name: 'select file' }));
 };
 
 const renderModal = () =>
   render(<UploadModal channelId="42" close={() => {}} onUploaded={() => {}} />);
+
+const rejectUpload = (detail: object): void => {
+  mockedSendPostRequest.mockResolvedValue({
+    ok: false,
+    error: { message: 'fallback', raw: { detail } },
+  });
+};
 
 describe('UploadModal', () => {
   beforeEach(() => {
@@ -50,49 +63,101 @@ describe('UploadModal', () => {
     });
   });
 
-  it('uploads immediately when replace is off', async () => {
+  it('uploads in upsert mode when the delete toggle is off', async () => {
     renderModal();
 
-    fireEvent.click(screen.getByRole('button', { name: 'select file' }));
+    selectFile();
     fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
 
     await waitFor(() => expect(mockedSendPostRequest).toHaveBeenCalled());
     expect(mockedSendPostRequest.mock.calls[0][0]).toContain('mode=upsert');
-    expect(screen.queryByText(/permanently delete/i)).toBeNull();
   });
 
-  it('shows a confirm step instead of uploading when replace is on', () => {
+  it('reveals the warning banner when the delete toggle is on, keeping its space reserved', () => {
     renderModal();
 
-    fireEvent.click(screen.getByRole('button', { name: 'select file' }));
-    toggleSwitch('upload-replace');
-    fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
+    selectFile();
+    const isHidden = () =>
+      screen
+        .getByText(/permanently deleted/i)
+        .closest('[aria-hidden="true"]') != null;
+    expect(isHidden()).toBe(true);
 
-    expect(screen.getByText(/permanently delete/i)).toBeTruthy();
-    expect(mockedSendPostRequest).not.toHaveBeenCalled();
+    toggleSwitch();
+    expect(isHidden()).toBe(false);
   });
 
-  it('uploads with replace mode after confirming', async () => {
+  it('uploads in replace mode in one click when the delete toggle is on', async () => {
     renderModal();
 
-    fireEvent.click(screen.getByRole('button', { name: 'select file' }));
-    toggleSwitch('upload-replace');
+    selectFile();
+    toggleSwitch();
     fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm Upload' }));
 
     await waitFor(() => expect(mockedSendPostRequest).toHaveBeenCalled());
     expect(mockedSendPostRequest.mock.calls[0][0]).toContain('mode=replace');
   });
 
-  it('returns to the select step on Back without uploading', () => {
+  it('shows the error under the file and disables Upload and the toggle', async () => {
+    rejectUpload({
+      message: 'Bad header row.',
+      problems: [],
+      truncated: false,
+    });
     renderModal();
 
-    fireEvent.click(screen.getByRole('button', { name: 'select file' }));
-    toggleSwitch('upload-replace');
+    selectFile();
     fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
 
-    expect(screen.getByRole('button', { name: 'Upload' })).toBeTruthy();
-    expect(mockedSendPostRequest).not.toHaveBeenCalled();
+    expect(await screen.findByText('Bad header row.')).toBeTruthy();
+    expect(
+      (screen.getByRole('button', { name: 'Upload' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(
+      (document.getElementById(SWITCH_ID) as HTMLInputElement).disabled,
+    ).toBe(true);
+  });
+
+  it('lists every reported problem and notes truncation', async () => {
+    rejectUpload({
+      message: 'Rejected.',
+      problems: [
+        { message: 'Duplicate dataset.', row: 3, field: 'Dataset ID' },
+        { message: 'Missing value.', row: 7 },
+      ],
+      truncated: true,
+    });
+    renderModal();
+
+    selectFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
+
+    expect(
+      await screen.findByText('Row 3, Dataset ID: Duplicate dataset.'),
+    ).toBeTruthy();
+    expect(screen.getByText('Row 7: Missing value.')).toBeTruthy();
+    expect(screen.getByText(/only the first 2 problems/i)).toBeTruthy();
+  });
+
+  it('clears the error and re-enables Upload when another file is chosen', async () => {
+    rejectUpload({
+      message: 'Bad header row.',
+      problems: [],
+      truncated: false,
+    });
+    renderModal();
+
+    selectFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
+    await screen.findByText('Bad header row.');
+
+    selectFile();
+
+    expect(screen.queryByText('Bad header row.')).toBeNull();
+    expect(
+      (screen.getByRole('button', { name: 'Upload' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(false);
   });
 });
