@@ -7,13 +7,21 @@ interface Props {
   title: string;
   switchId: string;
   isOn?: boolean;
+  disabled?: boolean;
   onChange?: (value: boolean) => void;
 }
 
-const Switch: FC<Props> = ({ title, switchId, isOn = false, onChange }) => {
+const Switch: FC<Props> = ({
+  title,
+  switchId,
+  isOn = false,
+  disabled = false,
+  onChange,
+}) => {
   const switchClassName = classNames(
-    'flex w-[36px] h-[18px] cursor-pointer items-center gap-1 rounded-full p-0.5 transition-all duration-200',
+    'flex w-[36px] h-[18px] items-center gap-1 rounded-full p-0.5 transition-all duration-200',
     isOn ? 'flex-row-reverse bg-accent-primary' : 'flex-row bg-layer-4',
+    disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
   );
 
   const onClick = useCallback(
@@ -32,12 +40,20 @@ const Switch: FC<Props> = ({ title, switchId, isOn = false, onChange }) => {
         id={switchId}
         className="invisible w-0 h-0"
         checked={isOn}
+        disabled={disabled}
       />
       <label htmlFor={switchId} className={switchClassName}>
         <span className="size-3 rounded-full bg-control-enable-primary"></span>
       </label>
       {title && (
-        <span className="h-[14px] pl-2 small text-primary">{title}</span>
+        <span
+          className={classNames(
+            'h-[14px] pl-2 small',
+            disabled ? 'text-secondary' : 'text-primary',
+          )}
+        >
+          {title}
+        </span>
       )}
     </div>
   );
