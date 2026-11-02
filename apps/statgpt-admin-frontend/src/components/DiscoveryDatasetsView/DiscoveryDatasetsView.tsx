@@ -360,7 +360,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
           />
           <Button
             cssClass="secondary ml-3"
-            title="Export"
+            title="Export dataset"
             icon={<IconFileArrowRight {...BASE_ICON_PROPS} />}
             disable={isReindexInProgress || isMutating || !stats?.total}
             onClick={exportDatasets}

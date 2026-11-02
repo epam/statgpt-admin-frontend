@@ -1,6 +1,5 @@
 'use client';
 
-import { useCallback } from 'react';
 import { IconFileArrowRight, IconRefresh } from '@tabler/icons-react';
 import { Button } from '../BaseComponents/Button/Button';
 import { TimePeriodDropdown } from './TimePeriodDropdown';
@@ -10,22 +9,13 @@ import { BASE_ICON_PROPS } from '@/src/constants/layout';
 export const AuditLogsHeader = ({
   count,
   onRefresh,
+  onExport,
 }: {
   count?: number;
   onRefresh: () => void;
+  onExport: () => void;
 }) => {
   const { filters, setFilters } = useAuditLogFiltersInUrl();
-
-  const exportHandler = useCallback(() => {
-    const query = new URLSearchParams();
-    if (filters.created_at_from)
-      query.set('created_at_from', filters.created_at_from);
-    if (filters.created_at_to)
-      query.set('created_at_to', filters.created_at_to);
-
-    const url = `/api/v1/audit-logs/export${query.toString() ? `?${query}` : ''}`;
-    window.open(url, '_blank');
-  }, [filters]);
 
   return (
     <div className="flex flex-row items-center justify-between">
@@ -47,7 +37,7 @@ export const AuditLogsHeader = ({
           cssClass="primary"
           title="Export"
           icon={<IconFileArrowRight {...BASE_ICON_PROPS} />}
-          onClick={exportHandler}
+          onClick={onExport}
         />
       </div>
     </div>

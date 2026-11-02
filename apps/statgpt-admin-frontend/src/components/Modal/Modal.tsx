@@ -29,10 +29,14 @@ export const Modal: FC<Props> = ({
             <button
               type="button"
               role="button"
-              className="absolute right-2 top-2 rounded text-secondary hover:text-accent-primary"
+              className="group absolute right-2 top-2 rounded text-secondary hover:text-accent-primary"
               onClick={close}
             >
-              <IconX height={24} width={24} />
+              <IconX
+                className="group-hover:text-accent-primary"
+                height={24}
+                width={24}
+              />
             </button>
           </div>
 

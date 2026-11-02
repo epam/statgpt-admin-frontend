@@ -59,6 +59,7 @@ export interface DiscoveryDataset {
   frequencyCoverage?: string;
   indicatorsCoverage?: string;
   indicatorsSummary?: string;
+  indicatorsSummarizedAt?: string | null;
   missingIndicators?: string;
   channelId?: number;
   validationStatus?: DiscoveryValidationStatus;
@@ -114,17 +115,24 @@ export enum DiscoveryIndexingJobStatus {
   Failed = 'FAILED',
 }
 
+/** Stages of an indexing run that can be forced to redo their work. */
+export enum DiscoveryIndexingStage {
+  Summarization = 'summarization',
+  Publishing = 'publishing',
+}
+
 export interface DiscoveryIndexingJob {
   id: number;
   channelId: number;
   status: DiscoveryIndexingJobStatus;
-  force: boolean;
   /** Populated once the job reaches `Completed`; `null` while queued/running/failed. */
   recordsTotal: number | null;
   recordsValid: number | null;
   recordsInvalid: number | null;
   documentsUpserted: number | null;
   documentsDeleted: number | null;
+  recordsSummarized: number | null;
+  recordsFailed: number | null;
   reasonForFailure?: string;
   createdAt: string;
   updatedAt: string;

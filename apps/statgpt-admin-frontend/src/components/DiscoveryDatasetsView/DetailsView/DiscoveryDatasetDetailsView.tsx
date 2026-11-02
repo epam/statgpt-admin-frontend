@@ -74,6 +74,11 @@ export const DiscoveryDatasetDetailsView: FC<Props> = ({ data, close }) => {
           value={data.indicatorsSummary}
           emptyText={EMPTY_TEXT}
         />
+        <DataField
+          label="Summarized At"
+          value={data.indicatorsSummarizedAt}
+          emptyText={EMPTY_TEXT}
+        />
         {hasMissingIndicators && (
           <DataFieldList
             label="Missing Indicators"

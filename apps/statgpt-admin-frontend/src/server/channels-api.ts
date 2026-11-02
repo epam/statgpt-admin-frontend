@@ -21,6 +21,7 @@ import {
   DiscoveryDataset,
   DiscoveryDatasetStats,
   DiscoveryIndexingJob,
+  DiscoveryIndexingStage,
   DiscoveryUploadMode,
   DiscoveryUploadSummary,
 } from '@/src/models/discovery-dataset';
@@ -486,11 +487,14 @@ export class ChannelsApi extends BaseApi {
 
   triggerDiscoveryIndexingJob(
     id: string,
-    force: boolean,
+    force: DiscoveryIndexingStage[],
     token: JWT | null,
   ): Promise<ApiResult<DiscoveryIndexingJob>> {
+    const query = new URLSearchParams(force.map((stage) => ['force', stage]));
+    const queryString = force.length > 0 ? `?${query}` : '';
+
     return this.post(
-      `${CHANNEL_DISCOVERY_INDEXING_JOBS_URL(id)}?force=${force}`,
+      `${CHANNEL_DISCOVERY_INDEXING_JOBS_URL(id)}${queryString}`,
       {},
       void 0,
       void 0,

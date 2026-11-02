@@ -22,7 +22,10 @@ import { useApiNotification } from '@/src/hooks/use-api-notification';
 import { useNotification } from '@/src/context/NotificationContext';
 import { NotificationType } from '@/src/models/notification';
 import { mapAuditLogRequestToQueryString } from '@/src/utils/audit-logs';
-import { getEnumFilterValue, getTextContains } from '@/src/utils/client/grid';
+import {
+  AuditLogColumnFilters,
+  getAuditLogColumnFilters,
+} from '@/src/utils/client/audit-logs';
 import { ListContent } from '../ListView/ListContent/ListContent';
 import { getAuditLogsColumns } from '@/src/constants/columns/audit-logs';
 
@@ -54,37 +57,37 @@ export function AuditLogsListView({
   }, []);
 
   const filtersRef = useRef(filters);
+  const columnFiltersRef = useRef<AuditLogColumnFilters>({});
   useEffect(() => {
     filtersRef.current = filters;
     setTotalCount(undefined);
   }, [filters]);
 
+  const exportLogs = useCallback(() => {
+    const query = mapAuditLogRequestToQueryString({
+      ...filtersRef.current,
+      ...columnFiltersRef.current,
+    });
+
+    window.open(
+      `/api/v1/audit-logs/export${query ? `?${query}` : ''}`,
+      '_blank',
+    );
+  }, []);
+
   const fetchRows = useCallback(
     async (args: FetchRowsArgs): Promise<FetchRowsResult<AuditLog>> => {
       const { created_at_from, created_at_to } = filtersRef.current;
 
-      const entity_type = getEnumFilterValue(args.filterModel, 'entity_type');
-      const action_type = getEnumFilterValue(args.filterModel, 'action_type');
-
-      const trace_id = getTextContains(args.filterModel, 'trace_id');
-      const entity_id = getTextContains(args.filterModel, 'entity_id');
-      const entity_name = getTextContains(args.filterModel, 'entity_name');
-      const performed_by_name = getTextContains(
-        args.filterModel,
-        'performed_by_name',
-      );
+      const columnFilters = getAuditLogColumnFilters(args.filterModel);
+      columnFiltersRef.current = columnFilters;
 
       const request: AuditLogRequestModel = {
         offset: args.offset,
         limit: args.limit,
         created_at_from,
         created_at_to,
-        ...(entity_type ? { entity_type } : {}),
-        ...(action_type ? { action_type } : {}),
-        ...(trace_id ? { trace_id } : {}),
-        ...(entity_id ? { entity_id } : {}),
-        ...(entity_name ? { entity_name } : {}),
-        ...(performed_by_name ? { performed_by_name } : {}),
+        ...columnFilters,
       };
 
       const query = mapAuditLogRequestToQueryString(request);
@@ -126,6 +129,7 @@ export function AuditLogsListView({
     <div className="flex flex-col h-full rounded bg-layer-2 common-paddings">
       <AuditLogsHeader
         onRefresh={() => setRefreshToken((x) => x + 1)}
+        onExport={exportLogs}
         count={totalCount}
       />
       <ListContent<AuditLog>

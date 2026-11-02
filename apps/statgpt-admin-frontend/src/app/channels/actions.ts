@@ -8,6 +8,7 @@ import type { DeduplicationJob } from '@/src/models/deduplication-job';
 import {
   DiscoveryIndexingJobStatus,
   type DiscoveryIndexingJob,
+  type DiscoveryIndexingStage,
 } from '@/src/models/discovery-dataset';
 import type { RequestData } from '@/src/models/request-data';
 import type { ApiResult } from '@/src/server/api';
@@ -181,7 +182,7 @@ const logIfFailed = (job: DiscoveryIndexingJob) => {
 
 export async function triggerDiscoveryIndexingJob(
   id: string,
-  force: boolean,
+  force: DiscoveryIndexingStage[],
 ): Promise<ApiResult<DiscoveryIndexingJob>> {
   const disabled = guardDiscoveryDatasetsEnabledResult<DiscoveryIndexingJob>();
   if (disabled) return disabled;

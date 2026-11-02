@@ -12,6 +12,7 @@ import { useJobPolling } from '@/src/hooks/useJobPolling';
 import {
   DiscoveryIndexingJobStatus,
   type DiscoveryIndexingJob,
+  type DiscoveryIndexingStage,
 } from '@/src/models/discovery-dataset';
 import { Notification, NotificationType } from '@/src/models/notification';
 
@@ -43,6 +44,8 @@ const getDiscoveryIndexingSuccessDescription = (job: DiscoveryIndexingJob) =>
     `Records invalid: ${job.recordsInvalid}`,
     `Documents upserted: ${job.documentsUpserted}`,
     `Documents deleted: ${job.documentsDeleted}`,
+    `Records summarized: ${job.recordsSummarized}`,
+    `Records failed: ${job.recordsFailed}`,
   ].join('\n');
 
 const isDiscoveryIndexingJobFinal = (job: DiscoveryIndexingJob) =>
@@ -108,7 +111,7 @@ export const useDiscoveryIndexingJobPolling = ({
         'Reindexing is still running in the background. Please check back later.',
     });
 
-  const triggerReindex = (force: boolean) => {
+  const triggerReindex = (force: DiscoveryIndexingStage[]) => {
     if (channelId == null) {
       return;
     }
