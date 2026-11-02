@@ -19,7 +19,7 @@ const Switch: FC<Props> = ({
   onChange,
 }) => {
   const switchClassName = classNames(
-    'flex w-[36px] h-[18px] items-center gap-1 rounded-full p-0.5 transition-all duration-200',
+    'flex w-[36px] h-[18px] items-center gap-1 rounded-full p-0.5 transition-colors duration-200',
     isOn ? 'flex-row-reverse bg-accent-primary' : 'flex-row bg-layer-4',
     disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
   );
