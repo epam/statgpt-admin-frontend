@@ -23,6 +23,13 @@ type Step = 'select' | 'uploading' | 'success';
 
 const FILE_ERROR_ID = 'upload-file-error';
 
+/**
+ * Fixed modal height, sized to the tallest regular step (file selected, with the
+ * delete toggle shown), so the modal does not resize between steps.
+ * Taller content, such as a long list of upload problems, scrolls inside the body.
+ */
+const MODAL_HEIGHT = '340px';
+
 interface Props {
   channelId: string;
   close: () => void;
@@ -117,7 +124,12 @@ export const UploadModal: FC<Props> = ({ channelId, close, onUploaded }) => {
   const isUploading = step === 'uploading';
 
   return (
-    <Modal title="Upload Grade C Dataset" close={close} width="600px">
+    <Modal
+      title="Upload Grade C Dataset"
+      close={close}
+      width="600px"
+      height={MODAL_HEIGHT}
+    >
       <></>
 
       <div className="relative flex flex-col gap-y-4 min-h-[200px] px-6 pt-4 pb-4">
