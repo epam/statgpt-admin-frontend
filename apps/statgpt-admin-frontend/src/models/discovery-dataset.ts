@@ -46,6 +46,12 @@ export const formatDiscoveryValidationIssues = (
     .join('; ');
 };
 
+export interface DiscoveryIndicator {
+  name: string;
+  /** Empty string when the submitter left the units blank. */
+  units: string;
+}
+
 export interface DiscoveryDataset {
   id: number;
   referenceArea?: string;
@@ -57,7 +63,7 @@ export interface DiscoveryDataset {
   url?: string;
   timeCoverage?: string;
   frequencyCoverage?: string;
-  indicatorsCoverage?: string;
+  indicatorsCoverage?: DiscoveryIndicator[];
   indicatorsSummary?: string;
   indicatorsSummarizedAt?: string | null;
   missingIndicators?: string;

@@ -13,6 +13,8 @@ import {
   formatDiscoveryValidationIssues,
 } from '@/src/models/discovery-dataset';
 
+import { IndicatorsTable } from './IndicatorsTable';
+
 const EMPTY_TEXT = 'n/a';
 
 interface Props {
@@ -64,9 +66,9 @@ export const DiscoveryDatasetDetailsView: FC<Props> = ({ data, close }) => {
           value={data.frequencyCoverage}
           emptyText={EMPTY_TEXT}
         />
-        <DataFieldList
+        <IndicatorsTable
           label="Indicators Coverage"
-          value={data.indicatorsCoverage}
+          indicators={data.indicatorsCoverage}
           emptyText={EMPTY_TEXT}
         />
         <DataFieldList
