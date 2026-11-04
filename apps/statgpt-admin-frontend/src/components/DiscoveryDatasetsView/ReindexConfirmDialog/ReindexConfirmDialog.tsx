@@ -57,7 +57,7 @@ export const ReindexConfirmDialog = ({ modalState, onClose }: Props) => {
     <ConfirmDialog
       modalState={modalState}
       header="Confirm Grade C datasets reindexing"
-      description="Reindexing will re-validate all Grade C dataset records, summarize long indicator lists with an LLM and republish them to the knowledge base. This may be time-consuming and uses LLM tokens."
+      description="Reindexing applies to the whole channel, not to individual records. It will re-validate all Grade C dataset records, summarize every long indicator list in the channel with an LLM and republish them to the knowledge base. This may be time-consuming and uses LLM tokens."
       confirmLabel="Reindex"
       cancelLabel="Cancel"
       onClose={(confirmed) => onClose({ confirmed, force })}
