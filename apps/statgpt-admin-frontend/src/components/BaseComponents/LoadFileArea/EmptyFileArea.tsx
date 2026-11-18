@@ -11,6 +11,7 @@ interface Props {
   emptyTitle: string;
   acceptTypes: string;
   className?: string;
+  multiple?: boolean;
   onChange: (url?: FileList) => void;
 }
 
@@ -19,6 +20,7 @@ const EmptyFileArea: FC<Props> = ({
   emptyTitle,
   acceptTypes,
   className,
+  multiple = false,
 }) => {
   const dropRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,6 +89,7 @@ const EmptyFileArea: FC<Props> = ({
         ref={fileInputRef}
         hidden
         accept={acceptTypes}
+        multiple={multiple}
         onChange={onFileChange}
       />
     </div>
