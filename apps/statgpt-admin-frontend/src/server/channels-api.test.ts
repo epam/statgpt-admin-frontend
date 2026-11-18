@@ -35,3 +35,52 @@ describe('ChannelsApi.triggerDiscoveryIndexingJob', () => {
     expect(url).not.toMatch(/force=(true|false)/);
   });
 });
+
+describe('ChannelsApi.exportChannelDiscoveryDatasets', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  const exportUrl = (
+    params?: Parameters<ChannelsApi['exportChannelDiscoveryDatasets']>[2],
+  ) => {
+    const stream = jest
+      .spyOn(
+        ChannelsApi.prototype as unknown as {
+          streamRequest: (url: string) => unknown;
+        },
+        'streamRequest',
+      )
+      .mockReturnValue({});
+
+    new ChannelsApi().exportChannelDiscoveryDatasets('7', null, params);
+
+    return stream.mock.calls[0][0] as string;
+  };
+
+  it('sends no query when nothing is requested', () => {
+    expect(exportUrl()).toMatch(/channels\/7\/discovery-datasets\/export$/);
+  });
+
+  it('passes the filters through', () => {
+    const url = exportUrl({
+      agency: 'World Bank',
+      validation_status: 'INVALID',
+      indexing_status: 'NEW',
+    });
+
+    expect(url).toMatch(
+      /\?agency=World\+Bank&validation_status=INVALID&indexing_status=NEW$/,
+    );
+  });
+
+  it('passes the format and the validation flag through', () => {
+    const url = exportUrl({ format: 'xlsx', include_validation: 'true' });
+
+    expect(url).toMatch(/\?format=xlsx&include_validation=true$/);
+  });
+
+  it('sends one id parameter per selected id', () => {
+    const url = exportUrl({ ids: ['3', '5', '8'] });
+
+    expect(url).toMatch(/\?id=3&id=5&id=8$/);
+  });
+});

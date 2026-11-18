@@ -454,16 +454,21 @@ export class ChannelsApi extends BaseApi {
   exportChannelDiscoveryDatasets(
     id: string,
     token: JWT | null,
-    filters?: {
+    params?: {
       agency?: string;
       validation_status?: string;
       indexing_status?: string;
+      format?: string;
+      include_validation?: string;
+      ids?: string[];
     },
   ) {
+    const { ids = [], ...scalars } = params ?? {};
     const searchParams = new URLSearchParams();
-    Object.entries(filters ?? {}).forEach(([key, value]) => {
+    Object.entries(scalars).forEach(([key, value]) => {
       if (value) searchParams.set(key, value);
     });
+    ids.forEach((itemId) => searchParams.append('id', itemId));
 
     const url = CHANNEL_DISCOVERY_DATASETS_EXPORT_URL(id);
     const query = searchParams.toString();

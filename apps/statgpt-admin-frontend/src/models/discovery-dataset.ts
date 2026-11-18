@@ -83,6 +83,11 @@ export interface DiscoveryDatasetStats {
   byAgency: Record<string, number>;
 }
 
+export enum DiscoveryExportFormat {
+  Excel = 'xlsx',
+  Csv = 'csv',
+}
+
 export enum DiscoveryUploadMode {
   Upsert = 'upsert',
   Replace = 'replace',
