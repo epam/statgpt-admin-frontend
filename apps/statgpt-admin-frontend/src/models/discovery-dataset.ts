@@ -93,16 +93,23 @@ export enum DiscoveryUploadMode {
   Replace = 'replace',
 }
 
+export interface DiscoveryUploadFileSummary {
+  file: string;
+  rowsRead: number;
+}
+
 export interface DiscoveryUploadSummary {
   created: number;
   updated: number;
   unchanged: number;
   deleted: number;
   rowsRead: number;
+  files: DiscoveryUploadFileSummary[];
 }
 
 export interface DiscoveryPayloadProblem {
   message: string;
+  file?: string;
   field?: string;
   index?: number;
   row?: number;
