@@ -15,6 +15,7 @@ import { useAccessControl } from '@/src/context/AccessControlContext';
 import { usePageInitialLoadingSync } from '@/src/context/NavigationLoadingContext';
 import { Button } from '@/src/components/BaseComponents/Button/Button';
 import { ConfirmDialog } from '@/src/components/BaseComponents/ConfirmDialog/ConfirmDialog';
+import { Tooltip } from '@/src/components/BaseComponents/Tooltip/Tooltip';
 import {
   FetchRowsArgs,
   FetchRowsResult,
@@ -53,6 +54,10 @@ import { UploadModal } from './UploadModal/UploadModal';
 import { ReindexConfirmDialog } from './ReindexConfirmDialog/ReindexConfirmDialog';
 import { useDiscoveryIndexingJobPolling } from './useDiscoveryIndexingJobPolling';
 import { DiscoveryDatasetsStats } from './DiscoveryDatasetsStats/DiscoveryDatasetsStats';
+
+const NO_SELECTION_REASON = 'Select rows to delete';
+const REINDEX_SELECTION_REASON =
+  'Reindex always applies to the whole channel. Clear the row selection to reindex.';
 
 interface Props {
   selectedChannelId: string;
@@ -339,48 +344,68 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
     window.open(url, '_blank');
   }, [selectedChannelId]);
 
+  const busyReason =
+    isReindexInProgress || isMutating
+      ? 'Another operation is in progress'
+      : undefined;
+  const datasetActionDisabledReason =
+    busyReason ?? (!stats?.total ? 'No Grade C datasets' : undefined);
+  const reindexDisabledReason =
+    datasetActionDisabledReason ??
+    (selectedIds.length > 0 ? REINDEX_SELECTION_REASON : undefined);
+  const deleteSelectedDisabledReason =
+    busyReason ?? (selectedIds.length === 0 ? NO_SELECTION_REASON : undefined);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-row items-center justify-between mb-3">
         <h3>Accessible Datasets: {stats?.total ?? 0}</h3>
         <div className="flex flex-row items-center">
-          <Button
-            cssClass="secondary"
-            title="Reindex"
-            icon={<IconRefreshDot {...BASE_ICON_PROPS} />}
-            disable={isReindexInProgress || isMutating || !stats?.total}
-            onClick={() => setShowReindexConfirm(true)}
-          />
-          <Button
-            cssClass="primary ml-3"
-            title="Upload"
-            icon={<IconFileArrowLeft {...BASE_ICON_PROPS} />}
-            disable={isReindexInProgress || isMutating}
-            onClick={() => setShowUploadModal(true)}
-          />
-          <Button
-            cssClass="secondary ml-3"
-            title="Export dataset"
-            icon={<IconFileArrowRight {...BASE_ICON_PROPS} />}
-            disable={isReindexInProgress || isMutating || !stats?.total}
-            onClick={exportDatasets}
-          />
-          <Button
-            cssClass="secondary ml-3 min-w-[185px] justify-center"
-            title={`Delete selected (${selectedIds.length})`}
-            icon={<IconTrash {...BASE_ICON_PROPS} />}
-            disable={
-              isReindexInProgress || isMutating || selectedIds.length === 0
-            }
-            onClick={() => setShowDeleteSelectedConfirm(true)}
-          />
-          <Button
-            cssClass="secondary ml-3"
-            title="Clear all"
-            icon={<IconTrash {...BASE_ICON_PROPS} />}
-            disable={isReindexInProgress || isMutating || !stats?.total}
-            onClick={() => setShowClearAllConfirm(true)}
-          />
+          <Tooltip content={reindexDisabledReason}>
+            <Button
+              cssClass="secondary"
+              title="Reindex"
+              icon={<IconRefreshDot {...BASE_ICON_PROPS} />}
+              disable={!!reindexDisabledReason}
+              onClick={() => setShowReindexConfirm(true)}
+            />
+          </Tooltip>
+          <Tooltip content={busyReason} className="ml-3">
+            <Button
+              cssClass="primary"
+              title="Upload"
+              icon={<IconFileArrowLeft {...BASE_ICON_PROPS} />}
+              disable={!!busyReason}
+              onClick={() => setShowUploadModal(true)}
+            />
+          </Tooltip>
+          <Tooltip content={datasetActionDisabledReason} className="ml-3">
+            <Button
+              cssClass="secondary"
+              title="Export dataset"
+              icon={<IconFileArrowRight {...BASE_ICON_PROPS} />}
+              disable={!!datasetActionDisabledReason}
+              onClick={exportDatasets}
+            />
+          </Tooltip>
+          <Tooltip content={deleteSelectedDisabledReason} className="ml-3">
+            <Button
+              cssClass="secondary min-w-[185px] justify-center"
+              title={`Delete selected (${selectedIds.length})`}
+              icon={<IconTrash {...BASE_ICON_PROPS} />}
+              disable={!!deleteSelectedDisabledReason}
+              onClick={() => setShowDeleteSelectedConfirm(true)}
+            />
+          </Tooltip>
+          <Tooltip content={datasetActionDisabledReason} className="ml-3">
+            <Button
+              cssClass="secondary"
+              title="Clear all"
+              icon={<IconTrash {...BASE_ICON_PROPS} />}
+              disable={!!datasetActionDisabledReason}
+              onClick={() => setShowClearAllConfirm(true)}
+            />
+          </Tooltip>
         </div>
       </div>
       <DiscoveryDatasetsStats stats={stats} isLoading={isStatsLoading} />

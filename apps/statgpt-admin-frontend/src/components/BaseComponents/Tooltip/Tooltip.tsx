@@ -33,8 +33,6 @@ export const Tooltip: FC<Props> = ({ content, children, className }) => {
     undefined,
   );
 
-  if (!content) return <>{children}</>;
-
   const handleMouseEnter = () => {
     setPositionStyle({ visibility: 'hidden' });
     setContentMaxHeight(undefined);
@@ -73,6 +71,7 @@ export const Tooltip: FC<Props> = ({ content, children, className }) => {
     >
       {children}
       {visible &&
+        content &&
         createPortal(
           <div
             ref={tooltipRef}

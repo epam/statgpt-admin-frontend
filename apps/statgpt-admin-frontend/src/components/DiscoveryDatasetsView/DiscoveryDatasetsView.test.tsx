@@ -79,6 +79,15 @@ jest.mock('@/src/components/GridView/GridView', () => ({
       >
         select rows
       </button>
+      <button
+        onClick={() =>
+          additionalOptions.onRowSelected({
+            api: { getSelectedNodes: () => [] },
+          })
+        }
+      >
+        clear selection
+      </button>
       <button onClick={() => colDefs.deleteRow(7)}>delete row</button>
     </div>
   ),
@@ -252,5 +261,19 @@ describe('DiscoveryDatasetsView delete progress', () => {
     await waitFor(() =>
       expect(mockRemoveNotification).toHaveBeenCalledWith(LOADING_ID),
     );
+  });
+
+  it('disables Reindex while rows are selected and re-enables it when selection is cleared', async () => {
+    await renderView();
+    const reindexButton = () =>
+      screen.getByRole('button', { name: 'Reindex' }) as HTMLButtonElement;
+
+    expect(reindexButton().disabled).toBe(false);
+
+    fireEvent.click(screen.getByText('select rows'));
+    expect(reindexButton().disabled).toBe(true);
+
+    fireEvent.click(screen.getByText('clear selection'));
+    expect(reindexButton().disabled).toBe(false);
   });
 });
