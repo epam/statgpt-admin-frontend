@@ -38,6 +38,16 @@ const selectFile = (): void => {
   fireEvent.click(screen.getByRole('button', { name: 'select file' }));
 };
 
+const addFiles = (...names: string[]): void => {
+  fireEvent.change(
+    document.querySelector('input[type="file"]') as HTMLInputElement,
+    { target: { files: names.map((name) => new File([], name)) } },
+  );
+};
+
+const getUploadButton = () =>
+  screen.getByRole('button', { name: 'Upload' }) as HTMLButtonElement;
+
 const renderModal = () =>
   render(<UploadModal channelId="42" close={() => {}} onUploaded={() => {}} />);
 
@@ -59,6 +69,7 @@ describe('UploadModal', () => {
         unchanged: 0,
         deleted: 0,
         rowsRead: 0,
+        files: [],
       },
     });
   });
@@ -100,7 +111,14 @@ describe('UploadModal', () => {
 
     finishUpload({
       ok: true,
-      data: { created: 0, updated: 0, unchanged: 0, deleted: 0, rowsRead: 0 },
+      data: {
+        created: 0,
+        updated: 0,
+        unchanged: 0,
+        deleted: 0,
+        rowsRead: 0,
+        files: [],
+      },
     });
     await waitFor(() => expect(screen.getByText(/completed/i)).toBeTruthy());
     expect(screen.queryByRole('status')).toBeNull();
@@ -242,5 +260,252 @@ describe('UploadModal', () => {
     expect(
       (document.getElementById(SWITCH_ID) as HTMLInputElement).checked,
     ).toBe(false);
+  });
+
+  it('sends every selected file as a repeated file part in one request', async () => {
+    renderModal();
+
+    selectFile();
+    addFiles('second.xlsx', 'third.csv');
+    fireEvent.click(getUploadButton());
+
+    await waitFor(() => expect(mockedSendPostRequest).toHaveBeenCalledTimes(1));
+    const formData = mockedSendPostRequest.mock.calls[0][1] as FormData;
+    expect((formData.getAll('file') as File[]).map((f) => f.name)).toEqual([
+      'test.csv',
+      'second.xlsx',
+      'third.csv',
+    ]);
+  });
+
+  it('adds files picked later to the list instead of replacing it', () => {
+    renderModal();
+
+    selectFile();
+    addFiles('second.xlsx');
+
+    expect(screen.getByText('test.csv')).toBeTruthy();
+    expect(screen.getByText('second.xlsx')).toBeTruthy();
+  });
+
+  it('removes a file from the list and uploads the rest', async () => {
+    renderModal();
+
+    selectFile();
+    addFiles('second.xlsx');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove test.csv' }));
+    fireEvent.click(getUploadButton());
+
+    await waitFor(() => expect(mockedSendPostRequest).toHaveBeenCalled());
+    const formData = mockedSendPostRequest.mock.calls[0][1] as FormData;
+    expect((formData.getAll('file') as File[]).map((f) => f.name)).toEqual([
+      'second.xlsx',
+    ]);
+  });
+
+  it('returns to the drop area and disables Upload when the last file is removed', () => {
+    renderModal();
+
+    selectFile();
+    toggleSwitch();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove test.csv' }));
+
+    expect(screen.getByRole('button', { name: 'select file' })).toBeTruthy();
+    expect(getUploadButton().disabled).toBe(true);
+    expect(document.getElementById(SWITCH_ID)).toBeNull();
+  });
+
+  it('shows the batch summary and a rows-read line per file on success', async () => {
+    mockedSendPostRequest.mockResolvedValue({
+      ok: true,
+      data: {
+        created: 4,
+        updated: 1,
+        unchanged: 0,
+        deleted: 0,
+        rowsRead: 5,
+        files: [
+          { file: 'a.csv', rowsRead: 2 },
+          { file: 'b.xlsx', rowsRead: 3 },
+        ],
+      },
+    });
+    renderModal();
+
+    selectFile();
+    addFiles('b.xlsx');
+    fireEvent.click(getUploadButton());
+
+    expect(await screen.findByText(/completed/i)).toBeTruthy();
+    expect(screen.getByText('Created').nextSibling?.textContent).toBe('4');
+    expect(screen.getByText('a.csv').nextSibling?.textContent).toBe('2');
+    expect(screen.getByText('b.xlsx').nextSibling?.textContent).toBe('3');
+  });
+
+  it('prefixes each problem with the file it belongs to', async () => {
+    rejectUpload({
+      message: 'Rejected.',
+      problems: [
+        { message: 'Bad value.', file: 'a.csv', row: 3, cell: 'B3' },
+        { message: 'Cannot be read.', file: 'broken.xlsx' },
+      ],
+      truncated: false,
+    });
+    renderModal();
+
+    selectFile();
+    fireEvent.click(getUploadButton());
+
+    expect(
+      await screen.findByText('a.csv, Row 3, B3: Bad value.'),
+    ).toBeTruthy();
+    expect(screen.getByText('broken.xlsx: Cannot be read.')).toBeTruthy();
+  });
+
+  it('shows the backend message of a refusal that has no problems', async () => {
+    rejectUpload({
+      message: 'Duplicate file names: a.csv.',
+      problems: [],
+      truncated: false,
+    });
+    renderModal();
+
+    selectFile();
+    addFiles('test.csv');
+    fireEvent.click(getUploadButton());
+
+    expect(
+      await screen.findByText('Duplicate file names: a.csv.'),
+    ).toBeTruthy();
+  });
+
+  it('words the replace switch and warning for all uploaded files', () => {
+    renderModal();
+
+    selectFile();
+
+    expect(
+      screen.getByText('Delete records not in the uploaded files'),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Records in the channel that are not in any of the uploaded files will be permanently deleted.',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('clears the error and turns the delete toggle off when a file is removed', async () => {
+    rejectUpload({
+      message: 'Bad header row.',
+      problems: [],
+      truncated: false,
+    });
+    renderModal();
+
+    selectFile();
+    addFiles('second.csv');
+    toggleSwitch();
+    fireEvent.click(getUploadButton());
+    await screen.findByText('Bad header row.');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove second.csv' }));
+
+    expect(screen.queryByText('Bad header row.')).toBeNull();
+    const toggle = document.getElementById(SWITCH_ID) as HTMLInputElement;
+    expect(toggle.checked).toBe(false);
+    expect(toggle.disabled).toBe(false);
+  });
+
+  it('grows the modal with the files up to a cap', () => {
+    renderModal();
+    const getHeight = () =>
+      parseInt(
+        (
+          screen
+            .getByText('Upload Grade C Dataset')
+            .closest('[style]') as HTMLElement
+        ).style.height,
+      );
+    const empty = getHeight();
+
+    selectFile();
+    const one = getHeight();
+    addFiles('b.csv', 'c.csv', 'd.csv', 'e.csv');
+    const many = getHeight();
+    addFiles('f.csv', 'g.csv');
+
+    expect(one).toBeGreaterThan(0);
+    expect(many).toBeGreaterThan(one);
+    expect(getHeight()).toBe(many);
+    expect(empty).toBeLessThanOrEqual(one + 20);
+  });
+
+  it('does not repeat the single file in a per-file breakdown on success', async () => {
+    mockedSendPostRequest.mockResolvedValue({
+      ok: true,
+      data: {
+        created: 1,
+        updated: 0,
+        unchanged: 0,
+        deleted: 0,
+        rowsRead: 1,
+        files: [{ file: 'test.csv', rowsRead: 1 }],
+      },
+    });
+    renderModal();
+
+    selectFile();
+    fireEvent.click(getUploadButton());
+
+    expect(await screen.findByText(/completed/i)).toBeTruthy();
+    expect(screen.queryByText('Rows read per file')).toBeNull();
+  });
+
+  it('shows the success summary when the backend sends no per-file list', async () => {
+    mockedSendPostRequest.mockResolvedValue({
+      ok: true,
+      data: { created: 1, updated: 0, unchanged: 0, deleted: 0, rowsRead: 1 },
+    });
+    renderModal();
+
+    selectFile();
+    fireEvent.click(getUploadButton());
+
+    expect(await screen.findByText(/completed/i)).toBeTruthy();
+    expect(screen.queryByText('Rows read per file')).toBeNull();
+  });
+
+  it('clears the error and turns the delete toggle off when a file is added after a rejection', async () => {
+    rejectUpload({
+      message: 'Bad header row.',
+      problems: [],
+      truncated: false,
+    });
+    renderModal();
+
+    selectFile();
+    toggleSwitch();
+    fireEvent.click(getUploadButton());
+    await screen.findByText('Bad header row.');
+
+    addFiles('fixed.csv');
+
+    expect(screen.queryByText('Bad header row.')).toBeNull();
+    const toggle = document.getElementById(SWITCH_ID) as HTMLInputElement;
+    expect(toggle.checked).toBe(false);
+    expect(toggle.disabled).toBe(false);
+  });
+
+  it('lists a file again when it is picked once more after being removed', () => {
+    renderModal();
+
+    selectFile();
+    addFiles('again.csv');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove again.csv' }));
+    expect(screen.queryByText('again.csv')).toBeNull();
+
+    addFiles('again.csv');
+
+    expect(screen.getByText('again.csv')).toBeTruthy();
   });
 });

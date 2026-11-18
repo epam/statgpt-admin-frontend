@@ -13,6 +13,7 @@ interface LoadFileAreaProps {
   acceptTypes: string;
   iconBeforeInput?: ReactNode;
   inputClassName?: string;
+  multiple?: boolean;
   onChangeFile: (value?: FileList) => void;
 }
 
@@ -28,6 +29,7 @@ export const LoadFileArea: FC<LoadFileAreaProps> = ({
   files,
   iconBeforeInput,
   inputClassName,
+  multiple,
   onChangeFile,
 }) => {
   const removeFile = () => {
@@ -50,6 +52,7 @@ export const LoadFileArea: FC<LoadFileAreaProps> = ({
         acceptTypes={acceptTypes}
         emptyTitle={emptyTitle}
         className={inputClassName}
+        multiple={multiple}
       />
     </DndProvider>
   ) : (

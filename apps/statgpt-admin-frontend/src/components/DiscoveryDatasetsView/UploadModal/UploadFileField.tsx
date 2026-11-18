@@ -4,6 +4,7 @@ import {
   IconFile,
   IconFileTypeCsv,
   IconFileTypeXls,
+  IconX,
 } from '@tabler/icons-react';
 import { ChangeEvent, FC, useRef } from 'react';
 
@@ -13,12 +14,27 @@ import { BASE_ICON_PROPS } from '@/src/constants/layout';
 
 const FILE_INPUT_ID = 'file';
 
+const FILE_ROW_HEIGHT = 36;
+const FILE_ROW_GAP = 4;
+export const MAX_VISIBLE_FILE_ROWS = 4;
+
+/**
+ * Height in px of the file list showing `rows` rows, capped at the visible maximum;
+ * longer lists scroll inside this height.
+ * @param rows - number of files in the list
+ */
+export const getFileListHeight = (rows: number): number => {
+  const visible = Math.min(rows, MAX_VISIBLE_FILE_ROWS);
+  return visible * FILE_ROW_HEIGHT + Math.max(visible - 1, 0) * FILE_ROW_GAP;
+};
+
 interface Props {
-  file?: File;
+  files: File[];
   acceptTypes: string;
   invalid?: boolean;
   errorId?: string;
-  onChangeFile: (file?: File) => void;
+  onAddFiles: (files: File[]) => void;
+  onRemoveFile: (index: number) => void;
 }
 
 /**
@@ -34,80 +50,119 @@ const getFileIcon = (name: string) => {
 };
 
 /**
- * File field of the Grade C upload modal. Shows the drop area until a file is
- * chosen, then a read-only row with the file name and a "Change file" action
- * that replaces the file without resetting the form.
- * @param file - currently chosen file
+ * File field of the Grade C upload modal. Shows the drop area until files are
+ * chosen, then one read-only row per file with a remove action and an
+ * "Add files" action that appends more files without resetting the form.
+ * @param files - currently chosen files, in upload order
  * @param acceptTypes - comma-separated extensions the file picker offers
- * @param invalid - marks the chosen file as rejected for assistive tech; the visible error is rendered by the caller
+ * @param invalid - marks the chosen files as rejected for assistive tech; the visible error is rendered by the caller
  * @param errorId - id of the element that describes the error, for assistive tech
- * @param onChangeFile - called with the new file when one is picked or dropped
+ * @param onAddFiles - called with the files that were picked or dropped
+ * @param onRemoveFile - called with the index of the file whose remove action was used
  */
 export const UploadFileField: FC<Props> = ({
-  file,
+  files,
   acceptTypes,
   invalid = false,
   errorId,
-  onChangeFile,
+  onAddFiles,
+  onRemoveFile,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const picked = e.target.files?.[0];
-    if (picked) {
-      onChangeFile(picked);
+    const picked = Array.from(e.target.files ?? []);
+    if (picked.length > 0) {
+      onAddFiles(picked);
     }
-    // `input.files` is a live list that the reset below empties, so the File has to be taken out first.
+    // `input.files` is a live list that the reset below empties, so the Files have to be taken out first.
     // The reset itself lets the user re-pick the same file after fixing it on disk, which would otherwise fire no change event.
     e.target.value = '';
   };
 
-  const FileIcon = file ? getFileIcon(file.name) : IconFile;
-
   return (
-    <div className="flex flex-col gap-y-2">
-      <label className="tiny text-secondary" htmlFor={FILE_INPUT_ID}>
-        File
-      </label>
+    <div className="flex min-h-0 flex-col gap-y-2">
+      <div className="flex shrink-0 flex-row items-center justify-between">
+        <label className="tiny text-secondary" htmlFor={FILE_INPUT_ID}>
+          Files
+        </label>
 
-      {file ? (
-        <div className="flex flex-row items-center gap-x-3 rounded-xl bg-layer-4 pl-3 pr-3">
-          <FileIcon
-            {...BASE_ICON_PROPS}
-            className="shrink-0 text-icon-primary"
-            aria-hidden="true"
-          />
-
-          <span
-            className="small min-w-0 flex-1 truncate py-[18px] text-primary"
-            title={file.name}
-          >
-            {file.name}
-          </span>
-
+        {files.length > 0 && (
           <Button
-            cssClass="small-medium shrink-0 whitespace-nowrap rounded px-2 py-2 text-accent-primary hover:bg-controls-accent-alpha focus-visible:bg-controls-accent-alpha"
-            title="Change file"
+            cssClass="small-medium shrink-0 whitespace-nowrap rounded px-2 py-1 text-accent-primary hover:bg-controls-accent-alpha focus-visible:bg-controls-accent-alpha"
+            title="Add files"
             onClick={() => inputRef.current?.click()}
           />
+        )}
+      </div>
+
+      {files.length > 0 ? (
+        <>
+          <ul
+            className="flex flex-col gap-y-1 overflow-y-auto"
+            style={{
+              maxHeight: getFileListHeight(MAX_VISIBLE_FILE_ROWS),
+              minHeight: getFileListHeight(Math.min(files.length, 2)),
+            }}
+          >
+            {files.map((file, index) => {
+              const FileIcon = getFileIcon(file.name);
+
+              return (
+                <li
+                  key={`${file.name}-${index}`}
+                  className="flex h-9 shrink-0 flex-row items-center gap-x-3 rounded-xl bg-layer-4 pl-3 pr-2"
+                >
+                  <FileIcon
+                    {...BASE_ICON_PROPS}
+                    className="shrink-0 text-icon-primary"
+                    aria-hidden="true"
+                  />
+
+                  <span
+                    className="small min-w-0 flex-1 truncate text-primary"
+                    title={file.name}
+                  >
+                    {file.name}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="shrink-0 rounded p-1 text-icon-secondary hover:text-icon-accent-primary"
+                    aria-label={`Remove ${file.name}`}
+                    onClick={() => onRemoveFile(index)}
+                  >
+                    <IconX {...BASE_ICON_PROPS} aria-hidden="true" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
 
           <input
             id={FILE_INPUT_ID}
             ref={inputRef}
             type="file"
             hidden
+            multiple
             accept={acceptTypes}
             aria-invalid={invalid || undefined}
             aria-describedby={invalid ? errorId : undefined}
             onChange={handleInputChange}
           />
-        </div>
+        </>
       ) : (
         <LoadFileArea
-          emptyTitle="Drop file here"
+          emptyTitle="Drop files here"
           acceptTypes={acceptTypes}
           inputClassName="text-sm"
-          onChangeFile={(dropped) => onChangeFile(dropped?.[0])}
+          multiple
+          onChangeFile={(dropped) => {
+            const droppedFiles = Array.from(dropped ?? []);
+            if (droppedFiles.length > 0) {
+              onAddFiles(droppedFiles);
+            }
+          }}
         />
       )}
     </div>
