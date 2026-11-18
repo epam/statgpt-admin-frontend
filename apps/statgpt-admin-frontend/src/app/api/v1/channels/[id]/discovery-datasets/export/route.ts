@@ -19,6 +19,9 @@ export async function GET(
       agency: search.get('agency') ?? undefined,
       validation_status: search.get('validation_status') ?? undefined,
       indexing_status: search.get('indexing_status') ?? undefined,
+      format: search.get('format') ?? undefined,
+      include_validation: search.get('include_validation') ?? undefined,
+      ids: search.getAll('id'),
     });
   } catch {
     return Response.json({ error: 'Internal Server Error' }, { status: 500 });

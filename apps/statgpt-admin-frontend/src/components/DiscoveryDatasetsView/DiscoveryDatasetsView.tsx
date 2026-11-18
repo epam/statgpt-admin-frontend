@@ -47,9 +47,11 @@ import {
   pruneStaleEnumFilters,
 } from '@/src/utils/client/grid';
 import {
+  buildDiscoveryDatasetsExportUrl,
   DiscoveryDatasetsRequestModel,
   mapDiscoveryDatasetsRequestToQueryString,
 } from '@/src/utils/discovery-datasets';
+import { ExportModal, ExportOptions } from './ExportModal/ExportModal';
 import { UploadModal } from './UploadModal/UploadModal';
 import { ReindexConfirmDialog } from './ReindexConfirmDialog/ReindexConfirmDialog';
 import { useDiscoveryIndexingJobPolling } from './useDiscoveryIndexingJobPolling';
@@ -58,6 +60,19 @@ import { DiscoveryDatasetsStats } from './DiscoveryDatasetsStats/DiscoveryDatase
 const NO_SELECTION_REASON = 'Select rows to delete';
 const REINDEX_SELECTION_REASON =
   'Reindex always applies to the whole channel. Clear the row selection to reindex.';
+
+/** The backend rejects an export that selects more than this many ids. */
+const MAX_EXPORT_SELECTION = 500;
+const EXPORT_SELECTION_LIMIT_REASON = `At most ${MAX_EXPORT_SELECTION} selected datasets can be exported. Deselect some rows to export.`;
+
+/**
+ * Starts the browser download of an export URL in a new tab. Kept as the single
+ * place that triggers the download.
+ * @param url - BFF export URL
+ */
+const downloadExport = (url: string) => {
+  window.open(url, '_blank', 'noopener');
+};
 
 interface Props {
   selectedChannelId: string;
@@ -69,6 +84,7 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const { showNotification, removeNotification } = useNotification();
   const [refreshToken, setRefreshToken] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [showReindexConfirm, setShowReindexConfirm] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [showDeleteSelectedConfirm, setShowDeleteSelectedConfirm] =
@@ -329,20 +345,20 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
     [fetchDiscoveryDatasetsPageMemoized],
   );
 
-  const exportDatasets = useCallback(() => {
-    const filters = currentFiltersRef.current;
-    const query = new URLSearchParams();
-    if (filters.agency) query.set('agency', filters.agency);
-    if (filters.validation_status)
-      query.set('validation_status', filters.validation_status);
-    if (filters.indexing_status)
-      query.set('indexing_status', filters.indexing_status);
-
-    const url = `/api/v1/channels/${selectedChannelId}/discovery-datasets/export${
-      query.toString() ? `?${query}` : ''
-    }`;
-    window.open(url, '_blank');
-  }, [selectedChannelId]);
+  const exportDatasets = useCallback(
+    ({ format, includeValidation }: ExportOptions) => {
+      downloadExport(
+        buildDiscoveryDatasetsExportUrl({
+          channelId: selectedChannelId,
+          format,
+          includeValidation,
+          ids: selectedIds,
+          filters: currentFiltersRef.current,
+        }),
+      );
+    },
+    [selectedChannelId, selectedIds],
+  );
 
   const busyReason =
     isReindexInProgress || isMutating
@@ -353,6 +369,11 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
   const reindexDisabledReason =
     datasetActionDisabledReason ??
     (selectedIds.length > 0 ? REINDEX_SELECTION_REASON : undefined);
+  const exportDisabledReason =
+    datasetActionDisabledReason ??
+    (selectedIds.length > MAX_EXPORT_SELECTION
+      ? EXPORT_SELECTION_LIMIT_REASON
+      : undefined);
   const deleteSelectedDisabledReason =
     busyReason ?? (selectedIds.length === 0 ? NO_SELECTION_REASON : undefined);
 
@@ -379,13 +400,17 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
               onClick={() => setShowUploadModal(true)}
             />
           </Tooltip>
-          <Tooltip content={datasetActionDisabledReason} className="ml-3">
+          <Tooltip content={exportDisabledReason} className="ml-3">
             <Button
-              cssClass="secondary"
-              title="Export dataset"
+              cssClass="secondary min-w-[185px] justify-center"
+              title={
+                selectedIds.length > 0
+                  ? `Export selected (${selectedIds.length})`
+                  : 'Export datasets'
+              }
               icon={<IconFileArrowRight {...BASE_ICON_PROPS} />}
-              disable={!!datasetActionDisabledReason}
-              onClick={exportDatasets}
+              disable={!!exportDisabledReason}
+              onClick={() => setShowExportModal(true)}
             />
           </Tooltip>
           <Tooltip content={deleteSelectedDisabledReason} className="ml-3">
@@ -427,6 +452,14 @@ export const DiscoveryDatasetsView: FC<Props> = ({ selectedChannelId }) => {
             channelId={selectedChannelId}
             close={() => setShowUploadModal(false)}
             onUploaded={() => setRefreshToken((x) => x + 1)}
+          />,
+          document.body,
+        )}
+      {showExportModal &&
+        createPortal(
+          <ExportModal
+            close={() => setShowExportModal(false)}
+            onExport={exportDatasets}
           />,
           document.body,
         )}
